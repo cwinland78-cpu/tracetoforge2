@@ -1,7 +1,7 @@
 import { Purchases } from '@revenuecat/purchases-js';
 import { callRpc, queryTable } from './supabase';
 
-const RC_API_KEY = import.meta.env.VITE_RC_API_KEY || 'rcb_sb_NTTaKIsAHXEPUNEAbPMjpRner';
+const RC_API_KEY = import.meta.env.VITE_RC_API_KEY || 'rcb_qocDHLqCasYLKEOvPuyDacOrCFOt';
 const CREDITS_KEY = 'ttf_credits';
 const CUSTOMER_ID_KEY = 'ttf_customer_id';
 const REDEEMED_PROMOS_KEY = 'ttf_redeemed_promos';
