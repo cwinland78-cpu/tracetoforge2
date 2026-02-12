@@ -589,7 +589,7 @@ function createGridfinityInsert(points, config) {
   const {
     gridX = 2,
     gridY = 1,
-    heightUnits = 3,
+    gridHeight = 21,
     tolerance = 1.5,
     realWidth = 100,
     toolDepth,
@@ -602,7 +602,7 @@ function createGridfinityInsert(points, config) {
 
   const binW = gridX * GF.gridUnit - GF.tolerance * 2
   const binH = gridY * GF.gridUnit - GF.tolerance * 2
-  const totalHeight = GF.baseHeight + heightUnits * GF.heightUnit
+  const totalHeight = GF.baseHeight + gridHeight
   const wallHeight = totalHeight - GF.baseHeight
   const minFloor = 1.0  // always keep at least 1mm floor above the base
   const maxCavity = wallHeight - minFloor

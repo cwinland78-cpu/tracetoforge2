@@ -128,7 +128,7 @@ export default function Editor() {
   // Gridfinity
   const [gridX, setGridX] = useState(2)
   const [gridY, setGridY] = useState(1)
-  const [heightUnits, setHeightUnits] = useState(3)
+  const [gridHeight, setGridHeight] = useState(21) // mm (was 3 units * 7mm)
 
   // Detection
   const [threshold, setThreshold] = useState(128)
@@ -202,7 +202,8 @@ export default function Editor() {
       if (cfg.outerShapeType) setOuterShapeType(cfg.outerShapeType)
       if (cfg.gridX) setGridX(cfg.gridX)
       if (cfg.gridY) setGridY(cfg.gridY)
-      if (cfg.heightUnits) setHeightUnits(cfg.heightUnits)
+      if (cfg.gridHeight) setGridHeight(cfg.gridHeight)
+      else if (cfg.heightUnits) setGridHeight(cfg.heightUnits * 7)
       if (cfg.threshold) setThreshold(cfg.threshold)
       if (cfg.simplification) setSimplification(cfg.simplification)
       if (cfg.sensitivity) setSensitivity(cfg.sensitivity)
@@ -228,7 +229,7 @@ export default function Editor() {
       fingerNotches,
       tools, step: step, trayWidth, trayDepth, depth, objectEdgeRadius,
       edgeProfile, edgeSize, outerShapeType, gridX, gridY,
-      heightUnits, threshold, simplification, sensitivity,
+      gridHeight, threshold, simplification, sensitivity,
       image: image || null,
       imageSize: imageSize || null,
     }
@@ -1076,7 +1077,7 @@ export default function Editor() {
       return { ...base, trayWidth, trayHeight, trayDepth, wallThickness, cornerRadius, floorThickness, edgeProfile, edgeSize, cavityBevel, fingerNotches, outerShapeType, outerShapePoints: outerPts, additionalTools }
     }
     if (outputMode === 'gridfinity') {
-      return { ...base, gridX, gridY, heightUnits, cavityBevel, fingerNotches, additionalTools }
+      return { ...base, gridX, gridY, gridHeight, cavityBevel, fingerNotches, additionalTools }
     }
     return { ...base, additionalTools }
   }
@@ -1605,9 +1606,9 @@ export default function Editor() {
                         <input type="number" value={gridY} onChange={e => setGridY(+e.target.value)} className="w-[4.5rem] text-right" min="1" max="6" />
                         <span className="text-xs text-[#8888A0] w-7">units</span>
                       </ParamRow>
-                      <ParamRow label="Height" tooltip="Height units (7mm each), excludes the 4.75mm base." tooltipPos="above">
-                        <input type="number" value={heightUnits} onChange={e => setHeightUnits(+e.target.value)} className="w-[4.5rem] text-right" min="1" max="10" />
-                        <span className="text-xs text-[#8888A0] w-7">units</span>
+                      <ParamRow label="Height" tooltip="Wall height in mm (excludes the 4.75mm base)." tooltipPos="above">
+                        <input type="number" value={gridHeight} onChange={e => setGridHeight(Math.max(7, +e.target.value))} className="w-[4.5rem] text-right" min="7" step="1" />
+                        <span className="text-xs text-[#8888A0] w-7">mm</span>
                       </ParamRow>
 
                       {/* Cavity Bevel */}
