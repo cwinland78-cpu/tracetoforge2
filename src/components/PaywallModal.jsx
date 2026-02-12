@@ -37,7 +37,7 @@ export default function PaywallModal({ isOpen, onClose, onCreditsChanged, userId
   async function loadOfferings() {
     setLoading(true);
     try {
-      const current = await getOfferings();
+      const current = await getOfferings(userId);
       setOfferings(current);
     } catch (err) {
       console.error('Failed to load offerings:', err);

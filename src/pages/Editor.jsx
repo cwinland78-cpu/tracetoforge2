@@ -140,8 +140,8 @@ export default function Editor() {
   const [cvReady, setCvReady] = useState(false)
   const [processing, setProcessing] = useState(false)
 
-  // Initialize RevenueCat
-  useEffect(() => { initPurchases() }, [])
+  // Initialize RevenueCat with user ID when available
+  useEffect(() => { initPurchases(user?.id || null) }, [user])
 
   // Fetch credits (server-side if logged in)
   useEffect(() => {
@@ -310,13 +310,22 @@ export default function Editor() {
     setShowDisclaimer(true)
   }
 
-  function handleConfirmExport() {
+  async function handleConfirmExport() {
     setShowDisclaimer(false)
     const pts = contours[selectedContour]
     if (!pts || pts.length < 3) return
     const scaledPts = scalePoints(pts)
     const config = buildConfig()
     try {
+      // Deduct credit server-side first (for logged-in users)
+      if (user?.id) {
+        const spent = await useCredit(user.id, { outputMode })
+        if (!spent) {
+          setShowPaywall(true)
+          return
+        }
+      }
+
       const buffer = exportSTL(scaledPts, config)
       const blob = new Blob([buffer], { type: 'application/octet-stream' })
       const url = URL.createObjectURL(blob)
@@ -327,10 +336,15 @@ export default function Editor() {
       document.body.appendChild(a)
       a.click()
       setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url) }, 200)
-      setCredits(prev => Math.max(0, prev - 1))
-      useCredit(user?.id || null, { outputMode }).then(() =>
-        getCredits(user?.id || null).then(c => setCredits(c))
-      )
+
+      // Update local credit display
+      if (user?.id) {
+        getCredits(user.id).then(c => setCredits(c))
+      } else {
+        // Anonymous: localStorage fallback
+        useCredit(null, { outputMode })
+        setCredits(prev => Math.max(0, prev - 1))
+      }
     } catch (err) {
       console.error('Export error:', err)
     }

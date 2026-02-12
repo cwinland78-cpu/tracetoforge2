@@ -7,21 +7,26 @@ const CUSTOMER_ID_KEY = 'ttf_customer_id';
 const REDEEMED_PROMOS_KEY = 'ttf_redeemed_promos';
 
 let purchasesInstance = null;
+let currentCustomerId = null;
 
-function getCustomerId() {
+function getCustomerId(userId) {
+  // Use Supabase user ID if logged in, otherwise generate anonymous ID
+  if (userId) return userId;
   let id = localStorage.getItem(CUSTOMER_ID_KEY);
   if (!id) {
-    id = 'ttf_' + crypto.randomUUID();
+    id = 'ttf_anon_' + crypto.randomUUID();
     localStorage.setItem(CUSTOMER_ID_KEY, id);
   }
   return id;
 }
 
-export async function initPurchases() {
-  if (purchasesInstance) return purchasesInstance;
+export async function initPurchases(userId) {
+  const customerId = getCustomerId(userId);
+  // Reinitialize if customer ID changed (e.g. user logged in)
+  if (purchasesInstance && currentCustomerId === customerId) return purchasesInstance;
   try {
-    const customerId = getCustomerId();
     purchasesInstance = Purchases.configure(RC_API_KEY, customerId);
+    currentCustomerId = customerId;
     return purchasesInstance;
   } catch (err) {
     console.error('RevenueCat init error:', err);
@@ -29,9 +34,9 @@ export async function initPurchases() {
   }
 }
 
-export async function getOfferings() {
+export async function getOfferings(userId) {
   try {
-    const purchases = await initPurchases();
+    const purchases = await initPurchases(userId);
     if (!purchases) return null;
     const offerings = await purchases.getOfferings();
     return offerings.current;
@@ -43,7 +48,7 @@ export async function getOfferings() {
 
 export async function purchasePackage(pkg, userId) {
   try {
-    const purchases = await initPurchases();
+    const purchases = await initPurchases(userId);
     if (!purchases) throw new Error('RevenueCat not initialized');
     const result = await purchases.purchase({ rcPackage: pkg });
     const productId = pkg.rcBillingProduct?.identifier || pkg.identifier || '';
