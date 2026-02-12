@@ -1378,15 +1378,15 @@ export default function Editor() {
                           disabled={objectEdgeRadius <= 0}
                         >-</button>
                         <input
-                          type="range" min="0" max="10" step="0.5"
+                          type="range" min="0" max="5" step="0.5"
                           value={objectEdgeRadius}
                           onChange={e => setObjectEdgeRadius(+e.target.value)}
                           className="w-20 accent-brand"
                         />
                         <button
-                          onClick={() => setObjectEdgeRadius(Math.min(10, +(objectEdgeRadius + 0.5).toFixed(1)))}
+                          onClick={() => setObjectEdgeRadius(Math.min(5, +(objectEdgeRadius + 0.5).toFixed(1)))}
                           className="w-6 h-6 rounded bg-[#2A2A35] hover:bg-[#3A3A45] text-white text-sm flex items-center justify-center"
-                          disabled={objectEdgeRadius >= 10}
+                          disabled={objectEdgeRadius >= 5}
                         >+</button>
                         <span className="text-xs text-[#8888A0] ml-1 w-12">{objectEdgeRadius} mm</span>
                       </div>
