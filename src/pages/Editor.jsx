@@ -1479,44 +1479,6 @@ export default function Editor() {
                         </ParamRow>
                       )}
 
-                      {/* Cross-section SVG - Side profile showing bottom edge treatment */}
-                      <div className="bg-[#131318] rounded-lg p-3 border border-[#2A2A35]/50">
-                        <svg viewBox="0 0 80 55" className="w-full h-16">
-                          {edgeProfile === 'straight' && (
-                            <rect x="10" y="5" width="60" height="40" fill="#888899" opacity="0.4" rx="1" />
-                          )}
-                          {edgeProfile === 'chamfer' && (
-                            <polygon points="10,5 70,5 70,37 65,45 15,45 10,37" fill="#888899" opacity="0.4" />
-                          )}
-                          {edgeProfile === 'fillet' && (
-                            <path d="M10,5 L70,5 L70,35 Q70,45 65,45 L15,45 Q10,45 10,35 Z" fill="#888899" opacity="0.4" />
-                          )}
-                          {/* Cavity cutout from top */}
-                          <rect x="25" y="5" width="30" height="25" fill="#0A0A0F" rx="1" />
-                          <rect x="25" y="5" width="30" height="25" fill="#E8650A" opacity="0.15" rx="1" />
-                          {/* Bottom edge highlights */}
-                          {edgeProfile === 'chamfer' && (
-                            <>
-                              <line x1="10" y1="37" x2="15" y2="45" stroke="#E8650A" strokeWidth="1.5" />
-                              <line x1="70" y1="37" x2="65" y2="45" stroke="#E8650A" strokeWidth="1.5" />
-                              <line x1="15" y1="45" x2="65" y2="45" stroke="#E8650A" strokeWidth="0.8" opacity="0.4" />
-                            </>
-                          )}
-                          {edgeProfile === 'fillet' && (
-                            <>
-                              <path d="M10,35 Q10,45 15,45" fill="none" stroke="#E8650A" strokeWidth="1.5" />
-                              <path d="M70,35 Q70,45 65,45" fill="none" stroke="#E8650A" strokeWidth="1.5" />
-                              <line x1="15" y1="45" x2="65" y2="45" stroke="#E8650A" strokeWidth="0.8" opacity="0.4" />
-                            </>
-                          )}
-                          <text x="40" y="20" textAnchor="middle" fill="#E8650A" fontSize="5" opacity="0.6">cavity</text>
-                          <text x="40" y="40" textAnchor="middle" fill="#ccc" fontSize="4" opacity="0.4">solid</text>
-                          {edgeProfile !== 'straight' && (
-                            <text x="40" y="52" textAnchor="middle" fill="#E8650A" fontSize="3.5" opacity="0.5">bottom edge bevel</text>
-                          )}
-                        </svg>
-                        <p className="text-[10px] text-[#8888A0] text-center mt-1">Side profile cross-section</p>
-                      </div>
 
                       {/* Cavity Bevel */}
                       <div className="border-t border-[#2A2A35]/50 pt-3 mt-1">
