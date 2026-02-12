@@ -1495,7 +1495,7 @@ export default function Editor() {
                           </button>
                         ))}
                         {fingerNotches.length < 5 && (
-                          <button onClick={addNotch} className="px-2 py-1 text-[10px] rounded-md bg-[#1C1C24] text-green-400 hover:bg-[#2A2A35] transition-colors">+</button>
+                          <button onClick={addNotch} className="px-2.5 py-1.5 text-sm font-bold rounded-md bg-green-600/20 text-green-400 hover:bg-green-600/30 border border-green-500/30 transition-colors">+ Add</button>
                         )}
                       </div>
                       {fingerNotches.length > 0 && fingerNotches[activeNotchIdx] && (() => {
@@ -1535,14 +1535,6 @@ export default function Editor() {
                               </ParamRow>
                             </>
                           )}
-                          <ParamRow label="Pos X" tooltip="Horizontal position of finger notch center.">
-                            <input type="number" value={n.x} onChange={e => updateNotch(ni, 'x', +e.target.value)} className="w-[4.5rem] text-right" step="1" />
-                            <span className="text-xs text-[#8888A0] w-7">mm</span>
-                          </ParamRow>
-                          <ParamRow label="Pos Y" tooltip="Vertical position of finger notch center.">
-                            <input type="number" value={n.y} onChange={e => updateNotch(ni, 'y', +e.target.value)} className="w-[4.5rem] text-right" step="1" />
-                            <span className="text-xs text-[#8888A0] w-7">mm</span>
-                          </ParamRow>
                           <button onClick={() => removeNotch(ni)} className="w-full text-xs text-red-400 hover:text-red-300 py-1 transition-colors">Remove Notch {ni + 1}</button>
                         </>
                         )
@@ -1642,7 +1634,7 @@ export default function Editor() {
                           </button>
                         ))}
                         {fingerNotches.length < 5 && (
-                          <button onClick={addNotch} className="px-2 py-1 text-[10px] rounded-md bg-[#1C1C24] text-green-400 hover:bg-[#2A2A35] transition-colors">+</button>
+                          <button onClick={addNotch} className="px-2.5 py-1.5 text-sm font-bold rounded-md bg-green-600/20 text-green-400 hover:bg-green-600/30 border border-green-500/30 transition-colors">+ Add</button>
                         )}
                       </div>
                       {fingerNotches.length > 0 && fingerNotches[activeNotchIdx] && (() => {
@@ -1682,14 +1674,6 @@ export default function Editor() {
                               </ParamRow>
                             </>
                           )}
-                          <ParamRow label="Pos X" tooltip="Horizontal position of finger notch center.">
-                            <input type="number" value={n.x} onChange={e => updateNotch(ni, 'x', +e.target.value)} className="w-[4.5rem] text-right" step="1" />
-                            <span className="text-xs text-[#8888A0] w-7">mm</span>
-                          </ParamRow>
-                          <ParamRow label="Pos Y" tooltip="Vertical position of finger notch center.">
-                            <input type="number" value={n.y} onChange={e => updateNotch(ni, 'y', +e.target.value)} className="w-[4.5rem] text-right" step="1" />
-                            <span className="text-xs text-[#8888A0] w-7">mm</span>
-                          </ParamRow>
                           <button onClick={() => removeNotch(ni)} className="w-full text-xs text-red-400 hover:text-red-300 py-1 transition-colors">Remove Notch {ni + 1}</button>
                         </>
                         )
