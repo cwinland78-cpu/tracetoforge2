@@ -1176,24 +1176,6 @@ export default function Editor() {
         <aside className="w-72 border-r border-[#2A2A35]/50 bg-surface/30 overflow-y-auto flex-shrink-0">
           <div className="p-4 pb-32 space-y-5">
 
-            {/* Output Mode */}
-            <div>
-              <h3 className="text-xs font-semibold text-[#8888A0] uppercase tracking-wider mb-2">Output Mode</h3>
-              <div className="grid grid-cols-3 gap-1 bg-[#131318] rounded-lg p-1">
-                {[
-                  { key: 'object', label: 'Object' },
-                  { key: 'custom', label: 'Tray' },
-                  { key: 'gridfinity', label: 'Gridfinity' },
-                ].map(({ key, label }) => (
-                  <button key={key} onClick={() => setOutputMode(key)}
-                    className={`py-1.5 text-xs font-medium rounded-md transition-all
-                      ${outputMode === key ? 'bg-brand text-white shadow-sm' : 'text-[#8888A0] hover:text-white'}`}>
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
             {/* Detection */}
             {step >= 1 && (
               <div>
@@ -1403,6 +1385,24 @@ export default function Editor() {
                       </ParamRow>
                     </>
                   )}
+
+                  {/* Output Mode */}
+                  <div className="border-t border-[#2A2A35]/50 pt-3 mt-1">
+                    <h4 className="text-[11px] font-semibold text-brand/80 uppercase tracking-wider mb-3">Output Mode</h4>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1 bg-[#131318] rounded-lg p-1 mb-2">
+                    {[
+                      { key: 'object', label: 'Object' },
+                      { key: 'custom', label: 'Tray' },
+                      { key: 'gridfinity', label: 'Gridfinity' },
+                    ].map(({ key, label }) => (
+                      <button key={key} onClick={() => setOutputMode(key)}
+                        className={`py-1.5 text-xs font-medium rounded-md transition-all
+                          ${outputMode === key ? 'bg-brand text-white shadow-sm' : 'text-[#8888A0] hover:text-white'}`}>
+                        {label}
+                      </button>
+                    ))}
+                  </div>
 
                   {/* Object mode */}
                   {outputMode === 'object' && (
