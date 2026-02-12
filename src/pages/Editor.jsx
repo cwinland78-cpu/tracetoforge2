@@ -1386,24 +1386,6 @@ export default function Editor() {
                     </>
                   )}
 
-                  {/* Output Mode */}
-                  <div className="border-t border-[#2A2A35]/50 pt-3 mt-1">
-                    <h4 className="text-[11px] font-semibold text-brand/80 uppercase tracking-wider mb-3">Output Mode</h4>
-                  </div>
-                  <div className="grid grid-cols-3 gap-1 bg-[#131318] rounded-lg p-1 mb-2">
-                    {[
-                      { key: 'object', label: 'Object' },
-                      { key: 'custom', label: 'Tray' },
-                      { key: 'gridfinity', label: 'Gridfinity' },
-                    ].map(({ key, label }) => (
-                      <button key={key} onClick={() => setOutputMode(key)}
-                        className={`py-1.5 text-xs font-medium rounded-md transition-all
-                          ${outputMode === key ? 'bg-brand text-white shadow-sm' : 'text-[#8888A0] hover:text-white'}`}>
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-
                   {/* Object mode */}
                   {outputMode === 'object' && (
                     <>
@@ -1648,6 +1630,26 @@ export default function Editor() {
                       className={`w-full text-left px-3 py-1.5 rounded-md text-xs transition-colors
                         ${i === selectedContour ? 'bg-brand/15 text-brand' : 'text-[#8888A0] hover:text-white hover:bg-[#1C1C24]'}`}>
                       Shape {i + 1} ({c.length} pts)
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Output Mode */}
+            {step >= 2 && (
+              <div>
+                <h3 className="text-xs font-semibold text-[#8888A0] uppercase tracking-wider mb-2">Output Mode</h3>
+                <div className="grid grid-cols-3 gap-1 bg-[#131318] rounded-lg p-1">
+                  {[
+                    { key: 'object', label: 'Object' },
+                    { key: 'custom', label: 'Tray' },
+                    { key: 'gridfinity', label: 'Gridfinity' },
+                  ].map(({ key, label }) => (
+                    <button key={key} onClick={() => setOutputMode(key)}
+                      className={`py-1.5 text-xs font-medium rounded-md transition-all
+                        ${outputMode === key ? 'bg-brand text-white shadow-sm' : 'text-[#8888A0] hover:text-white'}`}>
+                      {label}
                     </button>
                   ))}
                 </div>
