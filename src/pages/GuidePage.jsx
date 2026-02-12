@@ -277,6 +277,7 @@ export default function GuidePage() {
           <div className="flex items-center gap-6 text-xs text-[#555568] font-mono">
             <Link to="/" className="hover:text-white transition-colors">Home</Link>
             <Link to="/guide" className="hover:text-white transition-colors">Guide</Link>
+            <a href="mailto:Qwikymart@yahoo.com" className="hover:text-white transition-colors">Contact</a>
             <span>All brand names are trademarks of their respective owners</span>
           </div>
         </div>
