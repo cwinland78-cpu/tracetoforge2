@@ -213,6 +213,17 @@ export default function Editor() {
       if (cfg.threshold) setThreshold(cfg.threshold)
       if (cfg.simplification) setSimplification(cfg.simplification)
       if (cfg.sensitivity) setSensitivity(cfg.sensitivity)
+      // Restore image
+      if (cfg.image) {
+        setImage(cfg.image)
+        if (cfg.imageSize) setImageSize(cfg.imageSize)
+        const img = new Image()
+        img.onload = () => {
+          imageRef.current = img
+          setZoom(0.4)
+        }
+        img.src = cfg.image
+      }
     } catch (err) { console.error('Error loading project:', err) }
   }
 
@@ -226,6 +237,8 @@ export default function Editor() {
       tools, step: step, trayWidth, trayDepth, depth, objectEdgeRadius,
       edgeProfile, edgeSize, outerShapeType, gridX, gridY,
       heightUnits, threshold, simplification, sensitivity,
+      image: image || null,
+      imageSize: imageSize || null,
     }
   }
 
@@ -688,7 +701,7 @@ export default function Editor() {
     }
 
     ctx.restore()
-  }, [contours, selectedContour, editMode, hoveredPoint, draggingPoint, editingOuter, outerShapePoints, hoveredOuterPoint, draggingOuterPoint, realWidth, tolerance])
+  }, [image, zoom, contours, selectedContour, editMode, hoveredPoint, draggingPoint, editingOuter, outerShapePoints, hoveredOuterPoint, draggingOuterPoint, realWidth, tolerance])
 
   useEffect(() => { drawCanvas() }, [drawCanvas])
 
