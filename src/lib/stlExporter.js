@@ -195,7 +195,30 @@ function createObjectExtrusion(points, config) {
         bevelEnabled: false,
       }
 
-  const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings)
+  let geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings)
+
+  // Clip beveled geometry to original shape bounds to prevent "wings"
+  // on thin features where bevel inverts the geometry
+  if (edgeRadius > 0) {
+    try {
+      const clipShape = shape.clone()
+      const clipGeo = new THREE.ExtrudeGeometry(clipShape, {
+        depth: depth,
+        bevelEnabled: false,
+      })
+
+      const evaluator = new Evaluator()
+      const bevelBrush = new Brush(geometry)
+      bevelBrush.updateMatrixWorld()
+      const clipBrush = new Brush(clipGeo)
+      clipBrush.updateMatrixWorld()
+
+      const clipped = evaluator.evaluate(bevelBrush, clipBrush, INTERSECTION)
+      geometry = clipped.geometry || clipped
+    } catch (e) {
+      console.warn('Edge radius CSG clip failed, using unclipped bevel:', e)
+    }
+  }
 
   const group = new THREE.Group()
 
