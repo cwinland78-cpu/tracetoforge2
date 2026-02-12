@@ -253,19 +253,18 @@ export default function Landing() {
           {/* Eyebrow */}
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand/8 text-brand text-xs font-semibold mb-8 border border-brand/15 font-mono tracking-wide uppercase">
             <Cpu size={13} />
-            Zero CAD Skills Required
+            Photo to 3D-Printable Insert in Under 5 Minutes
           </div>
 
           <h1 className="text-4xl sm:text-5xl md:text-7xl font-display font-black tracking-tight leading-[1.05] mb-6">
-            Your Tools.<br />
-            Your Trays.<br />
-            <span className="text-brand">Your Photo.</span>
+            The Fastest Way to<br />
+            Turn Any Tool Into a<br />
+            <span className="text-brand">Custom 3D-Printed Insert.</span>
           </h1>
 
           <p className="text-base sm:text-lg text-[#9999AD] max-w-2xl mx-auto mb-4 leading-relaxed">
-            Take a photo of any tool. TracetoForge turns it into a perfectly-fitted, 
-            3D-printable tray insert or Gridfinity bin. No CAD needed. No design skills. 
-            Just your phone and your printer.
+            Auto-trace any tool. Export a print-ready STL. Gridfinity compatible. 
+            Zero CAD skills required. Just your phone and your printer.
           </p>
 
           <p className="text-sm text-[#666680] font-mono mb-10">
