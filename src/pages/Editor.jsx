@@ -63,7 +63,7 @@ function ParamRow({ label, tooltip, children, tooltipPos }) {
 export default function Editor() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { user, profile, isAuthenticated, refreshProfile } = useAuth()
+  const { user, profile, isAuthenticated, refreshProfile, loading } = useAuth()
   const canvasRef = useRef(null)
   const imageRef = useRef(null)
   const fileInputRef = useRef(null)
