@@ -1,52 +1,75 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../components/AuthContext'
-import { supabase } from '../lib/supabase'
 
-// Project CRUD functions
+const SUPABASE_URL = 'https://pzmykycxmbzbrzkyotkc.supabase.co'
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6bXlreWN4bWJ6YnJ6a3lvdGtjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA1NjUxNjYsImV4cCI6MjA4NjE0MTE2Nn0.382YBaplfZJVl_ngKbGSpEPm1w3urlrxYAQFzRJW3z0'
+
+function getAccessToken() {
+  try {
+    const stored = localStorage.getItem('sb-pzmykycxmbzbrzkyotkc-auth-token')
+    if (stored) return JSON.parse(stored)?.access_token
+  } catch {}
+  return null
+}
+
+function headers(extra = {}) {
+  const h = { apikey: SUPABASE_KEY, 'Content-Type': 'application/json', Accept: 'application/json', Prefer: 'return=representation', ...extra }
+  const token = getAccessToken()
+  if (token) h.Authorization = 'Bearer ' + token
+  return h
+}
+
+// Project CRUD functions - raw fetch to avoid SDK deadlocks
 export async function createProject(userId, name, config, thumbnail) {
-  const { data, error } = await supabase
-    .from('projects')
-    .insert({ user_id: userId, name, config, thumbnail })
-    .select()
-    .single()
-  if (error) throw error
-  return data
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/projects`, {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify({ user_id: userId, name, config, thumbnail }),
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data?.message || JSON.stringify(data))
+  return Array.isArray(data) ? data[0] : data
 }
 
 export async function updateProject(id, updates) {
-  const { data, error } = await supabase
-    .from('projects')
-    .update({ ...updates, updated_at: new Date().toISOString() })
-    .eq('id', id)
-    .select()
-    .single()
-  if (error) throw error
-  return data
+  const body = { ...updates, updated_at: new Date().toISOString() }
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/projects?id=eq.${id}`, {
+    method: 'PATCH',
+    headers: headers(),
+    body: JSON.stringify(body),
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data?.message || JSON.stringify(data))
+  return Array.isArray(data) ? data[0] : data
 }
 
 export async function listProjects(userId) {
-  const { data, error } = await supabase
-    .from('projects')
-    .select('*')
-    .eq('user_id', userId)
-    .order('updated_at', { ascending: false })
-  if (error) throw error
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/projects?user_id=eq.${userId}&select=*&order=updated_at.desc`, {
+    headers: headers(),
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data?.message || JSON.stringify(data))
   return data || []
 }
 
 export async function deleteProject(id) {
-  const { error } = await supabase.from('projects').delete().eq('id', id)
-  if (error) throw error
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/projects?id=eq.${id}`, {
+    method: 'DELETE',
+    headers: headers(),
+  })
+  if (!res.ok) {
+    const data = await res.json()
+    throw new Error(data?.message || JSON.stringify(data))
+  }
 }
 
 export async function getProject(id) {
-  const { data, error } = await supabase
-    .from('projects')
-    .select('*')
-    .eq('id', id)
-    .single()
-  if (error) throw error
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/projects?id=eq.${id}&select=*`, {
+    headers: headers({ Accept: 'application/vnd.pgrst.object+json' }),
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data?.message || JSON.stringify(data))
   return data
 }
 
