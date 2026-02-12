@@ -3,22 +3,37 @@ import { supabase } from '../lib/supabase'
 
 const AuthContext = createContext(null)
 
+const SUPABASE_URL = 'https://pzmykycxmbzbrzkyotkc.supabase.co'
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6bXlreWN4bWJ6YnJ6a3lvdGtjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA1NjUxNjYsImV4cCI6MjA4NjE0MTE2Nn0.382YBaplfZJVl_ngKbGSpEPm1w3urlrxYAQFzRJW3z0'
+
+function getAccessToken() {
+  try {
+    const stored = localStorage.getItem('sb-pzmykycxmbzbrzkyotkc-auth-token')
+    if (stored) return JSON.parse(stored)?.access_token
+  } catch {}
+  return null
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
 
   async function fetchProfile(userId) {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
-    if (error) {
-      console.error('Error fetching profile:', error)
+    try {
+      const token = getAccessToken()
+      const h = { apikey: SUPABASE_KEY, Accept: 'application/vnd.pgrst.object+json' }
+      if (token) h.Authorization = 'Bearer ' + token
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=*`, { headers: h })
+      if (!res.ok) {
+        console.error('Error fetching profile:', res.status)
+        return null
+      }
+      return await res.json()
+    } catch (err) {
+      console.error('Error fetching profile:', err)
       return null
     }
-    return data
   }
 
   useEffect(() => {
