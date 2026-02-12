@@ -1035,6 +1035,7 @@ export default function Editor() {
       toolOffsetX: 0,
       toolOffsetY: 0,
       toolRotation: 0,
+      cavityBevel: 0,
     }])
   }
 
@@ -1059,6 +1060,7 @@ export default function Editor() {
       toolOffsetX: t.toolOffsetX,
       toolOffsetY: t.toolOffsetY,
       toolRotation: t.toolRotation,
+      cavityBevel: t.cavityBevel || 0,
     }))
 
     if (outputMode === 'custom') {
@@ -1488,11 +1490,9 @@ export default function Editor() {
                         </h4>
                       </div>
                       <ParamRow label="Bevel" tooltip="Size of the 45-degree chamfer around the cavity opening. 0 = no bevel." tooltipPos="above">
-                        <input type="number" value={cavityBevel} onChange={e => setCavityBevel(Math.max(0, +e.target.value))} className="w-[4.5rem] text-right" min="0" step="0.5" max="5" />
+                        <input type="number" value={activeToolIdx === -1 ? cavityBevel : (tools[activeToolIdx]?.cavityBevel || 0)} onChange={e => { const v = Math.max(0, +e.target.value); if (activeToolIdx === -1) setCavityBevel(v); else updateTool(activeToolIdx, 'cavityBevel', v) }} className="w-[4.5rem] text-right" min="0" step="0.5" max="5" />
                         <span className="text-xs text-[#8888A0] w-7">mm</span>
                       </ParamRow>
-
-                      {/* Finger Notch */}
                       <div className="border-t border-[#2A2A35]/50 pt-3 mt-1">
                         <h4 className="text-[11px] font-semibold text-brand/80 uppercase tracking-wider mb-3 flex items-center">
                           Finger Notch
@@ -1629,7 +1629,7 @@ export default function Editor() {
                         <h4 className="text-[11px] font-semibold text-brand/80 uppercase tracking-wider mb-3">Cavity Bevel</h4>
                       </div>
                       <ParamRow label="Size" tooltip="Chamfer size on the top edge of the tool cavity.">
-                        <input type="number" value={cavityBevel} onChange={e => setCavityBevel(Math.max(0, +e.target.value))} className="w-[4.5rem] text-right" min="0" step="0.5" max="5" />
+                        <input type="number" value={activeToolIdx === -1 ? cavityBevel : (tools[activeToolIdx]?.cavityBevel || 0)} onChange={e => { const v = Math.max(0, +e.target.value); if (activeToolIdx === -1) setCavityBevel(v); else updateTool(activeToolIdx, 'cavityBevel', v) }} className="w-[4.5rem] text-right" min="0" step="0.5" max="5" />
                         <span className="text-xs text-[#8888A0] w-7">mm</span>
                       </ParamRow>
                     </>

@@ -437,49 +437,83 @@ function createCustomInsert(points, config) {
     })
     atHolePath.closePath()
     allHolePaths.push(atHolePath)
-    extraToolViz.push({ shape: atShape, scale: atScale, rad: atRad, ox: atOx, oy: atOy })
+    extraToolViz.push({ shape: atShape, scale: atScale, rad: atRad, ox: atOx, oy: atOy, cutShape: atHolePts, cavityBevel: at.cavityBevel || 0 })
   })
 
   // ─── Top section (with tool cavity hole) ───
   const { cavityBevel = 0 } = config
   const cb = Math.min(cavityBevel, cavityZ * 0.3, 5) // clamp
+  const anyBevel = cb > 0.1 || extraToolViz.some(ev => (ev.cavityBevel || 0) > 0.1)
 
-  if (cb > 0.1) {
+  if (anyBevel) {
     // Full top section with normal tool hole
     const topShape = outerShape.clone()
     allHolePaths.forEach(hp => topShape.holes.push(hp))
     const topGeo = new THREE.ExtrudeGeometry(topShape, { depth: cavityZ, bevelEnabled: false })
     topGeo.translate(0, 0, actualBaseDepth)
 
-    // Bevel cutter: beveled tool shape to SUBTRACT from tray
-    const bevelToolShape = new THREE.Shape()
-    scaledToolPts.forEach((p, i) => {
-      if (i === 0) bevelToolShape.moveTo(p.x, p.y)
-      else bevelToolShape.lineTo(p.x, p.y)
-    })
-    bevelToolShape.closePath()
-
-    const bevelGeo = new THREE.ExtrudeGeometry(bevelToolShape, {
-      depth: 0.01,
-      bevelEnabled: true,
-      bevelThickness: cb,
-      bevelSize: cb,
-      bevelSegments: 1,
-      bevelOffset: 0,
-    })
     const topSurface = actualBaseDepth + cavityZ
-    bevelGeo.translate(0, 0, topSurface)
+    const evaluator = new Evaluator()
 
-    // CSG: subtract bevel from tray top section
     try {
-      const trayBrush = new Brush(topGeo)
-      trayBrush.updateMatrixWorld()
-      const bevelBrush = new Brush(bevelGeo)
-      bevelBrush.updateMatrixWorld()
-      const evaluator = new Evaluator()
-      const result = evaluator.evaluate(trayBrush, bevelBrush, SUBTRACTION)
-      result.material = trayMat2
-      group.add(result)
+      let resultMesh = new Brush(topGeo)
+      resultMesh.updateMatrixWorld()
+
+      // Bevel primary tool if enabled
+      if (cb > 0.1) {
+        const bevelToolShape = new THREE.Shape()
+        scaledToolPts.forEach((p, i) => {
+          if (i === 0) bevelToolShape.moveTo(p.x, p.y)
+          else bevelToolShape.lineTo(p.x, p.y)
+        })
+        bevelToolShape.closePath()
+
+        const bevelGeo = new THREE.ExtrudeGeometry(bevelToolShape, {
+          depth: 0.01,
+          bevelEnabled: true,
+          bevelThickness: cb,
+          bevelSize: cb,
+          bevelSegments: 1,
+          bevelOffset: 0,
+        })
+        bevelGeo.translate(0, 0, topSurface)
+
+        const bevelBrush = new Brush(bevelGeo)
+        bevelBrush.updateMatrixWorld()
+        resultMesh = evaluator.evaluate(resultMesh, bevelBrush, SUBTRACTION)
+      }
+
+      // Bevel each additional tool independently
+      extraToolViz.forEach(ev => {
+        const atCb = ev.cavityBevel || 0
+        if (atCb > 0.1 && ev.cutShape && ev.cutShape.length >= 3) {
+          const atBevelShape = new THREE.Shape()
+          ev.cutShape.forEach((p, i) => {
+            if (i === 0) atBevelShape.moveTo(p.x, p.y)
+            else atBevelShape.lineTo(p.x, p.y)
+          })
+          atBevelShape.closePath()
+
+          const atBevelGeo = new THREE.ExtrudeGeometry(atBevelShape, {
+            depth: 0.01,
+            bevelEnabled: true,
+            bevelThickness: atCb,
+            bevelSize: atCb,
+            bevelSegments: 1,
+            bevelOffset: 0,
+          })
+          atBevelGeo.translate(0, 0, topSurface)
+
+          const atBevelBrush = new Brush(atBevelGeo)
+          atBevelBrush.updateMatrixWorld()
+          const prevBrush = new Brush(resultMesh.geometry || resultMesh)
+          prevBrush.updateMatrixWorld()
+          resultMesh = evaluator.evaluate(prevBrush, atBevelBrush, SUBTRACTION)
+        }
+      })
+
+      resultMesh.material = trayMat2
+      group.add(resultMesh)
     } catch (e) {
       console.error('CSG failed:', e)
       group.add(new THREE.Mesh(topGeo, trayMat2))
@@ -708,7 +742,7 @@ function createGridfinityInsert(points, config) {
       else atCutShape.lineTo(p.x, p.y)
     })
     atCutShape.closePath()
-    extraToolCutters.push(atCutShape)
+    extraToolCutters.push({ shape: atCutShape, cavityBevel: at.cavityBevel || 0 })
     extraToolViz.push({ shape: atShape, scale: atScale, rad: atRad, ox: atOx, oy: atOy })
   })
 
@@ -741,8 +775,8 @@ function createGridfinityInsert(points, config) {
     let result = evaluator.evaluate(wallBrush, cutterBrush, SUBTRACTION)
 
     // Subtract additional tools
-    extraToolCutters.forEach(atCutShape => {
-      const atCutGeo = new THREE.ExtrudeGeometry(atCutShape, { depth: cavityZ + 1, bevelEnabled: false })
+    extraToolCutters.forEach(atEntry => {
+      const atCutGeo = new THREE.ExtrudeGeometry(atEntry.shape, { depth: cavityZ + 1, bevelEnabled: false })
       atCutGeo.translate(0, 0, GF.baseHeight + floorZ - 0.5)
       const atBrush = new Brush(atCutGeo)
       atBrush.updateMatrixWorld()
@@ -751,9 +785,8 @@ function createGridfinityInsert(points, config) {
       result = evaluator.evaluate(prevBrush, atBrush, SUBTRACTION)
     })
 
-    // Apply cavity bevel if enabled
+    // Apply cavity bevel for primary tool if enabled
     if (cb > 0.1) {
-      // Bevel primary tool
       const bevelGeo = new THREE.ExtrudeGeometry(toolCutterShape, {
         depth: 0.01,
         bevelEnabled: true,
@@ -769,14 +802,17 @@ function createGridfinityInsert(points, config) {
       const resultBrush = new Brush(result.geometry)
       resultBrush.updateMatrixWorld()
       result = evaluator.evaluate(resultBrush, bevelBrush, SUBTRACTION)
+    }
 
-      // Bevel additional tools
-      extraToolCutters.forEach(atCutShape => {
-        const atBevelGeo = new THREE.ExtrudeGeometry(atCutShape, {
+    // Bevel additional tools (each with its own cavityBevel)
+    extraToolCutters.forEach(atEntry => {
+      const atCb = atEntry.cavityBevel || 0
+      if (atCb > 0.1) {
+        const atBevelGeo = new THREE.ExtrudeGeometry(atEntry.shape, {
           depth: 0.01,
           bevelEnabled: true,
-          bevelThickness: cb,
-          bevelSize: cb,
+          bevelThickness: atCb,
+          bevelSize: atCb,
           bevelSegments: 1,
           bevelOffset: 0,
         })
@@ -786,8 +822,8 @@ function createGridfinityInsert(points, config) {
         const prevBrush = new Brush(result.geometry)
         prevBrush.updateMatrixWorld()
         result = evaluator.evaluate(prevBrush, atBevelBrush, SUBTRACTION)
-      })
-    }
+      }
+    })
 
     result.material = trayMat2
     group.add(result)
