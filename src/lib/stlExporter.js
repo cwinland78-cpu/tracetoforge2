@@ -187,7 +187,7 @@ function createObjectExtrusion(points, config) {
         bevelThickness: edgeRadius,
         bevelSize: edgeRadius,
         bevelSegments: Math.max(4, Math.round(edgeRadius * 3)),
-        bevelOffset: 0,
+        bevelOffset: -edgeRadius,
       }
     : {
         depth,
