@@ -368,6 +368,7 @@ export default function Editor() {
         setImageSize({ w: img.width, h: img.height })
         imageRef.current = img
         setStep(1)
+        setZoom(0.4)
         setContours([])
         setShowPreview(false)
       }
