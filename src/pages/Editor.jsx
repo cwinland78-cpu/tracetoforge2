@@ -117,13 +117,8 @@ export default function Editor() {
   const [edgeProfile, setEdgeProfile] = useState('straight')
   const [edgeSize, setEdgeSize] = useState(2)
   const [cavityBevel, setCavityBevel] = useState(0)
-  const [fingerNotch, setFingerNotch] = useState(false)
-  const [fingerNotchShape, setFingerNotchShape] = useState('circle') // 'circle' | 'square' | 'rectangle'
-  const [fingerNotchRadius, setFingerNotchRadius] = useState(12)
-  const [fingerNotchW, setFingerNotchW] = useState(24)
-  const [fingerNotchH, setFingerNotchH] = useState(16)
-  const [fingerNotchX, setFingerNotchX] = useState(0)
-  const [fingerNotchY, setFingerNotchY] = useState(0)
+  const [fingerNotches, setFingerNotches] = useState([]) // array of { shape, radius, w, h, x, y }
+  const [activeNotchIdx, setActiveNotchIdx] = useState(0)
   const [outerShapeType, setOuterShapeType] = useState('rectangle') // 'rectangle' | 'oval' | 'custom'
   const [outerShapePoints, setOuterShapePoints] = useState(null) // custom polygon points in mm
   const [editingOuter, setEditingOuter] = useState(false) // true when editing outer shape on canvas
@@ -195,13 +190,11 @@ export default function Editor() {
       if (cfg.toolRotation != null) setToolRotation(cfg.toolRotation)
       if (cfg.toolOffsetX != null) setToolOffsetX(cfg.toolOffsetX)
       if (cfg.toolOffsetY != null) setToolOffsetY(cfg.toolOffsetY)
-      if (cfg.fingerNotch != null) setFingerNotch(cfg.fingerNotch)
-      if (cfg.fingerNotchShape) setFingerNotchShape(cfg.fingerNotchShape)
-      if (cfg.fingerNotchRadius != null) setFingerNotchRadius(cfg.fingerNotchRadius)
-      if (cfg.fingerNotchW != null) setFingerNotchW(cfg.fingerNotchW)
-      if (cfg.fingerNotchH != null) setFingerNotchH(cfg.fingerNotchH)
-      if (cfg.fingerNotchX != null) setFingerNotchX(cfg.fingerNotchX)
-      if (cfg.fingerNotchY != null) setFingerNotchY(cfg.fingerNotchY)
+      if (cfg.fingerNotches) setFingerNotches(cfg.fingerNotches)
+      else if (cfg.fingerNotch) {
+        // Backward compat: convert old single notch to array
+        setFingerNotches([{ shape: cfg.fingerNotchShape || 'circle', radius: cfg.fingerNotchRadius || 12, w: cfg.fingerNotchW || 24, h: cfg.fingerNotchH || 16, x: cfg.fingerNotchX || 0, y: cfg.fingerNotchY || 0 }])
+      }
       if (cfg.tools) setTools(cfg.tools)
       if (cfg.step != null) setStep(cfg.step)
       if (cfg.edgeProfile) setEdgeProfile(cfg.edgeProfile)
@@ -232,8 +225,7 @@ export default function Editor() {
       outputMode, realWidth, realHeight, wallThickness, floorThickness,
       toolDepth, tolerance, contours, selectedContour, cornerRadius,
       cavityBevel, toolRotation, toolOffsetX, toolOffsetY,
-      fingerNotch, fingerNotchShape, fingerNotchRadius,
-      fingerNotchW, fingerNotchH, fingerNotchX, fingerNotchY,
+      fingerNotches,
       tools, step: step, trayWidth, trayDepth, depth, objectEdgeRadius,
       edgeProfile, edgeSize, outerShapeType, gridX, gridY,
       heightUnits, threshold, simplification, sensitivity,
@@ -1049,6 +1041,19 @@ export default function Editor() {
     setTools(prev => prev.map((t, i) => i === idx ? { ...t, [key]: val } : t))
   }
 
+  const addNotch = () => {
+    if (fingerNotches.length >= 5) return
+    setFingerNotches(prev => [...prev, { shape: 'circle', radius: 12, w: 24, h: 16, x: 0, y: 0 }])
+    setActiveNotchIdx(fingerNotches.length)
+  }
+  const removeNotch = (idx) => {
+    setFingerNotches(prev => prev.filter((_, i) => i !== idx))
+    if (activeNotchIdx >= fingerNotches.length - 1) setActiveNotchIdx(Math.max(0, fingerNotches.length - 2))
+  }
+  const updateNotch = (idx, key, val) => {
+    setFingerNotches(prev => prev.map((n, i) => i === idx ? { ...n, [key]: val } : n))
+  }
+
   const buildConfig = () => {
     const base = { mode: outputMode, depth: outputMode === 'object' ? depth : toolDepth, tolerance, realWidth, toolDepth, toolOffsetX, toolOffsetY, toolRotation, objectEdgeRadius }
 
@@ -1068,10 +1073,10 @@ export default function Editor() {
       if (outerShapeType === 'custom' && outerShapePoints && outerShapePoints.length >= 3) {
         outerPts = outerShapePoints
       }
-      return { ...base, trayWidth, trayHeight, trayDepth, wallThickness, cornerRadius, floorThickness, edgeProfile, edgeSize, cavityBevel, fingerNotch, fingerNotchShape, fingerNotchRadius, fingerNotchW, fingerNotchH, fingerNotchX, fingerNotchY, outerShapeType, outerShapePoints: outerPts, additionalTools }
+      return { ...base, trayWidth, trayHeight, trayDepth, wallThickness, cornerRadius, floorThickness, edgeProfile, edgeSize, cavityBevel, fingerNotches, outerShapeType, outerShapePoints: outerPts, additionalTools }
     }
     if (outputMode === 'gridfinity') {
-      return { ...base, gridX, gridY, heightUnits, cavityBevel, additionalTools }
+      return { ...base, gridX, gridY, heightUnits, cavityBevel, fingerNotches, additionalTools }
     }
     return { ...base, additionalTools }
   }
@@ -1477,64 +1482,71 @@ export default function Editor() {
                       </ParamRow>
                       <div className="border-t border-[#2A2A35]/50 pt-3 mt-1">
                         <h4 className="text-[11px] font-semibold text-brand/80 uppercase tracking-wider mb-3 flex items-center">
-                          Finger Notch
-                          <Tooltip text="Adds a circular cutout so you can grab the tool out of the tray." position="above" />
+                          Finger Notches
+                          <Tooltip text="Cutouts so you can grab tools out of the tray. Add up to 5. Drag them in 3D preview to reposition." position="above" />
                         </h4>
                       </div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <label className="text-xs text-[#8888A0]">Enable</label>
-                        <button
-                          onClick={() => setFingerNotch(!fingerNotch)}
-                          className={`w-9 h-5 rounded-full transition-colors relative ${fingerNotch ? 'bg-brand' : 'bg-[#2A2A35]'}`}
-                        >
-                          <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${fingerNotch ? 'left-[18px]' : 'left-0.5'}`} />
-                        </button>
+                      {/* Notch tabs */}
+                      <div className="flex items-center gap-1 mb-2 flex-wrap">
+                        {fingerNotches.map((_, ni) => (
+                          <button key={ni} onClick={() => setActiveNotchIdx(ni)}
+                            className={`px-2 py-1 text-[10px] rounded-md transition-colors ${activeNotchIdx === ni ? 'bg-brand text-white' : 'bg-[#1C1C24] text-[#8888A0] hover:text-white'}`}>
+                            {ni + 1}
+                          </button>
+                        ))}
+                        {fingerNotches.length < 5 && (
+                          <button onClick={addNotch} className="px-2 py-1 text-[10px] rounded-md bg-[#1C1C24] text-green-400 hover:bg-[#2A2A35] transition-colors">+</button>
+                        )}
                       </div>
-                      {fingerNotch && (
+                      {fingerNotches.length > 0 && fingerNotches[activeNotchIdx] && (() => {
+                        const n = fingerNotches[activeNotchIdx]; const ni = activeNotchIdx
+                        return (
                         <>
                           <div className="grid grid-cols-3 gap-1 bg-[#131318] rounded-lg p-1 mb-2">
                             {['circle', 'square', 'rectangle'].map(key => (
-                              <button key={key} onClick={() => setFingerNotchShape(key)}
+                              <button key={key} onClick={() => updateNotch(ni, 'shape', key)}
                                 className={`text-xs py-1.5 rounded-md capitalize transition-colors
-                                  ${fingerNotchShape === key ? 'bg-brand text-white shadow-sm' : 'text-[#8888A0] hover:text-white'}`}>
+                                  ${n.shape === key ? 'bg-brand text-white shadow-sm' : 'text-[#8888A0] hover:text-white'}`}>
                                 {key.charAt(0).toUpperCase() + key.slice(1)}
                               </button>
                             ))}
                           </div>
-                          {fingerNotchShape === 'circle' && (
+                          {n.shape === 'circle' && (
                             <ParamRow label="Radius" tooltip="Radius of the finger notch circle.">
-                              <input type="number" value={fingerNotchRadius} onChange={e => setFingerNotchRadius(Math.max(5, +e.target.value))} className="w-[4.5rem] text-right" min="5" step="1" />
+                              <input type="number" value={n.radius} onChange={e => updateNotch(ni, 'radius', Math.max(5, +e.target.value))} className="w-[4.5rem] text-right" min="5" step="1" />
                               <span className="text-xs text-[#8888A0] w-7">mm</span>
                             </ParamRow>
                           )}
-                          {fingerNotchShape === 'square' && (
+                          {n.shape === 'square' && (
                             <ParamRow label="Size" tooltip="Side length of the square notch.">
-                              <input type="number" value={fingerNotchW} onChange={e => { const v = Math.max(5, +e.target.value); setFingerNotchW(v); setFingerNotchH(v) }} className="w-[4.5rem] text-right" min="5" step="1" />
+                              <input type="number" value={n.w} onChange={e => { const v = Math.max(5, +e.target.value); updateNotch(ni, 'w', v); updateNotch(ni, 'h', v) }} className="w-[4.5rem] text-right" min="5" step="1" />
                               <span className="text-xs text-[#8888A0] w-7">mm</span>
                             </ParamRow>
                           )}
-                          {fingerNotchShape === 'rectangle' && (
+                          {n.shape === 'rectangle' && (
                             <>
                               <ParamRow label="Width" tooltip="Width of the rectangle notch.">
-                                <input type="number" value={fingerNotchW} onChange={e => setFingerNotchW(Math.max(5, +e.target.value))} className="w-[4.5rem] text-right" min="5" step="1" />
+                                <input type="number" value={n.w} onChange={e => updateNotch(ni, 'w', Math.max(5, +e.target.value))} className="w-[4.5rem] text-right" min="5" step="1" />
                                 <span className="text-xs text-[#8888A0] w-7">mm</span>
                               </ParamRow>
                               <ParamRow label="Height" tooltip="Height of the rectangle notch.">
-                                <input type="number" value={fingerNotchH} onChange={e => setFingerNotchH(Math.max(5, +e.target.value))} className="w-[4.5rem] text-right" min="5" step="1" />
+                                <input type="number" value={n.h} onChange={e => updateNotch(ni, 'h', Math.max(5, +e.target.value))} className="w-[4.5rem] text-right" min="5" step="1" />
                                 <span className="text-xs text-[#8888A0] w-7">mm</span>
                               </ParamRow>
                             </>
                           )}
                           <ParamRow label="Pos X" tooltip="Horizontal position of finger notch center.">
-                            <input type="number" value={fingerNotchX} onChange={e => setFingerNotchX(+e.target.value)} className="w-[4.5rem] text-right" step="1" />
+                            <input type="number" value={n.x} onChange={e => updateNotch(ni, 'x', +e.target.value)} className="w-[4.5rem] text-right" step="1" />
                             <span className="text-xs text-[#8888A0] w-7">mm</span>
                           </ParamRow>
                           <ParamRow label="Pos Y" tooltip="Vertical position of finger notch center.">
-                            <input type="number" value={fingerNotchY} onChange={e => setFingerNotchY(+e.target.value)} className="w-[4.5rem] text-right" step="1" />
+                            <input type="number" value={n.y} onChange={e => updateNotch(ni, 'y', +e.target.value)} className="w-[4.5rem] text-right" step="1" />
                             <span className="text-xs text-[#8888A0] w-7">mm</span>
                           </ParamRow>
+                          <button onClick={() => removeNotch(ni)} className="w-full text-xs text-red-400 hover:text-red-300 py-1 transition-colors">Remove Notch {ni + 1}</button>
                         </>
-                      )}
+                        )
+                      })()}
 
                       {/* Outer Shape */}
                       <div className="border-t border-[#2A2A35]/50 pt-3 mt-1">
@@ -1614,6 +1626,74 @@ export default function Editor() {
                         <input type="number" value={activeToolIdx === -1 ? cavityBevel : (tools[activeToolIdx]?.cavityBevel || 0)} onChange={e => { const v = Math.max(0, +e.target.value); if (activeToolIdx === -1) setCavityBevel(v); else updateTool(activeToolIdx, 'cavityBevel', v) }} className="w-[4.5rem] text-right" min="0" step="0.5" max="5" />
                         <span className="text-xs text-[#8888A0] w-7">mm</span>
                       </ParamRow>
+
+                      {/* Finger Notches */}
+                      <div className="border-t border-[#2A2A35]/50 pt-3 mt-1">
+                        <h4 className="text-[11px] font-semibold text-brand/80 uppercase tracking-wider mb-3 flex items-center">
+                          Finger Notches
+                          <Tooltip text="Cutouts so you can grab tools out of the bin. Add up to 5. Drag them in 3D preview to reposition." position="above" />
+                        </h4>
+                      </div>
+                      <div className="flex items-center gap-1 mb-2 flex-wrap">
+                        {fingerNotches.map((_, ni) => (
+                          <button key={ni} onClick={() => setActiveNotchIdx(ni)}
+                            className={`px-2 py-1 text-[10px] rounded-md transition-colors ${activeNotchIdx === ni ? 'bg-brand text-white' : 'bg-[#1C1C24] text-[#8888A0] hover:text-white'}`}>
+                            {ni + 1}
+                          </button>
+                        ))}
+                        {fingerNotches.length < 5 && (
+                          <button onClick={addNotch} className="px-2 py-1 text-[10px] rounded-md bg-[#1C1C24] text-green-400 hover:bg-[#2A2A35] transition-colors">+</button>
+                        )}
+                      </div>
+                      {fingerNotches.length > 0 && fingerNotches[activeNotchIdx] && (() => {
+                        const n = fingerNotches[activeNotchIdx]; const ni = activeNotchIdx
+                        return (
+                        <>
+                          <div className="grid grid-cols-3 gap-1 bg-[#131318] rounded-lg p-1 mb-2">
+                            {['circle', 'square', 'rectangle'].map(key => (
+                              <button key={key} onClick={() => updateNotch(ni, 'shape', key)}
+                                className={`text-xs py-1.5 rounded-md capitalize transition-colors
+                                  ${n.shape === key ? 'bg-brand text-white shadow-sm' : 'text-[#8888A0] hover:text-white'}`}>
+                                {key.charAt(0).toUpperCase() + key.slice(1)}
+                              </button>
+                            ))}
+                          </div>
+                          {n.shape === 'circle' && (
+                            <ParamRow label="Radius" tooltip="Radius of the finger notch circle.">
+                              <input type="number" value={n.radius} onChange={e => updateNotch(ni, 'radius', Math.max(5, +e.target.value))} className="w-[4.5rem] text-right" min="5" step="1" />
+                              <span className="text-xs text-[#8888A0] w-7">mm</span>
+                            </ParamRow>
+                          )}
+                          {n.shape === 'square' && (
+                            <ParamRow label="Size" tooltip="Side length of the square notch.">
+                              <input type="number" value={n.w} onChange={e => { const v = Math.max(5, +e.target.value); updateNotch(ni, 'w', v); updateNotch(ni, 'h', v) }} className="w-[4.5rem] text-right" min="5" step="1" />
+                              <span className="text-xs text-[#8888A0] w-7">mm</span>
+                            </ParamRow>
+                          )}
+                          {n.shape === 'rectangle' && (
+                            <>
+                              <ParamRow label="Width" tooltip="Width of the rectangle notch.">
+                                <input type="number" value={n.w} onChange={e => updateNotch(ni, 'w', Math.max(5, +e.target.value))} className="w-[4.5rem] text-right" min="5" step="1" />
+                                <span className="text-xs text-[#8888A0] w-7">mm</span>
+                              </ParamRow>
+                              <ParamRow label="Height" tooltip="Height of the rectangle notch.">
+                                <input type="number" value={n.h} onChange={e => updateNotch(ni, 'h', Math.max(5, +e.target.value))} className="w-[4.5rem] text-right" min="5" step="1" />
+                                <span className="text-xs text-[#8888A0] w-7">mm</span>
+                              </ParamRow>
+                            </>
+                          )}
+                          <ParamRow label="Pos X" tooltip="Horizontal position of finger notch center.">
+                            <input type="number" value={n.x} onChange={e => updateNotch(ni, 'x', +e.target.value)} className="w-[4.5rem] text-right" step="1" />
+                            <span className="text-xs text-[#8888A0] w-7">mm</span>
+                          </ParamRow>
+                          <ParamRow label="Pos Y" tooltip="Vertical position of finger notch center.">
+                            <input type="number" value={n.y} onChange={e => updateNotch(ni, 'y', +e.target.value)} className="w-[4.5rem] text-right" step="1" />
+                            <span className="text-xs text-[#8888A0] w-7">mm</span>
+                          </ParamRow>
+                          <button onClick={() => removeNotch(ni)} className="w-full text-xs text-red-400 hover:text-red-300 py-1 transition-colors">Remove Notch {ni + 1}</button>
+                        </>
+                        )
+                      })()}
                     </>
                   )}
                 </div>
@@ -1652,7 +1732,6 @@ export default function Editor() {
                     </button>
                   ))}
                 </div>
-              </div>
             </div>
 
             {/* Actions */}
@@ -1832,6 +1911,12 @@ export default function Editor() {
                   } else if (toolIdx >= 0 && tools[toolIdx]) {
                     updateTool(toolIdx, 'toolOffsetX', Math.round((tools[toolIdx].toolOffsetX || 0) + dx))
                     updateTool(toolIdx, 'toolOffsetY', Math.round((tools[toolIdx].toolOffsetY || 0) + dy))
+                  }
+                }}
+                onNotchDrag={(notchIdx, dx, dy) => {
+                  if (fingerNotches[notchIdx]) {
+                    updateNotch(notchIdx, 'x', Math.round((fingerNotches[notchIdx].x || 0) + dx))
+                    updateNotch(notchIdx, 'y', Math.round((fingerNotches[notchIdx].y || 0) + dy))
                   }
                 }}
               />

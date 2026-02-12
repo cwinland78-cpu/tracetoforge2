@@ -4,7 +4,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { createInsertMesh } from '../lib/stlExporter'
 import { RotateCcw, Eye, Crosshair } from 'lucide-react'
 
-export default function ThreePreview({ contourPoints, config, onToolDrag }) {
+export default function ThreePreview({ contourPoints, config, onToolDrag, onNotchDrag }) {
   const mountRef = useRef(null)
   const rendererRef = useRef(null)
   const controlsRef = useRef(null)
@@ -17,6 +17,8 @@ export default function ThreePreview({ contourPoints, config, onToolDrag }) {
   const dragRef = useRef(null)
   const onToolDragRef = useRef(onToolDrag)
   onToolDragRef.current = onToolDrag
+  const onNotchDragRef = useRef(onNotchDrag)
+  onNotchDragRef.current = onNotchDrag
 
   const setView = useCallback((name) => {
     const controls = controlsRef.current
@@ -47,9 +49,12 @@ export default function ThreePreview({ contourPoints, config, onToolDrag }) {
     const raycaster = new THREE.Raycaster()
     raycaster.setFromCamera(mouse, camera)
     const vizMeshes = []
-    group.traverse(obj => { if (obj.isMesh && obj.userData.vizOnly && obj.userData.toolIndex !== undefined) vizMeshes.push(obj) })
+    group.traverse(obj => { if (obj.isMesh && obj.userData.vizOnly && (obj.userData.toolIndex !== undefined || obj.userData.notchIndex !== undefined)) vizMeshes.push(obj) })
     const hits = raycaster.intersectObjects(vizMeshes)
-    return hits.length > 0 ? { toolIndex: hits[0].object.userData.toolIndex } : null
+    if (hits.length === 0) return null
+    const hit = hits[0].object
+    if (hit.userData.notchIndex !== undefined) return { notchIndex: hit.userData.notchIndex }
+    return { toolIndex: hit.userData.toolIndex }
   }, [])
 
   const screenToWorldDelta = useCallback((dx, dy) => {
@@ -138,7 +143,11 @@ export default function ThreePreview({ contourPoints, config, onToolDrag }) {
       const hit = getToolAtMouse(e)
       if (!hit) return
       e.stopPropagation(); e.preventDefault()
-      dragRef.current = { toolIndex: hit.toolIndex, startX: e.clientX, startY: e.clientY, accumX: 0, accumY: 0 }
+      if (hit.notchIndex !== undefined) {
+        dragRef.current = { notchIndex: hit.notchIndex, startX: e.clientX, startY: e.clientY, accumX: 0, accumY: 0 }
+      } else {
+        dragRef.current = { toolIndex: hit.toolIndex, startX: e.clientX, startY: e.clientY, accumX: 0, accumY: 0 }
+      }
       if (controlsRef.current) controlsRef.current.enabled = false
       dom.style.cursor = 'grabbing'
     }
@@ -150,7 +159,11 @@ export default function ThreePreview({ contourPoints, config, onToolDrag }) {
       dragRef.current.accumX += wd.x; dragRef.current.accumY += wd.y
       if (Math.abs(dragRef.current.accumX) >= 1 || Math.abs(dragRef.current.accumY) >= 1) {
         const sx = Math.round(dragRef.current.accumX), sy = Math.round(dragRef.current.accumY)
-        if (onToolDragRef.current) onToolDragRef.current(dragRef.current.toolIndex, sx, sy)
+        if (dragRef.current.notchIndex !== undefined) {
+          if (onNotchDragRef.current) onNotchDragRef.current(dragRef.current.notchIndex, sx, sy)
+        } else {
+          if (onToolDragRef.current) onToolDragRef.current(dragRef.current.toolIndex, sx, sy)
+        }
         dragRef.current.accumX -= sx; dragRef.current.accumY -= sy
       }
     }

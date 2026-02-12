@@ -287,39 +287,42 @@ function createCustomInsert(points, config) {
   })
   toolHolePath.closePath()
 
-  // ─── Finger notch ───
-  const { fingerNotch = false, fingerNotchShape = 'circle', fingerNotchRadius = 12, fingerNotchW = 24, fingerNotchH = 16, fingerNotchX = 0, fingerNotchY = 0 } = config
-  let notchPts = null
-  if (fingerNotch) {
-    notchPts = []
-    if (fingerNotchShape === 'circle') {
-      const fnr = Math.max(5, fingerNotchRadius)
+  // ─── Finger notches ───
+  const { fingerNotches = [] } = config
+  const allNotchPts = []
+  fingerNotches.forEach(fn => {
+    let pts = []
+    if (fn.shape === 'circle') {
+      const fnr = Math.max(5, fn.radius || 12)
       const segs = 32
       for (let i = 0; i < segs; i++) {
         const angle = (i / segs) * Math.PI * 2
-        notchPts.push({ x: fingerNotchX + Math.cos(angle) * fnr, y: fingerNotchY + Math.sin(angle) * fnr })
+        pts.push({ x: (fn.x || 0) + Math.cos(angle) * fnr, y: (fn.y || 0) + Math.sin(angle) * fnr })
       }
     } else {
-      const hw = (fingerNotchShape === 'square' ? fingerNotchW : fingerNotchW) / 2
-      const hh = (fingerNotchShape === 'square' ? fingerNotchW : fingerNotchH) / 2
-      notchPts.push(
-        { x: fingerNotchX - hw, y: fingerNotchY - hh },
-        { x: fingerNotchX + hw, y: fingerNotchY - hh },
-        { x: fingerNotchX + hw, y: fingerNotchY + hh },
-        { x: fingerNotchX - hw, y: fingerNotchY + hh },
+      const hw = (fn.shape === 'square' ? fn.w : fn.w || 24) / 2
+      const hh = (fn.shape === 'square' ? fn.w : fn.h || 16) / 2
+      pts.push(
+        { x: (fn.x || 0) - hw, y: (fn.y || 0) - hh },
+        { x: (fn.x || 0) + hw, y: (fn.y || 0) - hh },
+        { x: (fn.x || 0) + hw, y: (fn.y || 0) + hh },
+        { x: (fn.x || 0) - hw, y: (fn.y || 0) + hh },
       )
     }
-  }
+    if (pts.length >= 3) allNotchPts.push(pts)
+  })
 
-  // Union tool hole + finger notch into combined hole(s) using Clipper
+  // Union tool hole + all finger notches into combined hole(s) using Clipper
   const combinedHoles = (() => {
     const scale = 1000
-    const toolClip = holePts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) }))
-    if (!notchPts) return [holePts]
-    const notchClip = notchPts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) }))
+    if (allNotchPts.length === 0) return [holePts]
     const clipper = new ClipperLib.Clipper()
+    const toolClip = holePts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) }))
     clipper.AddPath(toolClip, ClipperLib.PolyType.ptSubject, true)
-    clipper.AddPath(notchClip, ClipperLib.PolyType.ptClip, true)
+    allNotchPts.forEach(nPts => {
+      const notchClip = nPts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) }))
+      clipper.AddPath(notchClip, ClipperLib.PolyType.ptClip, true)
+    })
     const solution = []
     clipper.Execute(ClipperLib.ClipType.ctUnion, solution, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero)
     if (solution.length === 0) return [holePts]
@@ -556,6 +559,20 @@ function createCustomInsert(points, config) {
     group.add(evMesh)
   })
 
+  // Finger notch visualizations (draggable)
+  const notchMat = new THREE.MeshPhongMaterial({ color: 0x44bb44, transparent: true, opacity: 0.4, side: THREE.DoubleSide })
+  allNotchPts.forEach((nPts, ni) => {
+    const nShape = new THREE.Shape()
+    nPts.forEach((p, i) => { if (i === 0) nShape.moveTo(p.x, p.y); else nShape.lineTo(p.x, p.y) })
+    nShape.closePath()
+    const nGeo = new THREE.ExtrudeGeometry(nShape, { depth: cavityZ + 0.5, bevelEnabled: false })
+    nGeo.translate(0, 0, actualBaseDepth - 0.25)
+    const nMesh = new THREE.Mesh(nGeo, notchMat)
+    nMesh.userData.vizOnly = true
+    nMesh.userData.notchIndex = ni
+    group.add(nMesh)
+  })
+
   return group
 }
 
@@ -605,8 +622,50 @@ function createGridfinityInsert(points, config) {
   // Apply tolerance using Clipper polygon offset
   const holePts = (tolerance > 0) ? offsetPolygon(scaledToolPts, tolerance) : scaledToolPts
 
+  // ─── Finger notches for Gridfinity ───
+  const { fingerNotches: gfNotches = [] } = config
+  const gfAllNotchPts = []
+  gfNotches.forEach(fn => {
+    let pts = []
+    if (fn.shape === 'circle') {
+      const fnr = Math.max(5, fn.radius || 12)
+      const segs = 32
+      for (let i = 0; i < segs; i++) {
+        const angle = (i / segs) * Math.PI * 2
+        pts.push({ x: (fn.x || 0) + Math.cos(angle) * fnr, y: (fn.y || 0) + Math.sin(angle) * fnr })
+      }
+    } else {
+      const hw = (fn.shape === 'square' ? fn.w : fn.w || 24) / 2
+      const hh = (fn.shape === 'square' ? fn.w : fn.h || 16) / 2
+      pts.push(
+        { x: (fn.x || 0) - hw, y: (fn.y || 0) - hh },
+        { x: (fn.x || 0) + hw, y: (fn.y || 0) - hh },
+        { x: (fn.x || 0) + hw, y: (fn.y || 0) + hh },
+        { x: (fn.x || 0) - hw, y: (fn.y || 0) + hh },
+      )
+    }
+    if (pts.length >= 3) gfAllNotchPts.push(pts)
+  })
+
+  // Union tool hole + notches for Gridfinity
+  const gfCombinedHolePts = (() => {
+    if (gfAllNotchPts.length === 0) return [holePts]
+    const scale = 1000
+    const clipper = new ClipperLib.Clipper()
+    clipper.AddPath(holePts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptSubject, true)
+    gfAllNotchPts.forEach(nPts => {
+      clipper.AddPath(nPts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptClip, true)
+    })
+    const solution = []
+    clipper.Execute(ClipperLib.ClipType.ctUnion, solution, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero)
+    if (solution.length === 0) return [holePts]
+    return solution.map(path => path.map(p => ({ x: p.X / scale, y: p.Y / scale })))
+  })()
+
   const toolHolePath = new THREE.Path()
-  holePts.forEach((p, i) => {
+  // Use first combined path for the hole
+  const gfMainHole = gfCombinedHolePts[0] || holePts
+  gfMainHole.forEach((p, i) => {
     if (i === 0) toolHolePath.moveTo(p.x, p.y)
     else toolHolePath.lineTo(p.x, p.y)
   })
@@ -751,9 +810,9 @@ function createGridfinityInsert(points, config) {
   const wallGeo = new THREE.ExtrudeGeometry(outerShape, { depth: cavityZ, bevelEnabled: false })
   wallGeo.translate(0, 0, GF.baseHeight + floorZ)
 
-  // Build tool cavity cutter from tolerance-expanded points
+  // Build tool cavity cutter from combined hole (tool + notches)
   const toolCutterShape = new THREE.Shape()
-  holePts.forEach((p, i) => {
+  gfMainHole.forEach((p, i) => {
     if (i === 0) toolCutterShape.moveTo(p.x, p.y)
     else toolCutterShape.lineTo(p.x, p.y)
   })
@@ -934,6 +993,20 @@ function createGridfinityInsert(points, config) {
       evMesh.userData.toolIndex = evIdx
       group.add(evMesh)
     }
+  })
+
+  // Finger notch visualizations for gridfinity (draggable)
+  const gfNotchMat = new THREE.MeshPhongMaterial({ color: 0x44bb44, transparent: true, opacity: 0.4, side: THREE.DoubleSide })
+  gfAllNotchPts.forEach((nPts, ni) => {
+    const nShape = new THREE.Shape()
+    nPts.forEach((p, i) => { if (i === 0) nShape.moveTo(p.x, p.y); else nShape.lineTo(p.x, p.y) })
+    nShape.closePath()
+    const nGeo = new THREE.ExtrudeGeometry(nShape, { depth: cavityZ + 0.5, bevelEnabled: false })
+    nGeo.translate(0, 0, GF.baseHeight + floorZ - 0.25)
+    const nMesh = new THREE.Mesh(nGeo, gfNotchMat)
+    nMesh.userData.vizOnly = true
+    nMesh.userData.notchIndex = ni
+    group.add(nMesh)
   })
 
   return group
