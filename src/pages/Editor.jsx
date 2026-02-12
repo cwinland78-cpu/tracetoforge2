@@ -1637,9 +1637,8 @@ export default function Editor() {
             )}
 
             {/* Output Mode */}
-            {step >= 2 && (
-              <div>
-                <h3 className="text-xs font-semibold text-[#8888A0] uppercase tracking-wider mb-2">Output Mode</h3>
+            <div>
+              <h3 className="text-xs font-semibold text-[#8888A0] uppercase tracking-wider mb-2">Output Mode</h3>
                 <div className="grid grid-cols-3 gap-1 bg-[#131318] rounded-lg p-1">
                   {[
                     { key: 'object', label: 'Object' },
@@ -1654,7 +1653,7 @@ export default function Editor() {
                   ))}
                 </div>
               </div>
-            )}
+            </div>
 
             {/* Actions */}
             {step >= 2 && (
