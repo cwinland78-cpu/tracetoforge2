@@ -326,7 +326,12 @@ function createCustomInsert(points, config) {
     const solution = []
     clipper.Execute(ClipperLib.ClipType.ctUnion, solution, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero)
     if (solution.length === 0) return [holePts]
-    return solution.map(path => path.map(p => ({ x: p.X / scale, y: p.Y / scale })))
+    // Ensure consistent winding (positive area = CCW)
+    return solution.map(path => {
+      const pts = path.map(p => ({ x: p.X / scale, y: p.Y / scale }))
+      if (ClipperLib.Clipper.Area(path) < 0) pts.reverse()
+      return pts
+    })
   })()
 
   // Create hole paths from combined result
@@ -516,6 +521,7 @@ function createCustomInsert(points, config) {
       })
 
       resultMesh.material = trayMat2
+      if (resultMesh.geometry) resultMesh.geometry.computeVertexNormals()
       group.add(resultMesh)
     } catch (e) {
       console.error('CSG failed:', e)
@@ -659,7 +665,12 @@ function createGridfinityInsert(points, config) {
     const solution = []
     clipper.Execute(ClipperLib.ClipType.ctUnion, solution, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero)
     if (solution.length === 0) return [holePts]
-    return solution.map(path => path.map(p => ({ x: p.X / scale, y: p.Y / scale })))
+    // Ensure consistent winding (positive area = CCW)
+    return solution.map(path => {
+      const pts = path.map(p => ({ x: p.X / scale, y: p.Y / scale }))
+      if (ClipperLib.Clipper.Area(path) < 0) pts.reverse()
+      return pts
+    })
   })()
 
   const toolHolePath = new THREE.Path()
@@ -885,6 +896,7 @@ function createGridfinityInsert(points, config) {
     })
 
     result.material = trayMat2
+    if (result.geometry) result.geometry.computeVertexNormals()
     group.add(result)
   } catch (e) {
     console.error('CSG failed, falling back to hole-punch method:', e)
