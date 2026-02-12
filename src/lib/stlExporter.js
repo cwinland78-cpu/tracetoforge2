@@ -178,7 +178,8 @@ const GF = {
 function createObjectExtrusion(points, config) {
   const { shape } = createShapeFromPoints(points)
   const depth = config.depth || 25
-  const edgeRadius = config.objectEdgeRadius || 0
+  const rawEdgeRadius = config.objectEdgeRadius || 0
+  const edgeRadius = Math.min(rawEdgeRadius, depth * 0.3)
 
   const extrudeSettings = edgeRadius > 0
     ? {
