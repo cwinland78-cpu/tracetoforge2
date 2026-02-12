@@ -755,33 +755,42 @@ function createGridfinityInsert(points, config) {
       // Layer 1: 45deg chamfer (0.8mm) - tapers from 35.6 to 37.2
       const g1 = buildFrustum(bottomW, midW, cr, cr, GF.baseChamfer1, 24)
       g1.translate(cx, cy, z)
-      group.add(new THREE.Mesh(g1, trayMat))
+      const m1 = new THREE.Mesh(g1, trayMat)
+      m1.userData.vizOnly = true
+      group.add(m1)
       z += GF.baseChamfer1
 
       // Layer 2: vertical section (1.8mm) - stays at 37.2
       const s2 = createRoundedRectShape(midW, midW, cr)
       const g2 = new THREE.ExtrudeGeometry(s2, { depth: GF.baseVertical, bevelEnabled: false })
       g2.translate(cx, cy, z)
-      group.add(new THREE.Mesh(g2, trayMat))
+      const m2 = new THREE.Mesh(g2, trayMat)
+      m2.userData.vizOnly = true
+      group.add(m2)
       z += GF.baseVertical
 
       // Layer 3: 45deg chamfer (2.15mm) - tapers from 37.2 to 41.5
       const g3 = buildFrustum(midW, topW, cr, GF.cornerRadius, GF.baseChamfer2, 24)
       g3.translate(cx, cy, z)
-      group.add(new THREE.Mesh(g3, trayMat))
+      const m3 = new THREE.Mesh(g3, trayMat)
+      m3.userData.vizOnly = true
+      group.add(m3)
     }
   }
+
+  // Solid base for export: single outer shell from z=0 to baseHeight
+  const solidBaseShape = createRoundedRectShape(binW, binH, GF.cornerRadius)
+  const solidBaseGeo = new THREE.ExtrudeGeometry(solidBaseShape, { depth: GF.baseHeight, bevelEnabled: false })
+  const baseMesh = new THREE.Mesh(solidBaseGeo, trayMat)
+  baseMesh.userData.vizOnly = true // only for preview; bin body handles export
+  group.add(baseMesh)
 
   // ─── Walls with tool hole (cavity bevel support via CSG) ───
   const cb = config.cavityBevel || 0
   const topSurface = GF.baseHeight + wallHeight
 
-  // Floor section (solid, no hole) if toolDepth < wallHeight
-  if (floorZ > 0.01) {
-    const floorGeo = new THREE.ExtrudeGeometry(outerShape, { depth: floorZ, bevelEnabled: false })
-    floorGeo.translate(0, 0, GF.baseHeight)
-    group.add(new THREE.Mesh(floorGeo, trayMat))
-  }
+  // Combined floor + cavity section as one solid block, then subtract tool cavity
+  // This avoids non-manifold edges from separate floor/wall meshes sharing faces
 
   // ─── Additional tools for gridfinity ───
   const { additionalTools = [] } = config
@@ -816,10 +825,10 @@ function createGridfinityInsert(points, config) {
     extraToolViz.push({ shape: atShape, scale: atScale, rad: atRad, ox: atOx, oy: atOy })
   })
 
-  // Cavity section: solid walls with tool cavity subtracted via CSG
-  // This properly clips the tool shape to the bin boundary
-  const wallGeo = new THREE.ExtrudeGeometry(outerShape, { depth: cavityZ, bevelEnabled: false })
-  wallGeo.translate(0, 0, GF.baseHeight + floorZ)
+  // Full bin body: single solid from z=0 to totalHeight + lip, subtract cavity and lip interior
+  const lipH = GF.lipVertical + GF.lipSlope
+  const fullHeight = totalHeight + lipH
+  const wallGeo = new THREE.ExtrudeGeometry(outerShape, { depth: fullHeight, bevelEnabled: false })
 
   // Build tool cavity cutter from combined hole (tool + notches)
   const toolCutterShape = new THREE.Shape()
@@ -895,21 +904,44 @@ function createGridfinityInsert(points, config) {
       }
     })
 
+    // Subtract lip interior (the hollow inside the lip ring)
+    // Vertical lip section interior
+    const lipInnerV = createRoundedRectShape(binW - 2.4, binH - 2.4, Math.max(0, GF.cornerRadius - 1.2))
+    const lipCutVGeo = new THREE.ExtrudeGeometry(lipInnerV, { depth: GF.lipVertical + 0.1, bevelEnabled: false })
+    lipCutVGeo.translate(0, 0, totalHeight)
+    const lipVBrush = new Brush(lipCutVGeo)
+    lipVBrush.updateMatrixWorld()
+    let prevBrushLip = new Brush(result.geometry)
+    prevBrushLip.updateMatrixWorld()
+    result = evaluator.evaluate(prevBrushLip, lipVBrush, SUBTRACTION)
+
+    // Sloped lip section interior (tapers inward)
+    const lipInnerS = createRoundedRectShape(
+      binW - 2.4 - GF.lipSlope * 2,
+      binH - 2.4 - GF.lipSlope * 2,
+      Math.max(0, GF.cornerRadius - 1.2 - GF.lipSlope)
+    )
+    const lipCutSGeo = new THREE.ExtrudeGeometry(lipInnerS, { depth: GF.lipSlope + 0.1, bevelEnabled: false })
+    lipCutSGeo.translate(0, 0, totalHeight + GF.lipVertical)
+    const lipSBrush = new Brush(lipCutSGeo)
+    lipSBrush.updateMatrixWorld()
+    prevBrushLip = new Brush(result.geometry)
+    prevBrushLip.updateMatrixWorld()
+    result = evaluator.evaluate(prevBrushLip, lipSBrush, SUBTRACTION)
+
     result.material = trayMat2
     if (result.geometry) result.geometry.computeVertexNormals()
     group.add(result)
   } catch (e) {
     console.error('CSG failed, falling back to hole-punch method:', e)
-    // Fallback: use the old hole-punch method (may extend outside for oversized tools)
+    // Fallback: single solid with hole punched through
     const topShape = outerShape.clone()
     topShape.holes.push(toolHolePath)
-    const topGeo = new THREE.ExtrudeGeometry(topShape, { depth: cavityZ, bevelEnabled: false })
-    topGeo.translate(0, 0, GF.baseHeight + floorZ)
+    const topGeo = new THREE.ExtrudeGeometry(topShape, { depth: fullHeight, bevelEnabled: false })
     group.add(new THREE.Mesh(topGeo, trayMat2))
   }
 
-  // ─── Stacking lip (vertical + 45deg inward slope) ───
-  const lipH = GF.lipVertical + GF.lipSlope
+  // ─── Stacking lip (vizOnly, actual lip is CSG'd into bin body) ───
   const lipInset = GF.lipSlope  // 1.8mm inward at 45deg
 
   // Vertical section
@@ -921,7 +953,9 @@ function createGridfinityInsert(points, config) {
   const lipMat = new THREE.MeshPhongMaterial({
     color: 0xaaaabb, transparent: true, opacity: 0.7, side: THREE.DoubleSide,
   })
-  group.add(new THREE.Mesh(lipVGeo, lipMat))
+  const lipVMesh = new THREE.Mesh(lipVGeo, lipMat)
+  lipVMesh.userData.vizOnly = true
+  group.add(lipVMesh)
 
   // Slope section (1.8mm tall, narrows inward by 1.8mm)
   const lipSOuter = createRoundedRectShape(binW, binH, GF.cornerRadius)
@@ -933,7 +967,9 @@ function createGridfinityInsert(points, config) {
   lipSOuter.holes.push(new THREE.Path(lipSInner.getPoints(12)))
   const lipSGeo = new THREE.ExtrudeGeometry(lipSOuter, { depth: GF.lipSlope, bevelEnabled: false })
   lipSGeo.translate(0, 0, totalHeight + GF.lipVertical)
-  group.add(new THREE.Mesh(lipSGeo, lipMat))
+  const lipSMesh = new THREE.Mesh(lipSGeo, lipMat)
+  lipSMesh.userData.vizOnly = true
+  group.add(lipSMesh)
 
   // ─── Grid lines on floor ───
   const linesMat = new THREE.LineBasicMaterial({ color: 0x444455 })
