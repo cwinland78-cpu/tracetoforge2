@@ -100,6 +100,7 @@ export default function Editor() {
   const [toolOffsetY, setToolOffsetY] = useState(0)
   const [toolRotation, setToolRotation] = useState(0)
   const [depth, setDepth] = useState(25)
+  const [objectEdgeRadius, setObjectEdgeRadius] = useState(0)
   const [tolerance, setTolerance] = useState(1.5)
 
   // Multi-tool support
@@ -185,6 +186,7 @@ export default function Editor() {
       if (cfg.floorThickness) setFloorThickness(cfg.floorThickness)
       if (cfg.toolDepth) setToolDepth(cfg.toolDepth)
       if (cfg.depth) setDepth(cfg.depth)
+      if (cfg.objectEdgeRadius != null) setObjectEdgeRadius(cfg.objectEdgeRadius)
       if (cfg.tolerance) setTolerance(cfg.tolerance)
       if (cfg.contours) setContours(cfg.contours)
       if (cfg.selectedContour != null) setSelectedContour(cfg.selectedContour)
@@ -221,7 +223,7 @@ export default function Editor() {
       cavityBevel, toolRotation, toolOffsetX, toolOffsetY,
       fingerNotch, fingerNotchShape, fingerNotchRadius,
       fingerNotchW, fingerNotchH, fingerNotchX, fingerNotchY,
-      tools, step: step, trayWidth, trayDepth, depth,
+      tools, step: step, trayWidth, trayDepth, depth, objectEdgeRadius,
       edgeProfile, edgeSize, outerShapeType, gridX, gridY,
       heightUnits, threshold, simplification, sensitivity,
     }
@@ -1008,7 +1010,7 @@ export default function Editor() {
   }
 
   const buildConfig = () => {
-    const base = { mode: outputMode, depth: outputMode === 'object' ? depth : toolDepth, tolerance, realWidth, toolDepth, toolOffsetX, toolOffsetY, toolRotation }
+    const base = { mode: outputMode, depth: outputMode === 'object' ? depth : toolDepth, tolerance, realWidth, toolDepth, toolOffsetX, toolOffsetY, toolRotation, objectEdgeRadius }
 
     // Build additional tools array
     const additionalTools = tools.filter(t => t.contours[t.selectedContour] && t.contours[t.selectedContour].length >= 3).map(t => ({
@@ -1363,10 +1365,33 @@ export default function Editor() {
 
                   {/* Object mode */}
                   {outputMode === 'object' && (
+                    <>
                     <ParamRow label="Extrude" tooltip="Extrusion thickness for standalone 3D object.">
                       <input type="number" value={depth} onChange={e => setDepth(+e.target.value)} className="w-[4.5rem] text-right" min="1" />
                       <span className="text-xs text-[#8888A0] w-7">mm</span>
                     </ParamRow>
+                    <ParamRow label="Edge R" tooltip="Rounded edge radius. 0 = sharp edges. Higher values create smoother, more rounded edges on the extruded object.">
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => setObjectEdgeRadius(Math.max(0, +(objectEdgeRadius - 0.5).toFixed(1)))}
+                          className="w-6 h-6 rounded bg-[#2A2A35] hover:bg-[#3A3A45] text-white text-sm flex items-center justify-center"
+                          disabled={objectEdgeRadius <= 0}
+                        >-</button>
+                        <input
+                          type="range" min="0" max="10" step="0.5"
+                          value={objectEdgeRadius}
+                          onChange={e => setObjectEdgeRadius(+e.target.value)}
+                          className="w-20 accent-brand"
+                        />
+                        <button
+                          onClick={() => setObjectEdgeRadius(Math.min(10, +(objectEdgeRadius + 0.5).toFixed(1)))}
+                          className="w-6 h-6 rounded bg-[#2A2A35] hover:bg-[#3A3A45] text-white text-sm flex items-center justify-center"
+                          disabled={objectEdgeRadius >= 10}
+                        >+</button>
+                        <span className="text-xs text-[#8888A0] ml-1 w-12">{objectEdgeRadius} mm</span>
+                      </div>
+                    </ParamRow>
+                    </>
                   )}
 
                   {/* ── Custom Tray ── */}

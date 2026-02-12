@@ -178,11 +178,23 @@ const GF = {
 function createObjectExtrusion(points, config) {
   const { shape } = createShapeFromPoints(points)
   const depth = config.depth || 25
+  const edgeRadius = config.objectEdgeRadius || 0
 
-  const geometry = new THREE.ExtrudeGeometry(shape, {
-    depth,
-    bevelEnabled: false,
-  })
+  const extrudeSettings = edgeRadius > 0
+    ? {
+        depth: Math.max(1, depth - edgeRadius * 2),
+        bevelEnabled: true,
+        bevelThickness: edgeRadius,
+        bevelSize: edgeRadius,
+        bevelSegments: Math.max(4, Math.round(edgeRadius * 3)),
+        bevelOffset: 0,
+      }
+    : {
+        depth,
+        bevelEnabled: false,
+      }
+
+  const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings)
 
   const group = new THREE.Group()
 
