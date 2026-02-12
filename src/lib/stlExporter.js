@@ -181,43 +181,66 @@ function createObjectExtrusion(points, config) {
   const rawEdgeRadius = config.objectEdgeRadius || 0
   const edgeRadius = Math.min(rawEdgeRadius, depth * 0.3)
 
-  const extrudeSettings = edgeRadius > 0
-    ? {
+  let geometry
+
+  if (edgeRadius > 0) {
+    // Strategy: inset the shape by edgeRadius using Clipper, then extrude with
+    // outward bevel (bevelSize=edgeRadius, bevelOffset=0). The bevel grows the
+    // inset shape back to approximately the original size, creating rounded edges.
+    // Then CSG-intersect with the original sharp extrusion to clip any overshoot.
+
+    const centered = centerPoints(points)
+    const scale = 1000
+    const path = centered.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) }))
+    const co = new ClipperLib.ClipperOffset()
+    co.AddPath(path, ClipperLib.JoinType.jtRound, ClipperLib.EndType.etClosedPolygon)
+    const solution = []
+    co.Execute(solution, -edgeRadius * scale) // negative = inset
+
+    if (solution.length > 0 && solution[0].length >= 3) {
+      const insetPts = solution[0].map(p => ({ x: p.X / scale, y: p.Y / scale }))
+      const insetShape = new THREE.Shape()
+      insetPts.forEach((p, i) => {
+        if (i === 0) insetShape.moveTo(p.x, p.y)
+        else insetShape.lineTo(p.x, p.y)
+      })
+      insetShape.closePath()
+
+      // Extrude inset shape with outward bevel
+      const bevelGeo = new THREE.ExtrudeGeometry(insetShape, {
         depth: Math.max(1, depth - edgeRadius * 2),
         bevelEnabled: true,
         bevelThickness: edgeRadius,
         bevelSize: edgeRadius,
         bevelSegments: Math.max(4, Math.round(edgeRadius * 3)),
-        bevelOffset: -edgeRadius,
-      }
-    : {
-        depth,
-        bevelEnabled: false,
-      }
+        bevelOffset: 0,
+      })
 
-  let geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings)
-
-  // Clip beveled geometry to original shape bounds to prevent "wings"
-  // on thin features where bevel inverts the geometry
-  if (edgeRadius > 0) {
-    try {
-      const clipShape = shape.clone()
-      const clipGeo = new THREE.ExtrudeGeometry(clipShape, {
+      // Sharp extrusion of original shape as clip volume
+      const clipGeo = new THREE.ExtrudeGeometry(shape, {
         depth: depth,
         bevelEnabled: false,
       })
 
-      const evaluator = new Evaluator()
-      const bevelBrush = new Brush(geometry)
-      bevelBrush.updateMatrixWorld()
-      const clipBrush = new Brush(clipGeo)
-      clipBrush.updateMatrixWorld()
-
-      const clipped = evaluator.evaluate(bevelBrush, clipBrush, INTERSECTION)
-      geometry = clipped.geometry || clipped
-    } catch (e) {
-      console.warn('Edge radius CSG clip failed, using unclipped bevel:', e)
+      try {
+        const evaluator = new Evaluator()
+        const bevelBrush = new Brush(bevelGeo)
+        bevelBrush.updateMatrixWorld()
+        const clipBrush = new Brush(clipGeo)
+        clipBrush.updateMatrixWorld()
+        const clipped = evaluator.evaluate(bevelBrush, clipBrush, INTERSECTION)
+        geometry = clipped.geometry || clipped
+      } catch (e) {
+        console.warn('Edge radius CSG clip failed, using bevel without clip:', e)
+        geometry = bevelGeo
+      }
+    } else {
+      // Inset collapsed the shape (too thin), fall back to sharp extrusion
+      console.warn('Edge radius too large for shape, falling back to sharp edges')
+      geometry = new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: false })
     }
+  } else {
+    geometry = new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: false })
   }
 
   const group = new THREE.Group()
