@@ -4,6 +4,7 @@ import Landing from './pages/Landing'
 import Editor from './pages/Editor'
 import LoginPage from './pages/LoginPage'
 import Dashboard from './pages/Dashboard'
+import GuidePage from './pages/GuidePage'
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
           <Route path="/editor" element={<Editor />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/guide" element={<GuidePage />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

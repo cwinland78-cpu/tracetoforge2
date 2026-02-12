@@ -202,6 +202,10 @@ export default function Landing() {
           <span className="text-lg font-display font-bold tracking-tight">Traceto<span className="text-brand">Forge</span></span>
         </div>
         <div className="flex items-center gap-3">
+          <button onClick={() => navigate('/guide')}
+            className="px-3 py-2 text-sm text-[#8888A0] hover:text-white transition-colors hidden sm:inline">
+            Guide
+          </button>
           {isAuthenticated ? (
             <>
               <span className="hidden sm:inline text-xs text-[#8888A0]">{profile?.credits || 0} credits</span>
@@ -561,6 +565,7 @@ export default function Landing() {
             <span className="font-mono text-xs">&copy; {new Date().getFullYear()} TracetoForge</span>
           </div>
           <div className="flex items-center gap-6 text-xs text-[#555568] font-mono">
+            <a href="/guide" className="hover:text-white transition-colors">Guide & FAQ</a>
             <span>All brand names are trademarks of their respective owners</span>
           </div>
         </div>
