@@ -1,0 +1,1800 @@
+import React, { useState, useRef, useCallback, useEffect } from 'react'
+import ReactDOM from 'react-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import {
+  Box, Upload, Download, ChevronLeft, Pencil, MousePointer, Eye,
+  Info, ZoomIn, ZoomOut, Save, FolderOpen
+} from 'lucide-react'
+import ThreePreview from '../components/ThreePreview'
+import PaywallModal from '../components/PaywallModal'
+import { useAuth } from '../components/AuthContext'
+import { exportSTL } from '../lib/stlExporter'
+import { hasCredits, useCredit, getCredits, initPurchases } from '../lib/purchases'
+import { queryTable } from '../lib/supabase'
+import { createProject, updateProject, getProject } from './Dashboard'
+
+const STEPS = ['Upload', 'Trace', 'Configure', 'Preview & Export']
+
+/* ── Tooltip ── */
+function Tooltip({ text, position = 'below' }) {
+  const [show, setShow] = useState(false)
+  const [pos, setPos] = useState({ top: 0, left: 0 })
+  const iconRef = useRef(null)
+
+  const handleEnter = () => {
+    if (iconRef.current) {
+      const rect = iconRef.current.getBoundingClientRect()
+      setPos({
+        top: position === 'above' ? rect.top - 8 : rect.bottom + 8,
+        left: Math.min(rect.left, window.innerWidth - 240),
+      })
+    }
+    setShow(true)
+  }
+
+  return (
+    <span className="inline-flex ml-1 cursor-help" ref={iconRef} onMouseEnter={handleEnter} onMouseLeave={() => setShow(false)}>
+      <Info size={13} className="text-[#8888A0] hover:text-[#E8650A] transition-colors" />
+      {show && ReactDOM.createPortal(
+        <div style={{ position: 'fixed', top: pos.top, left: pos.left, zIndex: 99999, transform: position === 'above' ? 'translateY(-100%)' : '' }}
+          className="px-3 py-2 rounded-lg bg-[#2A2A35] border border-[#555] text-xs text-white w-56 shadow-2xl leading-relaxed pointer-events-none">
+          {text}
+        </div>,
+        document.body
+      )}
+    </span>
+  )
+}
+
+/* ── Param Row ── */
+function ParamRow({ label, tooltip, children, tooltipPos }) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center text-sm text-[#C8C8D0] whitespace-nowrap">
+        {label}
+        {tooltip && <Tooltip text={tooltip} position={tooltipPos} />}
+      </div>
+      <div className="flex items-center gap-1.5">{children}</div>
+    </div>
+  )
+}
+
+/* ════════════════════════════════════════════════════════ */
+export default function Editor() {
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const { user, profile, isAuthenticated, refreshProfile } = useAuth()
+  const canvasRef = useRef(null)
+  const imageRef = useRef(null)
+  const fileInputRef = useRef(null)
+  const containerRef = useRef(null)
+  const imgOffsetRef = useRef({ x: 0, y: 0 })
+  const scrollRef = useRef(null)
+
+  /* ── State ── */
+  const [step, setStep] = useState(0)
+  const [image, setImage] = useState(null)
+  const [showPaywall, setShowPaywall] = useState(false)
+  const [credits, setCredits] = useState(0)
+  const [projectId, setProjectId] = useState(null)
+  const [projectName, setProjectName] = useState('Untitled Project')
+  const [saving, setSaving] = useState(false)
+  const [saveMsg, setSaveMsg] = useState('')
+  const [showDisclaimer, setShowDisclaimer] = useState(false)
+  const [imageSize, setImageSize] = useState({ w: 0, h: 0 })
+  const [contours, setContours] = useState([])
+  const [selectedContour, setSelectedContour] = useState(0)
+  const [editMode, setEditMode] = useState('select')
+  const [draggingPoint, setDraggingPoint] = useState(null)
+  const [hoveredPoint, setHoveredPoint] = useState(null)
+  const [zoom, setZoom] = useState(1)
+
+  // Output mode
+  const [outputMode, setOutputMode] = useState('custom')
+
+  // Shared
+  const [realWidth, setRealWidth] = useState(100)
+  const [realHeight, setRealHeight] = useState(100)
+  const [toolDepth, setToolDepth] = useState(25) // how deep the tool sits in the tray
+  const [toolOffsetX, setToolOffsetX] = useState(0)
+  const [toolOffsetY, setToolOffsetY] = useState(0)
+  const [toolRotation, setToolRotation] = useState(0)
+  const [depth, setDepth] = useState(25)
+  const [tolerance, setTolerance] = useState(1.5)
+
+  // Multi-tool support
+  const [tools, setTools] = useState([]) // additional tools: [{name, contours, selectedContour, realWidth, realHeight, toolDepth, tolerance, toolOffsetX, toolOffsetY, toolRotation}]
+  const [activeToolIdx, setActiveToolIdx] = useState(-1) // -1 = primary tool, 0+ = additional tools
+
+  // Custom tray
+  const [trayWidth, setTrayWidth] = useState(200)
+  const [trayHeight, setTrayHeight] = useState(150)
+  const [trayDepth, setTrayDepth] = useState(35)
+  const [wallThickness, setWallThickness] = useState(3)
+  const [cornerRadius, setCornerRadius] = useState(2)
+  const [floorThickness, setFloorThickness] = useState(2)
+  const [edgeProfile, setEdgeProfile] = useState('straight')
+  const [edgeSize, setEdgeSize] = useState(2)
+  const [cavityBevel, setCavityBevel] = useState(0)
+  const [fingerNotch, setFingerNotch] = useState(false)
+  const [fingerNotchShape, setFingerNotchShape] = useState('circle') // 'circle' | 'square' | 'rectangle'
+  const [fingerNotchRadius, setFingerNotchRadius] = useState(12)
+  const [fingerNotchW, setFingerNotchW] = useState(24)
+  const [fingerNotchH, setFingerNotchH] = useState(16)
+  const [fingerNotchX, setFingerNotchX] = useState(0)
+  const [fingerNotchY, setFingerNotchY] = useState(0)
+  const [outerShapeType, setOuterShapeType] = useState('rectangle') // 'rectangle' | 'oval' | 'custom'
+  const [outerShapePoints, setOuterShapePoints] = useState(null) // custom polygon points in mm
+  const [editingOuter, setEditingOuter] = useState(false) // true when editing outer shape on canvas
+  const [draggingOuterPoint, setDraggingOuterPoint] = useState(null)
+  const [hoveredOuterPoint, setHoveredOuterPoint] = useState(null)
+
+  // Gridfinity
+  const [gridX, setGridX] = useState(2)
+  const [gridY, setGridY] = useState(1)
+  const [heightUnits, setHeightUnits] = useState(3)
+
+  // Detection
+  const [threshold, setThreshold] = useState(128)
+  const [simplification, setSimplification] = useState(0.5)
+  const [sensitivity, setSensitivity] = useState(6)
+  const [showPreview, setShowPreview] = useState(false)
+
+  // OpenCV
+  const [cvReady, setCvReady] = useState(false)
+  const [processing, setProcessing] = useState(false)
+
+  // Initialize RevenueCat
+  useEffect(() => { initPurchases() }, [])
+
+  // Fetch credits (server-side if logged in)
+  useEffect(() => {
+    async function fetchCredits() {
+      if (user?.id) {
+        try {
+          const { data, error } = await queryTable('profiles', 'credits', { id: user.id })
+          if (!error && data && data[0]) { setCredits(data[0].credits); return }
+        } catch (err) { console.error('[TTF] credits fetch failed:', err) }
+      }
+      const val = parseInt(localStorage.getItem('ttf_credits') || '0', 10)
+      setCredits(isNaN(val) ? 0 : val)
+    }
+    fetchCredits()
+  }, [user, profile])
+
+  // Load project from URL param
+  useEffect(() => {
+    const pid = searchParams.get('project')
+    if (pid && isAuthenticated) loadProjectData(pid)
+  }, [searchParams, isAuthenticated])
+
+  async function loadProjectData(pid) {
+    try {
+      const proj = await getProject(pid)
+      if (!proj) return
+      setProjectId(proj.id)
+      setProjectName(proj.name)
+      const cfg = proj.config
+      if (cfg.outputMode) setOutputMode(cfg.outputMode)
+      if (cfg.realWidth) setRealWidth(cfg.realWidth)
+      if (cfg.realHeight) setRealHeight(cfg.realHeight)
+      if (cfg.trayDepth) setTrayDepth(cfg.trayDepth)
+      if (cfg.trayWidth) setTrayWidth(cfg.trayWidth)
+      if (cfg.wallThickness) setWallThickness(cfg.wallThickness)
+      if (cfg.floorThickness) setFloorThickness(cfg.floorThickness)
+      if (cfg.toolDepth) setToolDepth(cfg.toolDepth)
+      if (cfg.depth) setDepth(cfg.depth)
+      if (cfg.tolerance) setTolerance(cfg.tolerance)
+      if (cfg.contours) setContours(cfg.contours)
+      if (cfg.selectedContour != null) setSelectedContour(cfg.selectedContour)
+      if (cfg.cornerRadius != null) setCornerRadius(cfg.cornerRadius)
+      if (cfg.cavityBevel != null) setCavityBevel(cfg.cavityBevel)
+      if (cfg.toolRotation != null) setToolRotation(cfg.toolRotation)
+      if (cfg.toolOffsetX != null) setToolOffsetX(cfg.toolOffsetX)
+      if (cfg.toolOffsetY != null) setToolOffsetY(cfg.toolOffsetY)
+      if (cfg.fingerNotch != null) setFingerNotch(cfg.fingerNotch)
+      if (cfg.fingerNotchShape) setFingerNotchShape(cfg.fingerNotchShape)
+      if (cfg.fingerNotchRadius != null) setFingerNotchRadius(cfg.fingerNotchRadius)
+      if (cfg.fingerNotchW != null) setFingerNotchW(cfg.fingerNotchW)
+      if (cfg.fingerNotchH != null) setFingerNotchH(cfg.fingerNotchH)
+      if (cfg.fingerNotchX != null) setFingerNotchX(cfg.fingerNotchX)
+      if (cfg.fingerNotchY != null) setFingerNotchY(cfg.fingerNotchY)
+      if (cfg.tools) setTools(cfg.tools)
+      if (cfg.step != null) setStep(cfg.step)
+      if (cfg.edgeProfile) setEdgeProfile(cfg.edgeProfile)
+      if (cfg.edgeSize != null) setEdgeSize(cfg.edgeSize)
+      if (cfg.outerShapeType) setOuterShapeType(cfg.outerShapeType)
+      if (cfg.gridX) setGridX(cfg.gridX)
+      if (cfg.gridY) setGridY(cfg.gridY)
+      if (cfg.heightUnits) setHeightUnits(cfg.heightUnits)
+      if (cfg.threshold) setThreshold(cfg.threshold)
+      if (cfg.simplification) setSimplification(cfg.simplification)
+      if (cfg.sensitivity) setSensitivity(cfg.sensitivity)
+    } catch (err) { console.error('Error loading project:', err) }
+  }
+
+  function buildProjectConfig() {
+    return {
+      outputMode, realWidth, realHeight, wallThickness, floorThickness,
+      toolDepth, tolerance, contours, selectedContour, cornerRadius,
+      cavityBevel, toolRotation, toolOffsetX, toolOffsetY,
+      fingerNotch, fingerNotchShape, fingerNotchRadius,
+      fingerNotchW, fingerNotchH, fingerNotchX, fingerNotchY,
+      tools, step: step, trayWidth, trayDepth, depth,
+      edgeProfile, edgeSize, outerShapeType, gridX, gridY,
+      heightUnits, threshold, simplification, sensitivity,
+    }
+  }
+
+  async function handleSaveProject() {
+    if (!isAuthenticated) { navigate('/login'); return }
+    setSaving(true)
+    setSaveMsg('')
+    try {
+      const cfg = buildProjectConfig()
+      if (projectId) {
+        await updateProject(projectId, { name: projectName, config: cfg })
+        setSaveMsg('Saved!')
+      } else {
+        const proj = await createProject(user.id, projectName, cfg, null)
+        setProjectId(proj.id)
+        setSaveMsg('Saved!')
+      }
+      setTimeout(() => setSaveMsg(''), 2000)
+    } catch (err) {
+      console.error('Save error:', err)
+      setSaveMsg('Save failed')
+    }
+    setSaving(false)
+  }
+
+  // Export with disclaimer
+  function handleExportClick() {
+    const pts = contours[selectedContour]
+    if (!pts || pts.length < 3) return
+    if (credits <= 0) {
+      if (!isAuthenticated) { navigate('/login'); return }
+      setShowPaywall(true)
+      return
+    }
+    setShowDisclaimer(true)
+  }
+
+  function handleConfirmExport() {
+    setShowDisclaimer(false)
+    const pts = contours[selectedContour]
+    if (!pts || pts.length < 3) return
+    const scaledPts = scalePoints(pts)
+    const config = buildConfig()
+    try {
+      const buffer = exportSTL(scaledPts, config)
+      const blob = new Blob([buffer], { type: 'application/octet-stream' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.style.display = 'none'
+      a.href = url
+      a.download = `tracetoforge-${outputMode}-${Date.now()}.stl`
+      document.body.appendChild(a)
+      a.click()
+      setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url) }, 200)
+      setCredits(prev => Math.max(0, prev - 1))
+      useCredit(user?.id || null, { outputMode }).then(() =>
+        getCredits(user?.id || null).then(c => setCredits(c))
+      )
+    } catch (err) {
+      console.error('Export error:', err)
+    }
+  }
+
+  useEffect(() => {
+    if (window.cv && window.cv.Mat) { setCvReady(true); return }
+    const script = document.createElement('script')
+    script.src = 'https://docs.opencv.org/4.9.0/opencv.js'
+    script.async = true
+    script.onload = () => {
+      const check = setInterval(() => {
+        if (window.cv && window.cv.Mat) { setCvReady(true); clearInterval(check) }
+      }, 100)
+    }
+    document.head.appendChild(script)
+  }, [])
+
+  /* ── Image Upload ── */
+  const handleImageUpload = useCallback((e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const img = new Image()
+      img.onload = () => {
+        setImage(ev.target.result)
+        setImageSize({ w: img.width, h: img.height })
+        imageRef.current = img
+        setStep(1)
+        setContours([])
+        setShowPreview(false)
+      }
+      img.src = ev.target.result
+    }
+    reader.readAsDataURL(file)
+  }, [])
+
+  const handleDrop = useCallback((e) => {
+    e.preventDefault()
+    const file = e.dataTransfer.files?.[0]
+    if (!file || !file.type.startsWith('image/')) return
+    handleImageUpload({ target: { files: [file] } })
+  }, [handleImageUpload])
+
+  /* ── Edge Detection ── */
+  const runEdgeDetection = useCallback(() => {
+    if (!cvReady || !imageRef.current) return
+    setProcessing(true)
+    setTimeout(() => {
+      try {
+        const cv = window.cv
+        const img = imageRef.current
+
+        const tmpCanvas = document.createElement('canvas')
+        tmpCanvas.width = img.width
+        tmpCanvas.height = img.height
+        const ctx = tmpCanvas.getContext('2d')
+        ctx.drawImage(img, 0, 0)
+
+        const src = cv.imread(tmpCanvas)
+        const gray = new cv.Mat()
+        const binary = new cv.Mat()
+        const edges = new cv.Mat()
+        const contoursMat = new cv.MatVector()
+        const hierarchy = new cv.Mat()
+
+        // Grayscale
+        cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY)
+
+        // Adaptive blur based on sensitivity - less blur = more detail kept
+        const blurSize = sensitivity <= 3 ? 3 : sensitivity <= 6 ? 5 : 7
+        cv.GaussianBlur(gray, gray, new cv.Size(blurSize, blurSize), 0)
+
+        // Multi-strategy detection based on sensitivity (1-10 scale)
+        // Center (5) = Canny with balanced thresholds - best general purpose
+        // Lower (1-4) = tighter detection, ignores faint edges, cleaner outlines
+        // Higher (6-10) = looser detection, picks up more detail and faint edges
+        
+        if (sensitivity <= 2) {
+          // Otsu threshold - strictest, only works on high-contrast
+          cv.threshold(gray, binary, 0, 255, cv.THRESH_BINARY_INV + cv.THRESH_OTSU)
+          const k = cv.getStructuringElement(cv.MORPH_ELLIPSE, new cv.Size(3, 3))
+          cv.morphologyEx(binary, binary, cv.MORPH_CLOSE, k)
+          k.delete()
+        } else if (sensitivity <= 8) {
+          // Canny edge detection - the workhorse (sens 3-8)
+          // Map 3-8 to Canny low threshold: 100 down to 15
+          const cannyLow = Math.round(100 - (sensitivity - 3) * 14)
+          const cannyHigh = Math.round(cannyLow * 2.5)
+          cv.Canny(gray, edges, cannyLow, cannyHigh)
+          // Dilate more at higher sensitivity to close gaps
+          const dilateSize = sensitivity <= 5 ? 3 : 5
+          const k = cv.getStructuringElement(cv.MORPH_ELLIPSE, new cv.Size(dilateSize, dilateSize))
+          cv.dilate(edges, binary, k)
+          cv.morphologyEx(binary, binary, cv.MORPH_CLOSE, k)
+          k.delete()
+        } else {
+          // Adaptive threshold + Canny combo for very low contrast (9-10)
+          const blockSize = sensitivity === 9 ? 21 : 31
+          const adaptC = sensitivity === 9 ? 5 : 3
+          cv.adaptiveThreshold(gray, binary, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY_INV, blockSize, adaptC)
+          cv.Canny(gray, edges, 15, 40)
+          const k = cv.getStructuringElement(cv.MORPH_ELLIPSE, new cv.Size(5, 5))
+          cv.dilate(edges, edges, k)
+          cv.bitwise_or(binary, edges, binary)
+          cv.morphologyEx(binary, binary, cv.MORPH_CLOSE, k)
+          const k2 = cv.getStructuringElement(cv.MORPH_ELLIPSE, new cv.Size(7, 7))
+          cv.morphologyEx(binary, binary, cv.MORPH_CLOSE, k2)
+          k.delete()
+          k2.delete()
+        }
+
+        // Find contours
+        cv.findContours(binary, contoursMat, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+
+        const minArea = img.width * img.height * 0.001
+        const detected = []
+        for (let i = 0; i < contoursMat.size(); i++) {
+          const contour = contoursMat.get(i)
+          const area = cv.contourArea(contour)
+
+          if (area < minArea) {
+            contour.delete()
+            continue
+          }
+
+          // Simplify contour - scale epsilon with simplification slider
+          const epsilon = simplification * 0.002 * cv.arcLength(contour, true)
+          const approx = new cv.Mat()
+          cv.approxPolyDP(contour, approx, epsilon, true)
+
+          const points = []
+          for (let j = 0; j < approx.rows; j++) {
+            points.push({
+              x: approx.data32S[j * 2],
+              y: approx.data32S[j * 2 + 1],
+            })
+          }
+
+          if (points.length >= 3) detected.push(points)
+          approx.delete()
+          contour.delete()
+        }
+
+        // Sort largest first
+        detected.sort((a, b) => {
+          const areaOf = (pts) => Math.abs(pts.reduce((s, p, i) => {
+            const n = pts[(i + 1) % pts.length]
+            return s + (p.x * n.y - n.x * p.y)
+          }, 0) / 2)
+          return areaOf(b) - areaOf(a)
+        })
+
+        setContours(detected)
+        setSelectedContour(0)
+        setStep(2)
+
+        src.delete(); gray.delete(); binary.delete(); edges.delete()
+        contoursMat.delete(); hierarchy.delete()
+      } catch (err) {
+        console.error('Edge detection error:', err)
+      }
+      setProcessing(false)
+    }, 50)
+  }, [cvReady, simplification, sensitivity])
+
+  // Auto re-detect when settings change (after first detection)
+  useEffect(() => {
+    if (step < 2 || !cvReady || !imageRef.current) return
+    const timer = setTimeout(() => {
+      runEdgeDetection()
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [simplification, sensitivity])
+
+  /* ── Canvas Drawing ── */
+  const drawCanvas = useCallback(() => {
+    const canvas = canvasRef.current
+    if (!canvas || !imageRef.current) return
+    const ctx = canvas.getContext('2d')
+    const img = imageRef.current
+
+    // Calculate canvas size: expand if outer shape extends beyond image
+    let canvasW = img.width
+    let canvasH = img.height
+    let imgOffsetX = 0
+    let imgOffsetY = 0
+
+    if (editingOuter && outerShapePoints && outerShapePoints.length >= 3 && contours[selectedContour]) {
+      const pts = contours[selectedContour]
+      const bounds = pts.reduce(
+        (acc, p) => ({ minX: Math.min(acc.minX, p.x), maxX: Math.max(acc.maxX, p.x), minY: Math.min(acc.minY, p.y), maxY: Math.max(acc.maxY, p.y) }),
+        { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity }
+      )
+      const pixelWidth = bounds.maxX - bounds.minX
+      const mmToPixel = pixelWidth / realWidth
+      const cx = (bounds.minX + bounds.maxX) / 2
+      const cy = (bounds.minY + bounds.maxY) / 2
+
+      // Find the pixel extent of the outer shape
+      let oMinX = Infinity, oMaxX = -Infinity, oMinY = Infinity, oMaxY = -Infinity
+      outerShapePoints.forEach(p => {
+        const px = cx + p.x * mmToPixel
+        const py = cy - p.y * mmToPixel
+        oMinX = Math.min(oMinX, px)
+        oMaxX = Math.max(oMaxX, px)
+        oMinY = Math.min(oMinY, py)
+        oMaxY = Math.max(oMaxY, py)
+      })
+
+      // Add padding around outer shape
+      const pad = 60
+      const needLeft = Math.max(0, -(oMinX - pad))
+      const needRight = Math.max(0, (oMaxX + pad) - img.width)
+      const needTop = Math.max(0, -(oMinY - pad))
+      const needBottom = Math.max(0, (oMaxY + pad) - img.height)
+
+      imgOffsetX = needLeft
+      imgOffsetY = needTop
+      canvasW = img.width + needLeft + needRight
+      canvasH = img.height + needTop + needBottom
+    }
+
+    imgOffsetRef.current = { x: imgOffsetX, y: imgOffsetY }
+
+    canvas.width = canvasW
+    canvas.height = canvasH
+
+    ctx.save()
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+    // Fill expanded area with dark background
+    if (imgOffsetX > 0 || imgOffsetY > 0) {
+      ctx.fillStyle = '#0D0D12'
+      ctx.fillRect(0, 0, canvasW, canvasH)
+    }
+
+    ctx.drawImage(img, imgOffsetX, imgOffsetY)
+
+    contours.forEach((pts, ci) => {
+      if (pts.length < 2) return
+      const isSel = ci === selectedContour
+
+      // Draw tolerance zone for selected contour (green band around the outline)
+      if (isSel && tolerance > 0 && realWidth > 0 && pts.length >= 3) {
+        const bounds = pts.reduce(
+          (acc, p) => ({ minX: Math.min(acc.minX, p.x), maxX: Math.max(acc.maxX, p.x), minY: Math.min(acc.minY, p.y), maxY: Math.max(acc.maxY, p.y) }),
+          { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity }
+        )
+        const pixelWidth = bounds.maxX - bounds.minX
+        if (pixelWidth > 0) {
+          const mmToPixel = pixelWidth / realWidth
+          const tolerancePx = tolerance * mmToPixel
+          // Draw the contour with thick stroke representing the tolerance gap
+          ctx.beginPath()
+          ctx.moveTo(pts[0].x + imgOffsetX, pts[0].y + imgOffsetY)
+          pts.forEach((p, i) => { if (i > 0) ctx.lineTo(p.x + imgOffsetX, p.y + imgOffsetY) })
+          ctx.closePath()
+          ctx.strokeStyle = 'rgba(0, 200, 120, 0.25)'
+          ctx.lineWidth = tolerancePx * 2
+          ctx.stroke()
+        }
+      }
+
+      // Main contour outline (on top of tolerance band)
+      ctx.beginPath()
+      ctx.moveTo(pts[0].x + imgOffsetX, pts[0].y + imgOffsetY)
+      pts.forEach((p, i) => { if (i > 0) ctx.lineTo(p.x + imgOffsetX, p.y + imgOffsetY) })
+      ctx.closePath()
+      ctx.strokeStyle = isSel ? '#E8650A' : '#FF853480'
+      ctx.lineWidth = isSel ? 3 : 2
+      ctx.stroke()
+
+      if (isSel && editMode === 'edit' && !editingOuter) {
+        ctx.fillStyle = 'rgba(232, 101, 10, 0.08)'
+        ctx.fill()
+        pts.forEach((p, pi) => {
+          const hov = hoveredPoint === pi
+          const drag = draggingPoint === pi
+          ctx.beginPath()
+          ctx.arc(p.x + imgOffsetX, p.y + imgOffsetY, drag ? 8 : hov ? 7 : 5, 0, Math.PI * 2)
+          ctx.fillStyle = drag ? '#FF8534' : hov ? '#E8650A' : '#E8650Acc'
+          ctx.fill()
+          ctx.strokeStyle = '#fff'
+          ctx.lineWidth = 2
+          ctx.stroke()
+        })
+      }
+    })
+
+    // Draw outer shape overlay when editing
+    if (editingOuter && outerShapePoints && outerShapePoints.length >= 3) {
+      // Convert mm outer points to pixel space for overlay
+      const pts = contours[selectedContour]
+      if (pts && pts.length >= 3) {
+        const bounds = pts.reduce(
+          (acc, p) => ({ minX: Math.min(acc.minX, p.x), maxX: Math.max(acc.maxX, p.x), minY: Math.min(acc.minY, p.y), maxY: Math.max(acc.maxY, p.y) }),
+          { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity }
+        )
+        const pixelWidth = bounds.maxX - bounds.minX
+        const scale = pixelWidth / realWidth
+        const cx = (bounds.minX + bounds.maxX) / 2 + imgOffsetX
+        const cy = (bounds.minY + bounds.maxY) / 2 + imgOffsetY
+
+        // Draw outer shape
+        ctx.beginPath()
+        outerShapePoints.forEach((p, i) => {
+          const px = cx + p.x * scale
+          const py = cy - p.y * scale
+          if (i === 0) ctx.moveTo(px, py)
+          else ctx.lineTo(px, py)
+        })
+        ctx.closePath()
+        ctx.strokeStyle = '#4488FF'
+        ctx.lineWidth = 3
+        ctx.setLineDash([8, 4])
+        ctx.stroke()
+        ctx.setLineDash([])
+        ctx.fillStyle = 'rgba(68, 136, 255, 0.05)'
+        ctx.fill()
+
+        // Draw edge measurements (mm distance between consecutive points)
+        ctx.font = 'bold 13px "Space Grotesk", system-ui, sans-serif'
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        const n = outerShapePoints.length
+        for (let i = 0; i < n; i++) {
+          const a = outerShapePoints[i]
+          const b = outerShapePoints[(i + 1) % n]
+          const ax = cx + a.x * scale, ay = cy - a.y * scale
+          const bx = cx + b.x * scale, by = cy - b.y * scale
+          const mx = (ax + bx) / 2, my = (ay + by) / 2
+          const dist = Math.sqrt((b.x - a.x) ** 2 + (b.y - a.y) ** 2)
+          const label = dist.toFixed(1) + 'mm'
+
+          // Offset label away from center of shape
+          const edgeDx = bx - ax, edgeDy = by - ay
+          const normLen = Math.sqrt(edgeDx * edgeDx + edgeDy * edgeDy) || 1
+          // Normal pointing outward (away from shape center)
+          let nx = -edgeDy / normLen, ny = edgeDx / normLen
+          const toCenterX = cx - mx, toCenterY = cy - my
+          if (nx * toCenterX + ny * toCenterY > 0) { nx = -nx; ny = -ny }
+          const labelX = mx + nx * 18, labelY = my + ny * 18
+
+          // Draw label background
+          const tw = ctx.measureText(label).width + 8
+          ctx.fillStyle = 'rgba(13, 13, 18, 0.85)'
+          ctx.beginPath()
+          ctx.roundRect(labelX - tw / 2, labelY - 10, tw, 20, 4)
+          ctx.fill()
+
+          ctx.fillStyle = '#4488FF'
+          ctx.fillText(label, labelX, labelY)
+        }
+
+        // Draw outer shape edit points with coordinate labels
+        outerShapePoints.forEach((p, pi) => {
+          const px = cx + p.x * scale
+          const py = cy - p.y * scale
+          const hov = hoveredOuterPoint === pi
+          const drag = draggingOuterPoint === pi
+          ctx.beginPath()
+          ctx.arc(px, py, drag ? 8 : hov ? 7 : 5, 0, Math.PI * 2)
+          ctx.fillStyle = drag ? '#66AAFF' : hov ? '#4488FF' : '#4488FFcc'
+          ctx.fill()
+          ctx.strokeStyle = '#fff'
+          ctx.lineWidth = 2
+          ctx.stroke()
+
+          // Show mm coordinates on hover or drag
+          if (hov || drag) {
+            const coordLabel = `(${p.x.toFixed(1)}, ${p.y.toFixed(1)})`
+            ctx.font = 'bold 12px "Space Grotesk", system-ui, sans-serif'
+            ctx.textAlign = 'center'
+            const cw = ctx.measureText(coordLabel).width + 10
+            ctx.fillStyle = 'rgba(13, 13, 18, 0.9)'
+            ctx.beginPath()
+            ctx.roundRect(px - cw / 2, py - 28, cw, 20, 4)
+            ctx.fill()
+            ctx.fillStyle = '#66AAFF'
+            ctx.fillText(coordLabel, px, py - 18)
+          }
+        })
+      }
+    }
+
+    ctx.restore()
+  }, [contours, selectedContour, editMode, hoveredPoint, draggingPoint, editingOuter, outerShapePoints, hoveredOuterPoint, draggingOuterPoint, realWidth, tolerance])
+
+  useEffect(() => { drawCanvas() }, [drawCanvas])
+
+  /* ── Canvas Mouse Events ── */
+  const getCanvasPoint = (e) => {
+    const canvas = canvasRef.current
+    if (!canvas) return null
+    const rect = canvas.getBoundingClientRect()
+    const scaleX = canvas.width / rect.width
+    const scaleY = canvas.height / rect.height
+    const off = imgOffsetRef.current
+    return { x: (e.clientX - rect.left) * scaleX - off.x, y: (e.clientY - rect.top) * scaleY - off.y }
+  }
+
+  const findNearestPoint = (pos, maxDist = 15) => {
+    const pts = contours[selectedContour]
+    if (!pts) return -1
+    const canvas = canvasRef.current
+    const rect = canvas.getBoundingClientRect()
+    const scale = canvas.width / rect.width
+    const thresh = maxDist * scale
+    let nearest = -1, minDist = thresh
+    pts.forEach((p, i) => {
+      const d = Math.hypot(p.x - pos.x, p.y - pos.y)
+      if (d < minDist) { minDist = d; nearest = i }
+    })
+    return nearest
+  }
+
+  const findNearestEdge = (pos) => {
+    const pts = contours[selectedContour]
+    if (!pts) return -1
+    const canvas = canvasRef.current
+    const rect = canvas.getBoundingClientRect()
+    const scale = canvas.width / rect.width
+    const thresh = 20 * scale
+    let nearest = -1, minDist = thresh
+    for (let i = 0; i < pts.length; i++) {
+      const a = pts[i], b = pts[(i + 1) % pts.length]
+      const dx = b.x - a.x, dy = b.y - a.y
+      const len2 = dx * dx + dy * dy
+      if (len2 === 0) continue
+      let t = ((pos.x - a.x) * dx + (pos.y - a.y) * dy) / len2
+      t = Math.max(0, Math.min(1, t))
+      const px = a.x + t * dx, py = a.y + t * dy
+      const d = Math.hypot(pos.x - px, pos.y - py)
+      if (d < minDist) { minDist = d; nearest = i }
+    }
+    return nearest
+  }
+
+  const handleCanvasMouseDown = (e) => {
+    if (editMode !== 'edit') return
+    const pos = getCanvasPoint(e)
+    if (!pos) return
+
+    if (editingOuter && outerShapePoints) {
+      // Find nearest outer shape point
+      const pts = contours[selectedContour]
+      if (!pts) return
+      const bounds = pts.reduce(
+        (acc, p) => ({ minX: Math.min(acc.minX, p.x), maxX: Math.max(acc.maxX, p.x), minY: Math.min(acc.minY, p.y), maxY: Math.max(acc.maxY, p.y) }),
+        { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity }
+      )
+      const pixelWidth = bounds.maxX - bounds.minX
+      const scale = pixelWidth / realWidth
+      const cx = (bounds.minX + bounds.maxX) / 2
+      const cy = (bounds.minY + bounds.maxY) / 2
+
+      const canvas = canvasRef.current
+      const rect = canvas.getBoundingClientRect()
+      const canvasScale = canvas.width / rect.width
+      const thresh = 15 * canvasScale
+
+      let nearest = -1, minDist = thresh
+      outerShapePoints.forEach((p, i) => {
+        const px = cx + p.x * scale
+        const py = cy - p.y * scale
+        const d = Math.hypot(pos.x - px, pos.y - py)
+        if (d < minDist) { minDist = d; nearest = i }
+      })
+      if (nearest >= 0) setDraggingOuterPoint(nearest)
+      return
+    }
+
+    if (!contours[selectedContour]) return
+    const pi = findNearestPoint(pos)
+    if (pi >= 0) setDraggingPoint(pi)
+  }
+
+  const handleCanvasMouseMove = (e) => {
+    if (editMode !== 'edit') return
+    const pos = getCanvasPoint(e)
+    if (!pos) return
+
+    if (editingOuter && outerShapePoints) {
+      const pts = contours[selectedContour]
+      if (!pts) return
+      const bounds = pts.reduce(
+        (acc, p) => ({ minX: Math.min(acc.minX, p.x), maxX: Math.max(acc.maxX, p.x), minY: Math.min(acc.minY, p.y), maxY: Math.max(acc.maxY, p.y) }),
+        { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity }
+      )
+      const pixelWidth = bounds.maxX - bounds.minX
+      const scale = pixelWidth / realWidth
+      const cx = (bounds.minX + bounds.maxX) / 2
+      const cy = (bounds.minY + bounds.maxY) / 2
+
+      if (draggingOuterPoint !== null) {
+        const mmX = (pos.x - cx) / scale
+        const mmY = -(pos.y - cy) / scale
+        setOuterShapePoints(prev => {
+          const updated = [...prev]
+          updated[draggingOuterPoint] = { x: Math.round(mmX * 10) / 10, y: Math.round(mmY * 10) / 10 }
+          return updated
+        })
+        return
+      }
+
+      // Hover detection for outer points
+      const canvas = canvasRef.current
+      const rect = canvas.getBoundingClientRect()
+      const canvasScale = canvas.width / rect.width
+      const thresh = 15 * canvasScale
+      let nearest = -1, minDist = thresh
+      outerShapePoints.forEach((p, i) => {
+        const px = cx + p.x * scale
+        const py = cy - p.y * scale
+        const d = Math.hypot(pos.x - px, pos.y - py)
+        if (d < minDist) { minDist = d; nearest = i }
+      })
+      setHoveredOuterPoint(nearest >= 0 ? nearest : null)
+      return
+    }
+
+    if (!contours[selectedContour]) return
+    if (draggingPoint !== null) {
+      setContours(prev => {
+        const updated = [...prev]
+        const pts = [...updated[selectedContour]]
+        pts[draggingPoint] = { x: Math.round(pos.x), y: Math.round(pos.y) }
+        updated[selectedContour] = pts
+        return updated
+      })
+      return
+    }
+    const pi = findNearestPoint(pos)
+    setHoveredPoint(pi >= 0 ? pi : null)
+  }
+
+  const handleCanvasMouseUp = () => {
+    setDraggingPoint(null)
+    setDraggingOuterPoint(null)
+  }
+
+  // Double click to add point on edge
+  const handleCanvasDoubleClick = (e) => {
+    if (editMode !== 'edit') return
+    const pos = getCanvasPoint(e)
+    if (!pos) return
+
+    if (editingOuter && outerShapePoints) {
+      // Add point on nearest outer edge
+      const pts = contours[selectedContour]
+      if (!pts) return
+      const bounds = pts.reduce(
+        (acc, p) => ({ minX: Math.min(acc.minX, p.x), maxX: Math.max(acc.maxX, p.x), minY: Math.min(acc.minY, p.y), maxY: Math.max(acc.maxY, p.y) }),
+        { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity }
+      )
+      const pixelWidth = bounds.maxX - bounds.minX
+      const scale = pixelWidth / realWidth
+      const cx = (bounds.minX + bounds.maxX) / 2
+      const cy = (bounds.minY + bounds.maxY) / 2
+
+      const mmX = (pos.x - cx) / scale
+      const mmY = -(pos.y - cy) / scale
+
+      // Find nearest edge
+      let nearest = -1, minDist = 30
+      for (let i = 0; i < outerShapePoints.length; i++) {
+        const a = outerShapePoints[i]
+        const b = outerShapePoints[(i + 1) % outerShapePoints.length]
+        const dx = b.x - a.x, dy = b.y - a.y
+        const len2 = dx * dx + dy * dy
+        if (len2 === 0) continue
+        let t = ((mmX - a.x) * dx + (mmY - a.y) * dy) / len2
+        t = Math.max(0, Math.min(1, t))
+        const px = a.x + t * dx, py = a.y + t * dy
+        const d = Math.hypot(mmX - px, mmY - py)
+        if (d < minDist) { minDist = d; nearest = i }
+      }
+      if (nearest >= 0) {
+        setOuterShapePoints(prev => {
+          const updated = [...prev]
+          updated.splice(nearest + 1, 0, { x: Math.round(mmX * 10) / 10, y: Math.round(mmY * 10) / 10 })
+          return updated
+        })
+      }
+      return
+    }
+
+    if (!contours[selectedContour]) return
+    const edgeIdx = findNearestEdge(pos)
+    if (edgeIdx >= 0) {
+      setContours(prev => {
+        const updated = [...prev]
+        const pts = [...updated[selectedContour]]
+        pts.splice(edgeIdx + 1, 0, { x: Math.round(pos.x), y: Math.round(pos.y) })
+        updated[selectedContour] = pts
+        return updated
+      })
+    }
+  }
+
+  // Right click to delete point
+  const handleCanvasRightClick = (e) => {
+    e.preventDefault()
+    if (editMode !== 'edit') return
+    const pos = getCanvasPoint(e)
+    if (!pos) return
+
+    if (editingOuter && outerShapePoints && outerShapePoints.length > 3) {
+      const pts = contours[selectedContour]
+      if (!pts) return
+      const bounds = pts.reduce(
+        (acc, p) => ({ minX: Math.min(acc.minX, p.x), maxX: Math.max(acc.maxX, p.x), minY: Math.min(acc.minY, p.y), maxY: Math.max(acc.maxY, p.y) }),
+        { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity }
+      )
+      const pixelWidth = bounds.maxX - bounds.minX
+      const scale = pixelWidth / realWidth
+      const cx = (bounds.minX + bounds.maxX) / 2
+      const cy = (bounds.minY + bounds.maxY) / 2
+
+      const canvas = canvasRef.current
+      const rect = canvas.getBoundingClientRect()
+      const canvasScale = canvas.width / rect.width
+      const thresh = 15 * canvasScale
+
+      let nearest = -1, minDist = thresh
+      outerShapePoints.forEach((p, i) => {
+        const px = cx + p.x * scale
+        const py = cy - p.y * scale
+        const d = Math.hypot(pos.x - px, pos.y - py)
+        if (d < minDist) { minDist = d; nearest = i }
+      })
+      if (nearest >= 0) {
+        setOuterShapePoints(prev => {
+          const updated = [...prev]
+          updated.splice(nearest, 1)
+          return updated
+        })
+      }
+      return
+    }
+
+    if (!contours[selectedContour]) return
+    const pi = findNearestPoint(pos)
+    if (pi >= 0 && contours[selectedContour].length > 3) {
+      setContours(prev => {
+        const updated = [...prev]
+        const pts = [...updated[selectedContour]]
+        pts.splice(pi, 1)
+        updated[selectedContour] = pts
+        return updated
+      })
+    }
+  }
+
+  // Ctrl+scroll = zoom, regular scroll = pan around zoomed image
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const onWheel = (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault()
+        e.stopPropagation()
+        setZoom(z => Math.max(0.2, Math.min(5, z + (e.deltaY > 0 ? -0.1 : 0.1))))
+      }
+      // Otherwise let it scroll naturally within the overflow container
+    }
+    canvas.addEventListener('wheel', onWheel, { passive: false })
+    return () => canvas.removeEventListener('wheel', onWheel)
+  })
+
+  /* ── Config builder ── */
+  const scaleToolPoints = (pts, w, h) => {
+    const bounds = pts.reduce(
+      (acc, p) => ({ minX: Math.min(acc.minX, p.x), maxX: Math.max(acc.maxX, p.x), minY: Math.min(acc.minY, p.y), maxY: Math.max(acc.maxY, p.y) }),
+      { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity }
+    )
+    const pw = bounds.maxX - bounds.minX, ph = bounds.maxY - bounds.minY
+    if (pw === 0 || ph === 0) return pts
+    return pts.map(p => ({ x: p.x * (w / pw), y: p.y * (h / ph) }))
+  }
+
+  const addTool = () => {
+    setTools(prev => [...prev, {
+      name: `Tool ${prev.length + 2}`,
+      contours: [],
+      selectedContour: 0,
+      image: null,
+      realWidth: 100,
+      realHeight: 100,
+      toolDepth: 25,
+      tolerance: 1.5,
+      toolOffsetX: 0,
+      toolOffsetY: 0,
+      toolRotation: 0,
+    }])
+  }
+
+  const removeTool = (idx) => {
+    setTools(prev => prev.filter((_, i) => i !== idx))
+    if (activeToolIdx === idx) setActiveToolIdx(-1)
+    else if (activeToolIdx > idx) setActiveToolIdx(activeToolIdx - 1)
+  }
+
+  const updateTool = (idx, key, val) => {
+    setTools(prev => prev.map((t, i) => i === idx ? { ...t, [key]: val } : t))
+  }
+
+  const buildConfig = () => {
+    const base = { mode: outputMode, depth: outputMode === 'object' ? depth : toolDepth, tolerance, realWidth, toolDepth, toolOffsetX, toolOffsetY, toolRotation }
+
+    // Build additional tools array
+    const additionalTools = tools.filter(t => t.contours[t.selectedContour] && t.contours[t.selectedContour].length >= 3).map(t => ({
+      points: scaleToolPoints(t.contours[t.selectedContour], t.realWidth, t.realHeight),
+      toolDepth: t.toolDepth,
+      tolerance: t.tolerance,
+      toolOffsetX: t.toolOffsetX,
+      toolOffsetY: t.toolOffsetY,
+      toolRotation: t.toolRotation,
+    }))
+
+    if (outputMode === 'custom') {
+      let outerPts = null
+      if (outerShapeType === 'custom' && outerShapePoints && outerShapePoints.length >= 3) {
+        outerPts = outerShapePoints
+      }
+      return { ...base, trayWidth, trayHeight, trayDepth, wallThickness, cornerRadius, floorThickness, edgeProfile, edgeSize, cavityBevel, fingerNotch, fingerNotchShape, fingerNotchRadius, fingerNotchW, fingerNotchH, fingerNotchX, fingerNotchY, outerShapeType, outerShapePoints: outerPts, additionalTools }
+    }
+    if (outputMode === 'gridfinity') {
+      return { ...base, gridX, gridY, heightUnits, cavityBevel, additionalTools }
+    }
+    return { ...base, additionalTools }
+  }
+
+  /* ── Computed tool height from aspect ratio ── */
+  /* ── Scale points to mm ── */
+  const scalePoints = (pts) => {
+    const bounds = pts.reduce(
+      (acc, p) => ({ minX: Math.min(acc.minX, p.x), maxX: Math.max(acc.maxX, p.x), minY: Math.min(acc.minY, p.y), maxY: Math.max(acc.maxY, p.y) }),
+      { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity }
+    )
+    const pixelWidth = bounds.maxX - bounds.minX
+    const pixelHeight = bounds.maxY - bounds.minY
+    if (pixelWidth === 0 || pixelHeight === 0) return pts
+    const scaleX = realWidth / pixelWidth
+    const scaleY = realHeight / pixelHeight
+    return pts.map(p => ({ x: p.x * scaleX, y: p.y * scaleY }))
+  }
+
+  /* ── Export ── */
+  const handleExport = () => {
+    const pts = contours[selectedContour]
+    if (!pts || pts.length < 3) return
+    if (credits <= 0) {
+      if (!isAuthenticated) { navigate('/login'); return }
+      setShowPaywall(true)
+      return
+    }
+    setShowDisclaimer(true)
+  }
+
+  /* ── Preview points ── */
+  const getPreviewPoints = () => {
+    const pts = contours[selectedContour]
+    if (!pts || pts.length < 3) return null
+    return scalePoints(pts)
+  }
+
+  /* ═══════════════════ RENDER ═══════════════════ */
+  return (
+    <div className="h-screen flex flex-col bg-bg overflow-hidden">
+      {/* ── Header ── */}
+      <header className="flex items-center justify-between px-4 py-3 border-b border-[#2A2A35]/50 bg-surface/50 backdrop-blur-sm flex-shrink-0">
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate('/')} className="flex items-center gap-1 text-sm text-[#8888A0] hover:text-white transition-colors">
+            <ChevronLeft size={16} /> Back
+          </button>
+          <div className="w-px h-5 bg-[#2A2A35]" />
+          <div className="flex items-center gap-2">
+            <Box className="text-brand" size={18} />
+            <span className="font-semibold text-sm">TracetoForge</span>
+          </div>
+        </div>
+        {/* Steps */}
+        <div className="flex items-center gap-1">
+          {STEPS.map((s, i) => (
+            <React.Fragment key={i}>
+              <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors
+                ${i === step ? 'bg-brand/15 text-brand' : i < step ? 'text-[#8888A0]' : 'text-[#555566]'}`}>
+                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold
+                  ${i === step ? 'bg-brand text-white' : i < step ? 'bg-[#2A2A35] text-[#8888A0]' : 'bg-[#1C1C24] text-[#555566]'}`}>
+                  {i + 1}
+                </span>
+                <span className="hidden md:inline">{s}</span>
+              </div>
+              {i < STEPS.length - 1 && <div className="w-4 h-px bg-[#2A2A35]" />}
+            </React.Fragment>
+          ))}
+        </div>
+        <div className="flex items-center gap-2">
+          {isAuthenticated ? (
+            <>
+              <button onClick={handleSaveProject} disabled={saving}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-[#2A2A35] hover:bg-[#3A3A45] text-[#C8C8D0] rounded-lg transition-colors">
+                <Save size={13} /> {saving ? 'Saving...' : 'Save'}
+              </button>
+              {saveMsg && <span className="text-xs text-green-400">{saveMsg}</span>}
+              <button onClick={() => navigate('/dashboard')}
+                className="flex items-center gap-1 px-2 py-1.5 text-xs text-[#8888A0] hover:text-white transition-colors">
+                <FolderOpen size={13} /> Projects
+              </button>
+              <span className="text-xs text-[#8888A0]">{credits} credits</span>
+              <button onClick={() => setShowPaywall(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-brand/20 hover:bg-brand/30 text-brand rounded-lg transition-colors">
+                Buy Credits
+              </button>
+            </>
+          ) : (
+            <>
+              <button onClick={() => navigate('/login')}
+                className="px-3 py-1.5 text-xs text-[#C8C8D0] hover:text-white border border-[#444] rounded-lg transition-colors">
+                Sign In
+              </button>
+              <span className="text-xs text-[#8888A0]">{credits} credits</span>
+            </>
+          )}
+        </div>
+      </header>
+
+      <div className="flex flex-1 overflow-hidden">
+        {/* ── Sidebar ── */}
+        <aside className="w-72 border-r border-[#2A2A35]/50 bg-surface/30 overflow-y-auto flex-shrink-0">
+          <div className="p-4 pb-32 space-y-5">
+
+            {/* Output Mode */}
+            <div>
+              <h3 className="text-xs font-semibold text-[#8888A0] uppercase tracking-wider mb-2">Output Mode</h3>
+              <div className="grid grid-cols-3 gap-1 bg-[#131318] rounded-lg p-1">
+                {[
+                  { key: 'object', label: 'Object' },
+                  { key: 'custom', label: 'Tray' },
+                  { key: 'gridfinity', label: 'Gridfinity' },
+                ].map(({ key, label }) => (
+                  <button key={key} onClick={() => setOutputMode(key)}
+                    className={`py-1.5 text-xs font-medium rounded-md transition-all
+                      ${outputMode === key ? 'bg-brand text-white shadow-sm' : 'text-[#8888A0] hover:text-white'}`}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Detection */}
+            {step >= 1 && (
+              <div>
+                <h3 className="text-xs font-semibold text-[#8888A0] uppercase tracking-wider mb-3">Detection</h3>
+                <div className="space-y-3">
+                  <div className="space-y-3">
+                    <div>
+                      <div className="flex items-center text-sm text-[#C8C8D0] mb-1">Sensitivity <Tooltip text="Adjust edge detection sensitivity. Slide left for fewer edges, right for more." /></div>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => setSensitivity(s => Math.max(1, s - 1))} className="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded bg-[#1C1C24] hover:bg-[#2A2A35] text-[#8888A0] hover:text-white text-sm font-bold transition-colors">-</button>
+                        <input type="range" min="1" max="10" step="1" value={sensitivity} onChange={e => setSensitivity(+e.target.value)} className="flex-1 min-w-0" />
+                        <button onClick={() => setSensitivity(s => Math.min(10, s + 1))} className="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded bg-[#1C1C24] hover:bg-[#2A2A35] text-[#8888A0] hover:text-white text-sm font-bold transition-colors">+</button>
+                        <span className="text-xs text-[#8888A0] w-7 text-right flex-shrink-0">{sensitivity < 6 ? `${sensitivity - 6}` : sensitivity > 6 ? `+${sensitivity - 6}` : '0'}</span>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center text-sm text-[#C8C8D0] mb-1">Simplify <Tooltip text="Adjust outline smoothing. Slide left for more detail, right for smoother." /></div>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => setSimplification(s => Math.max(0.5, Math.round((s - 0.5) * 10) / 10))} className="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded bg-[#1C1C24] hover:bg-[#2A2A35] text-[#8888A0] hover:text-white text-sm font-bold transition-colors">-</button>
+                        <input type="range" min="0.5" max="8" step="0.5" value={simplification} onChange={e => setSimplification(+e.target.value)} className="flex-1 min-w-0" />
+                        <button onClick={() => setSimplification(s => Math.min(8, Math.round((s + 0.5) * 10) / 10))} className="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded bg-[#1C1C24] hover:bg-[#2A2A35] text-[#8888A0] hover:text-white text-sm font-bold transition-colors">+</button>
+                        <span className="text-xs text-[#8888A0] w-7 text-right flex-shrink-0">{simplification < 0.5 ? `${simplification - 0.5}` : simplification > 0.5 ? `+${Math.round((simplification - 0.5) * 10) / 10}` : '0'}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <button onClick={runEdgeDetection} disabled={!cvReady || processing}
+                    className="w-full py-2 rounded-lg bg-brand hover:bg-brand-light disabled:bg-[#2A2A35] disabled:text-[#555566] text-white text-sm font-medium transition-colors">
+                    {processing ? 'Detecting...' : !cvReady ? 'Loading OpenCV...' : 'Detect Edges'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Dimensions */}
+            {step >= 2 && (
+              <div>
+                <h3 className="text-xs font-semibold text-[#8888A0] uppercase tracking-wider mb-1">Tool Dimensions</h3>
+                <p className="text-[10px] text-[#666680] mb-3 italic">* Measure your tool and enter exact dimensions</p>
+
+                {/* Tool selector tabs */}
+                {outputMode !== 'object' && (
+                  <div className="mb-3">
+                    <div className="flex flex-wrap gap-1 mb-2">
+                      <button onClick={() => setActiveToolIdx(-1)}
+                        className={`text-[11px] px-2.5 py-1 rounded-md transition-colors ${activeToolIdx === -1 ? 'bg-brand text-white' : 'bg-[#1C1C24] text-[#8888A0] hover:text-white'}`}>
+                        Tool 1
+                      </button>
+                      {tools.map((t, i) => (
+                        <div key={i} className="flex items-center gap-0.5">
+                          <button onClick={() => setActiveToolIdx(i)}
+                            className={`text-[11px] px-2.5 py-1 rounded-l-md transition-colors ${activeToolIdx === i ? 'bg-brand text-white' : 'bg-[#1C1C24] text-[#8888A0] hover:text-white'}`}>
+                            {t.name}
+                          </button>
+                          <button onClick={() => removeTool(i)}
+                            className="text-[11px] px-1.5 py-1 rounded-r-md bg-[#1C1C24] text-[#555] hover:text-red-400 hover:bg-red-900/20 transition-colors">
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                      {tools.length < 4 && (
+                        <button onClick={addTool}
+                          className="text-[11px] px-2.5 py-1 rounded-md bg-[#1C1C24] text-brand hover:bg-brand/20 transition-colors font-bold">
+                          + Add Tool
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Additional tool: upload & detect */}
+                    {activeToolIdx >= 0 && tools[activeToolIdx] && (
+                      <div className="bg-[#1A1A22] rounded-lg p-3 border border-[#2A2A35]/50 mb-3 space-y-2">
+                        <p className="text-[10px] text-[#8888A0]">Upload a photo of this tool and detect its edges.</p>
+                        <input type="file" accept="image/*"
+                          onChange={e => {
+                            const file = e.target.files?.[0]
+                            if (!file) return
+                            const reader = new FileReader()
+                            reader.onload = ev => {
+                              updateTool(activeToolIdx, 'image', ev.target.result)
+                              // Auto-detect with a small canvas
+                              const img = new Image()
+                              img.onload = () => {
+                                updateTool(activeToolIdx, 'imageSize', { w: img.width, h: img.height })
+                                updateTool(activeToolIdx, 'imageEl', img)
+                              }
+                              img.src = ev.target.result
+                            }
+                            reader.readAsDataURL(file)
+                          }}
+                          className="text-xs text-[#8888A0] w-full"
+                        />
+                        {tools[activeToolIdx].image && (
+                          <button onClick={() => {
+                            const t = tools[activeToolIdx]
+                            if (!t.imageEl || !window.cv) return
+                            const cv = window.cv
+                            const canvas = document.createElement('canvas')
+                            canvas.width = t.imageEl.width
+                            canvas.height = t.imageEl.height
+                            const ctx = canvas.getContext('2d')
+                            ctx.drawImage(t.imageEl, 0, 0)
+                            const src = cv.imread(canvas)
+                            const gray = new cv.Mat()
+                            cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY)
+                            const blurred = new cv.Mat()
+                            cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0)
+                            const edges = new cv.Mat()
+                            cv.Canny(blurred, edges, 30, 100)
+                            const dilated = new cv.Mat()
+                            const kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(3, 3))
+                            cv.dilate(edges, dilated, kernel)
+                            const contoursMat = new cv.MatVector()
+                            const hierarchy = new cv.Mat()
+                            cv.findContours(dilated, contoursMat, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+                            const found = []
+                            for (let i = 0; i < contoursMat.size(); i++) {
+                              const c = contoursMat.get(i)
+                              const area = cv.contourArea(c)
+                              if (area < 500) continue
+                              const epsilon = simplification * 0.002 * cv.arcLength(c, true)
+                              const approx = new cv.Mat()
+                              cv.approxPolyDP(c, approx, epsilon, true)
+                              const pts = []
+                              for (let j = 0; j < approx.rows; j++) pts.push({ x: approx.data32S[j * 2], y: approx.data32S[j * 2 + 1] })
+                              if (pts.length >= 3) found.push(pts)
+                              approx.delete()
+                            }
+                            found.sort((a, b) => {
+                              const areaA = Math.abs(a.reduce((s, p, i) => { const n = a[(i + 1) % a.length]; return s + (p.x * n.y - n.x * p.y) }, 0) / 2)
+                              const areaB = Math.abs(b.reduce((s, p, i) => { const n = b[(i + 1) % b.length]; return s + (p.x * n.y - n.x * p.y) }, 0) / 2)
+                              return areaB - areaA
+                            })
+                            updateTool(activeToolIdx, 'contours', found)
+                            updateTool(activeToolIdx, 'selectedContour', 0)
+                            src.delete(); gray.delete(); blurred.delete(); edges.delete(); dilated.delete(); kernel.delete(); contoursMat.delete(); hierarchy.delete()
+                          }}
+                          className="w-full py-1.5 rounded-md bg-brand/80 hover:bg-brand text-white text-xs font-medium transition-colors">
+                            Detect Edges
+                          </button>
+                        )}
+                        {tools[activeToolIdx].contours.length > 0 && (
+                          <p className="text-[10px] text-green-400">&#10003; {tools[activeToolIdx].contours.length} contour(s) detected</p>
+                        )}
+                        {tools[activeToolIdx].contours.length > 1 && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] text-[#8888A0]">Contour:</span>
+                            <select value={tools[activeToolIdx].selectedContour}
+                              onChange={e => updateTool(activeToolIdx, 'selectedContour', +e.target.value)}
+                              className="text-xs bg-[#131318] border border-[#2A2A35] rounded px-1 py-0.5 text-white">
+                              {tools[activeToolIdx].contours.map((_, ci) => (
+                                <option key={ci} value={ci}>#{ci + 1}</option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Tool dimensions for active tool */}
+                <div className="space-y-3">
+                  <div className="bg-[#1A1A22] rounded-lg p-3 space-y-3 border border-[#2A2A35]/50">
+                    <ParamRow label="Width" tooltip="Real-world width of your tool in mm.">
+                      <input type="number" value={activeToolIdx === -1 ? realWidth : (tools[activeToolIdx]?.realWidth || 100)}
+                        onChange={e => activeToolIdx === -1 ? setRealWidth(+e.target.value) : updateTool(activeToolIdx, 'realWidth', +e.target.value)}
+                        className="w-[4.5rem] text-right" min="1" />
+                      <span className="text-xs text-[#8888A0] w-7">mm</span>
+                    </ParamRow>
+                    <ParamRow label="Height" tooltip="Real-world height of your tool in mm.">
+                      <input type="number" value={activeToolIdx === -1 ? realHeight : (tools[activeToolIdx]?.realHeight || 100)}
+                        onChange={e => activeToolIdx === -1 ? setRealHeight(+e.target.value) : updateTool(activeToolIdx, 'realHeight', +e.target.value)}
+                        className="w-[4.5rem] text-right" min="1" />
+                      <span className="text-xs text-[#8888A0] w-7">mm</span>
+                    </ParamRow>
+                    <ParamRow label="Depth" tooltip="How deep the tool sits in the tray (Z height of the cavity).">
+                      <input type="number" value={activeToolIdx === -1 ? toolDepth : (tools[activeToolIdx]?.toolDepth || 25)}
+                        onChange={e => activeToolIdx === -1 ? setToolDepth(+e.target.value) : updateTool(activeToolIdx, 'toolDepth', +e.target.value)}
+                        className="w-[4.5rem] text-right" min="1" />
+                      <span className="text-xs text-[#8888A0] w-7">mm</span>
+                    </ParamRow>
+                  </div>
+                  <ParamRow label="Tolerance" tooltip="Extra clearance around the tool cavity.">
+                    <input type="number" value={activeToolIdx === -1 ? tolerance : (tools[activeToolIdx]?.tolerance || 1.5)}
+                      onChange={e => activeToolIdx === -1 ? setTolerance(+e.target.value) : updateTool(activeToolIdx, 'tolerance', +e.target.value)}
+                      className="w-[4.5rem] text-right" min="0" step="0.25" />
+                    <span className="text-xs text-[#8888A0] w-7">mm</span>
+                  </ParamRow>
+                  {outputMode !== 'object' && (
+                    <>
+                      <ParamRow label="Offset X" tooltip="Shift tool cavity left/right within the tray.">
+                        <input type="number" value={activeToolIdx === -1 ? toolOffsetX : (tools[activeToolIdx]?.toolOffsetX || 0)}
+                          onChange={e => activeToolIdx === -1 ? setToolOffsetX(+e.target.value) : updateTool(activeToolIdx, 'toolOffsetX', +e.target.value)}
+                          className="w-[4.5rem] text-right" step="1" />
+                        <span className="text-xs text-[#8888A0] w-7">mm</span>
+                      </ParamRow>
+                      <ParamRow label="Offset Y" tooltip="Shift tool cavity forward/back within the tray.">
+                        <input type="number" value={activeToolIdx === -1 ? toolOffsetY : (tools[activeToolIdx]?.toolOffsetY || 0)}
+                          onChange={e => activeToolIdx === -1 ? setToolOffsetY(+e.target.value) : updateTool(activeToolIdx, 'toolOffsetY', +e.target.value)}
+                          className="w-[4.5rem] text-right" step="1" />
+                        <span className="text-xs text-[#8888A0] w-7">mm</span>
+                      </ParamRow>
+                      <ParamRow label="Rotate" tooltip="Rotate tool cavity in degrees.">
+                        <input type="number" value={activeToolIdx === -1 ? toolRotation : (tools[activeToolIdx]?.toolRotation || 0)}
+                          onChange={e => activeToolIdx === -1 ? setToolRotation(+e.target.value) : updateTool(activeToolIdx, 'toolRotation', +e.target.value)}
+                          className="w-[4.5rem] text-right" step="2" />
+                        <span className="text-xs text-[#8888A0] w-7">°</span>
+                      </ParamRow>
+                    </>
+                  )}
+
+                  {/* Object mode */}
+                  {outputMode === 'object' && (
+                    <ParamRow label="Extrude" tooltip="Extrusion thickness for standalone 3D object.">
+                      <input type="number" value={depth} onChange={e => setDepth(+e.target.value)} className="w-[4.5rem] text-right" min="1" />
+                      <span className="text-xs text-[#8888A0] w-7">mm</span>
+                    </ParamRow>
+                  )}
+
+                  {/* ── Custom Tray ── */}
+                  {outputMode === 'custom' && (
+                    <>
+                      <div className="border-t border-[#2A2A35]/50 pt-3 mt-1">
+                        <h4 className="text-[11px] font-semibold text-brand/80 uppercase tracking-wider mb-3">Custom Tray</h4>
+                      </div>
+                      <ParamRow label="Width" tooltip="Total tray width (left to right) in mm.">
+                        <input type="number" value={trayWidth} onChange={e => setTrayWidth(+e.target.value)} className="w-[4.5rem] text-right" min="10" />
+                        <span className="text-xs text-[#8888A0] w-7">mm</span>
+                      </ParamRow>
+                      <ParamRow label="Height" tooltip="Total tray height (front to back) in mm.">
+                        <input type="number" value={trayHeight} onChange={e => setTrayHeight(+e.target.value)} className="w-[4.5rem] text-right" min="10" />
+                        <span className="text-xs text-[#8888A0] w-7">mm</span>
+                      </ParamRow>
+                      <ParamRow label="Depth" tooltip="Total tray thickness (Z axis) in mm.">
+                        <input type="number" value={trayDepth} onChange={e => setTrayDepth(+e.target.value)} className="w-[4.5rem] text-right" min="5" />
+                        <span className="text-xs text-[#8888A0] w-7">mm</span>
+                      </ParamRow>
+                      <ParamRow label="Corner R" tooltip="Outer corner radius. 0 = sharp." tooltipPos="above">
+                        <input type="number" value={cornerRadius} onChange={e => setCornerRadius(+e.target.value)} className="w-[4.5rem] text-right" min="0" step="0.5" />
+                        <span className="text-xs text-[#8888A0] w-7">mm</span>
+                      </ParamRow>
+
+                      {/* Edge Profile */}
+                      <div className="border-t border-[#2A2A35]/50 pt-3 mt-1">
+                        <h4 className="text-[11px] font-semibold text-brand/80 uppercase tracking-wider mb-3 flex items-center">
+                          Edge Profile
+                          <Tooltip text="Bottom edge treatment for the tray insert. Straight = sharp bottom edges, Chamfer = 45-degree cut on bottom edges, Fillet = rounded bottom edges. Helps the insert slide into drawers and bins." position="above" />
+                        </h4>
+                      </div>
+                      <div className="grid grid-cols-3 gap-1 bg-[#131318] rounded-lg p-1">
+                        {['straight', 'chamfer', 'fillet'].map(key => (
+                          <button key={key} onClick={() => setEdgeProfile(key)}
+                            className={`py-1.5 text-xs font-medium rounded-md transition-all capitalize
+                              ${edgeProfile === key ? 'bg-[#2A2A35] text-white' : 'text-[#8888A0] hover:text-white'}`}>
+                            {key}
+                          </button>
+                        ))}
+                      </div>
+                      {edgeProfile !== 'straight' && (
+                        <ParamRow label={edgeProfile === 'chamfer' ? 'Chamfer' : 'Fillet R'} tooltip={edgeProfile === 'chamfer' ? 'Size of 45-degree cut on bottom edges.' : 'Radius of rounded bottom edges.'} tooltipPos="above">
+                          <input type="number" value={edgeSize} onChange={e => setEdgeSize(+e.target.value)} className="w-[4.5rem] text-right" min="0.5" step="0.5" max="10" />
+                          <span className="text-xs text-[#8888A0] w-7">mm</span>
+                        </ParamRow>
+                      )}
+
+                      {/* Cross-section SVG - Side profile showing bottom edge treatment */}
+                      <div className="bg-[#131318] rounded-lg p-3 border border-[#2A2A35]/50">
+                        <svg viewBox="0 0 80 55" className="w-full h-16">
+                          {edgeProfile === 'straight' && (
+                            <rect x="10" y="5" width="60" height="40" fill="#888899" opacity="0.4" rx="1" />
+                          )}
+                          {edgeProfile === 'chamfer' && (
+                            <polygon points="10,5 70,5 70,37 65,45 15,45 10,37" fill="#888899" opacity="0.4" />
+                          )}
+                          {edgeProfile === 'fillet' && (
+                            <path d="M10,5 L70,5 L70,35 Q70,45 65,45 L15,45 Q10,45 10,35 Z" fill="#888899" opacity="0.4" />
+                          )}
+                          {/* Cavity cutout from top */}
+                          <rect x="25" y="5" width="30" height="25" fill="#0A0A0F" rx="1" />
+                          <rect x="25" y="5" width="30" height="25" fill="#E8650A" opacity="0.15" rx="1" />
+                          {/* Bottom edge highlights */}
+                          {edgeProfile === 'chamfer' && (
+                            <>
+                              <line x1="10" y1="37" x2="15" y2="45" stroke="#E8650A" strokeWidth="1.5" />
+                              <line x1="70" y1="37" x2="65" y2="45" stroke="#E8650A" strokeWidth="1.5" />
+                              <line x1="15" y1="45" x2="65" y2="45" stroke="#E8650A" strokeWidth="0.8" opacity="0.4" />
+                            </>
+                          )}
+                          {edgeProfile === 'fillet' && (
+                            <>
+                              <path d="M10,35 Q10,45 15,45" fill="none" stroke="#E8650A" strokeWidth="1.5" />
+                              <path d="M70,35 Q70,45 65,45" fill="none" stroke="#E8650A" strokeWidth="1.5" />
+                              <line x1="15" y1="45" x2="65" y2="45" stroke="#E8650A" strokeWidth="0.8" opacity="0.4" />
+                            </>
+                          )}
+                          <text x="40" y="20" textAnchor="middle" fill="#E8650A" fontSize="5" opacity="0.6">cavity</text>
+                          <text x="40" y="40" textAnchor="middle" fill="#ccc" fontSize="4" opacity="0.4">solid</text>
+                          {edgeProfile !== 'straight' && (
+                            <text x="40" y="52" textAnchor="middle" fill="#E8650A" fontSize="3.5" opacity="0.5">bottom edge bevel</text>
+                          )}
+                        </svg>
+                        <p className="text-[10px] text-[#8888A0] text-center mt-1">Side profile cross-section</p>
+                      </div>
+
+                      {/* Cavity Bevel */}
+                      <div className="border-t border-[#2A2A35]/50 pt-3 mt-1">
+                        <h4 className="text-[11px] font-semibold text-brand/80 uppercase tracking-wider mb-3 flex items-center">
+                          Cavity Bevel
+                          <Tooltip text="Adds a chamfer around the top opening of the tool cavity. Makes it easier to drop tools into the insert. Set to 0 for no bevel." position="above" />
+                        </h4>
+                      </div>
+                      <ParamRow label="Bevel" tooltip="Size of the 45-degree chamfer around the cavity opening. 0 = no bevel." tooltipPos="above">
+                        <input type="number" value={cavityBevel} onChange={e => setCavityBevel(Math.max(0, +e.target.value))} className="w-[4.5rem] text-right" min="0" step="0.5" max="5" />
+                        <span className="text-xs text-[#8888A0] w-7">mm</span>
+                      </ParamRow>
+
+                      {/* Finger Notch */}
+                      <div className="border-t border-[#2A2A35]/50 pt-3 mt-1">
+                        <h4 className="text-[11px] font-semibold text-brand/80 uppercase tracking-wider mb-3 flex items-center">
+                          Finger Notch
+                          <Tooltip text="Adds a circular cutout so you can grab the tool out of the tray." position="above" />
+                        </h4>
+                      </div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <label className="text-xs text-[#8888A0]">Enable</label>
+                        <button
+                          onClick={() => setFingerNotch(!fingerNotch)}
+                          className={`w-9 h-5 rounded-full transition-colors relative ${fingerNotch ? 'bg-brand' : 'bg-[#2A2A35]'}`}
+                        >
+                          <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${fingerNotch ? 'left-[18px]' : 'left-0.5'}`} />
+                        </button>
+                      </div>
+                      {fingerNotch && (
+                        <>
+                          <div className="grid grid-cols-3 gap-1 bg-[#131318] rounded-lg p-1 mb-2">
+                            {['circle', 'square', 'rectangle'].map(key => (
+                              <button key={key} onClick={() => setFingerNotchShape(key)}
+                                className={`text-xs py-1.5 rounded-md capitalize transition-colors
+                                  ${fingerNotchShape === key ? 'bg-brand text-white shadow-sm' : 'text-[#8888A0] hover:text-white'}`}>
+                                {key.charAt(0).toUpperCase() + key.slice(1)}
+                              </button>
+                            ))}
+                          </div>
+                          {fingerNotchShape === 'circle' && (
+                            <ParamRow label="Radius" tooltip="Radius of the finger notch circle.">
+                              <input type="number" value={fingerNotchRadius} onChange={e => setFingerNotchRadius(Math.max(5, +e.target.value))} className="w-[4.5rem] text-right" min="5" step="1" />
+                              <span className="text-xs text-[#8888A0] w-7">mm</span>
+                            </ParamRow>
+                          )}
+                          {fingerNotchShape === 'square' && (
+                            <ParamRow label="Size" tooltip="Side length of the square notch.">
+                              <input type="number" value={fingerNotchW} onChange={e => { const v = Math.max(5, +e.target.value); setFingerNotchW(v); setFingerNotchH(v) }} className="w-[4.5rem] text-right" min="5" step="1" />
+                              <span className="text-xs text-[#8888A0] w-7">mm</span>
+                            </ParamRow>
+                          )}
+                          {fingerNotchShape === 'rectangle' && (
+                            <>
+                              <ParamRow label="Width" tooltip="Width of the rectangle notch.">
+                                <input type="number" value={fingerNotchW} onChange={e => setFingerNotchW(Math.max(5, +e.target.value))} className="w-[4.5rem] text-right" min="5" step="1" />
+                                <span className="text-xs text-[#8888A0] w-7">mm</span>
+                              </ParamRow>
+                              <ParamRow label="Height" tooltip="Height of the rectangle notch.">
+                                <input type="number" value={fingerNotchH} onChange={e => setFingerNotchH(Math.max(5, +e.target.value))} className="w-[4.5rem] text-right" min="5" step="1" />
+                                <span className="text-xs text-[#8888A0] w-7">mm</span>
+                              </ParamRow>
+                            </>
+                          )}
+                          <ParamRow label="Pos X" tooltip="Horizontal position of finger notch center.">
+                            <input type="number" value={fingerNotchX} onChange={e => setFingerNotchX(+e.target.value)} className="w-[4.5rem] text-right" step="1" />
+                            <span className="text-xs text-[#8888A0] w-7">mm</span>
+                          </ParamRow>
+                          <ParamRow label="Pos Y" tooltip="Vertical position of finger notch center.">
+                            <input type="number" value={fingerNotchY} onChange={e => setFingerNotchY(+e.target.value)} className="w-[4.5rem] text-right" step="1" />
+                            <span className="text-xs text-[#8888A0] w-7">mm</span>
+                          </ParamRow>
+                        </>
+                      )}
+
+                      {/* Outer Shape */}
+                      <div className="border-t border-[#2A2A35]/50 pt-3 mt-1">
+                        <h4 className="text-[11px] font-semibold text-brand/80 uppercase tracking-wider mb-3 flex items-center">
+                          Outer Shape
+                          <Tooltip text="Change the tray's outer perimeter. Rectangle and Oval use the Width/Height values. Custom lets you draw any polygon shape on the canvas." position="above" />
+                        </h4>
+                      </div>
+                      <div className="grid grid-cols-3 gap-1 bg-[#131318] rounded-lg p-1">
+                        {['rectangle', 'oval', 'custom'].map(key => (
+                          <button key={key} onClick={() => {
+                            setOuterShapeType(key)
+                            setEditingOuter(false)
+                            if (key === 'custom' && (!outerShapePoints || outerShapePoints.length < 3)) {
+                              // Initialize with a rectangle in mm
+                              const hw = trayWidth / 2, hh = trayHeight / 2
+                              setOuterShapePoints([
+                                { x: -hw, y: -hh },
+                                { x: hw, y: -hh },
+                                { x: hw, y: hh },
+                                { x: -hw, y: hh },
+                              ])
+                            }
+                          }}
+                            className={`py-1.5 text-xs font-medium rounded-md transition-all capitalize
+                              ${outerShapeType === key ? 'bg-[#2A2A35] text-white' : 'text-[#8888A0] hover:text-white'}`}>
+                            {key}
+                          </button>
+                        ))}
+                      </div>
+                      {outerShapeType === 'custom' && (
+                        <button
+                          onClick={() => { setEditingOuter(!editingOuter); setEditMode('edit') }}
+                          className={`w-full flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-medium transition-colors border
+                            ${editingOuter
+                              ? 'bg-[#4488FF]/15 border-[#4488FF]/40 text-[#4488FF]'
+                              : 'bg-[#1C1C24] border-[#2A2A35] text-[#8888A0] hover:text-white'}`}>
+                          <Pencil size={13} />
+                          {editingOuter ? 'Editing Outer Shape (click to stop)' : 'Edit Outer Shape on Canvas'}
+                        </button>
+                      )}
+                      {outerShapeType === 'custom' && outerShapePoints && (
+                        <p className="text-[10px] text-[#8888A0] leading-relaxed">
+                          {outerShapePoints.length} points. Blue outline on canvas. Drag to move, double-click edge to add, right-click to delete.
+                        </p>
+                      )}
+                      {outerShapeType !== 'rectangle' && outerShapeType !== 'custom' && (
+                        <p className="text-[10px] text-[#8888A0]">Uses Width/Height values above for oval dimensions.</p>
+                      )}
+                    </>
+                  )}
+
+                  {/* ── Gridfinity ── */}
+                  {outputMode === 'gridfinity' && (
+                    <>
+                      <div className="border-t border-[#2A2A35]/50 pt-3 mt-1">
+                        <h4 className="text-[11px] font-semibold text-brand/80 uppercase tracking-wider mb-3">Gridfinity</h4>
+                      </div>
+                      <ParamRow label="Grid X" tooltip="Grid units wide (42mm each).">
+                        <input type="number" value={gridX} onChange={e => setGridX(+e.target.value)} className="w-[4.5rem] text-right" min="1" max="6" />
+                        <span className="text-xs text-[#8888A0] w-7">units</span>
+                      </ParamRow>
+                      <ParamRow label="Grid Y" tooltip="Grid units deep (42mm each).">
+                        <input type="number" value={gridY} onChange={e => setGridY(+e.target.value)} className="w-[4.5rem] text-right" min="1" max="6" />
+                        <span className="text-xs text-[#8888A0] w-7">units</span>
+                      </ParamRow>
+                      <ParamRow label="Height" tooltip="Height units (7mm each), excludes the 4.75mm base." tooltipPos="above">
+                        <input type="number" value={heightUnits} onChange={e => setHeightUnits(+e.target.value)} className="w-[4.5rem] text-right" min="1" max="10" />
+                        <span className="text-xs text-[#8888A0] w-7">units</span>
+                      </ParamRow>
+
+                      {/* Cavity Bevel */}
+                      <div className="border-t border-[#2A2A35]/50 pt-3 mt-1">
+                        <h4 className="text-[11px] font-semibold text-brand/80 uppercase tracking-wider mb-3">Cavity Bevel</h4>
+                      </div>
+                      <ParamRow label="Size" tooltip="Chamfer size on the top edge of the tool cavity.">
+                        <input type="number" value={cavityBevel} onChange={e => setCavityBevel(Math.max(0, +e.target.value))} className="w-[4.5rem] text-right" min="0" step="0.5" max="5" />
+                        <span className="text-xs text-[#8888A0] w-7">mm</span>
+                      </ParamRow>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Contour list */}
+            {contours.length > 1 && (
+              <div>
+                <h3 className="text-xs font-semibold text-[#8888A0] uppercase tracking-wider mb-2">Detected Shapes</h3>
+                <div className="space-y-1">
+                  {contours.map((c, i) => (
+                    <button key={i} onClick={() => setSelectedContour(i)}
+                      className={`w-full text-left px-3 py-1.5 rounded-md text-xs transition-colors
+                        ${i === selectedContour ? 'bg-brand/15 text-brand' : 'text-[#8888A0] hover:text-white hover:bg-[#1C1C24]'}`}>
+                      Shape {i + 1} ({c.length} pts)
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Actions */}
+            {step >= 2 && (
+              <div className="space-y-2 pt-2 border-t border-[#2A2A35]/50">
+                <button onClick={() => { setShowPreview(true); setStep(3) }}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-[#1C1C24] hover:bg-[#2A2A35] text-sm font-medium transition-colors border border-[#2A2A35]">
+                  <Eye size={15} /> 3D Preview
+                </button>
+                <button onClick={handleExport}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-brand hover:bg-brand-light text-white text-sm font-medium transition-colors">
+                  <Download size={15} /> Export STL {credits > 0 ? `(${credits} credits)` : ''}
+                </button>
+              </div>
+            )}
+
+            {/* Paywall Modal */}
+            {showPaywall && ReactDOM.createPortal(
+              <PaywallModal
+                isOpen={showPaywall}
+                onClose={() => setShowPaywall(false)}
+                onCreditsChanged={(c) => { setCredits(c); refreshProfile && refreshProfile() }}
+                userId={user?.id}
+              />,
+              document.body
+            )}
+
+            {/* Disclaimer Modal */}
+            {showDisclaimer && ReactDOM.createPortal(
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+                <div className="bg-zinc-900 border border-zinc-700 rounded-2xl max-w-md w-full mx-4 overflow-hidden shadow-2xl">
+                  <div className="bg-gradient-to-r from-orange-600 to-orange-500 px-6 py-4">
+                    <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                      ⚠️ Confirm Export
+                    </h2>
+                  </div>
+                  <div className="px-6 py-5 space-y-4">
+                    <p className="text-zinc-300 text-sm leading-relaxed">Before exporting, please verify:</p>
+                    <ul className="space-y-2 text-sm text-zinc-300">
+                      <li className="flex items-start gap-2">
+                        <span className="text-orange-400 mt-0.5">✓</span>
+                        <span>Your <strong className="text-white">real-world dimensions</strong> (width, height, depth) are correct</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-orange-400 mt-0.5">✓</span>
+                        <span>Your <strong className="text-white">tolerance</strong> is set appropriately for your tool fit</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-orange-400 mt-0.5">✓</span>
+                        <span>The <strong className="text-white">3D preview</strong> looks correct</span>
+                      </li>
+                    </ul>
+                    <div className="bg-red-500/10 border border-red-500/30 rounded-lg px-4 py-3">
+                      <p className="text-red-300 text-xs leading-relaxed">
+                        <strong>This will use 1 export credit.</strong> Credits are non-refundable. Please double-check your settings before proceeding.
+                      </p>
+                    </div>
+                    <div className="flex gap-3 pt-1">
+                      <button onClick={() => setShowDisclaimer(false)}
+                        className="flex-1 py-2.5 rounded-lg border border-zinc-600 text-zinc-300 hover:bg-zinc-800 text-sm font-medium transition-colors">
+                        Go Back
+                      </button>
+                      <button onClick={handleConfirmExport}
+                        className="flex-1 py-2.5 rounded-lg bg-orange-600 hover:bg-orange-500 text-white text-sm font-medium transition-colors">
+                        Confirm Export
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>,
+              document.body
+            )}
+          </div>
+        </aside>
+
+        {/* ── Main Canvas / Preview ── */}
+        <main className="flex-1 relative overflow-hidden bg-[#0D0D12]">
+
+          {/* Upload */}
+          {step === 0 && (
+            <div className="flex flex-col items-center justify-center h-full gap-4 p-8"
+              onDragOver={e => e.preventDefault()} onDrop={handleDrop}>
+              <div className="w-24 h-24 rounded-2xl bg-[#131318] border-2 border-dashed border-[#2A2A35] flex items-center justify-center hover:border-brand/50 transition-colors cursor-pointer"
+                onClick={() => fileInputRef.current?.click()}>
+                <Upload className="text-[#8888A0]" size={32} />
+              </div>
+              <div className="text-center">
+                <p className="text-[#C8C8D0] font-medium mb-1">Upload a photo of your tool</p>
+                <p className="text-sm text-[#8888A0]">Drag and drop or click to browse</p>
+              </div>
+              <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+            </div>
+          )}
+
+          {/* Canvas view */}
+          {step >= 1 && !showPreview && (
+            <div className="relative h-full" ref={containerRef}>
+              {/* Edit toolbar */}
+              {step >= 2 && (
+                <div className="absolute top-4 left-4 z-10 flex items-center gap-1 bg-[#131318]/90 border border-[#2A2A35] rounded-lg p-1 backdrop-blur-sm">
+                  <button onClick={() => setEditMode('select')} title="Select"
+                    className={`p-2 rounded-md transition-colors ${editMode === 'select' ? 'bg-brand text-white' : 'text-[#8888A0] hover:text-white'}`}>
+                    <MousePointer size={16} />
+                  </button>
+                  <button onClick={() => setEditMode('edit')} title="Edit points (drag to move, double-click edge to add, right-click to delete)"
+                    className={`p-2 rounded-md transition-colors ${editMode === 'edit' ? 'bg-brand text-white' : 'text-[#8888A0] hover:text-white'}`}>
+                    <Pencil size={16} />
+                  </button>
+                </div>
+              )}
+
+              {/* Edit help text */}
+              {step >= 2 && editMode === 'edit' && (
+                <div className="absolute top-4 left-28 z-10 bg-[#131318]/90 border border-[#2A2A35] rounded-lg px-3 py-2 text-xs text-[#8888A0] backdrop-blur-sm">
+                  {editingOuter
+                    ? <><span className="text-[#4488FF]">Editing outer shape</span> &middot; Drag to move &middot; Dbl-click to add &middot; Right-click to delete</>
+                    : <>Drag point to move &middot; Double-click edge to add &middot; Right-click to delete</>
+                  }
+                </div>
+              )}
+
+              {/* Zoom controls - fixed position in viewport */}
+              <div className="absolute bottom-4 right-4 z-20 flex flex-col items-end gap-1.5">
+                <div className="flex items-center gap-1 bg-[#131318]/95 border border-[#2A2A35] rounded-lg p-1 shadow-lg">
+                  <button onClick={() => setZoom(z => Math.min(5, z + 0.2))} className="p-1.5 text-[#8888A0] hover:text-white rounded transition-colors">
+                    <ZoomIn size={16} />
+                  </button>
+                  <span className="text-xs text-[#8888A0] w-10 text-center">{Math.round(zoom * 100)}%</span>
+                  <button onClick={() => setZoom(z => Math.max(0.2, z - 0.2))} className="p-1.5 text-[#8888A0] hover:text-white rounded transition-colors">
+                    <ZoomOut size={16} />
+                  </button>
+                  <div className="w-px h-4 bg-[#2A2A35] mx-0.5" />
+                  <button onClick={() => setZoom(1)} className="px-2 py-1.5 text-[10px] text-[#8888A0] hover:text-white rounded transition-colors font-medium">
+                    FIT
+                  </button>
+                </div>
+                <span className="text-[10px] text-[#8888A0]/60 pr-1">Ctrl + scroll to zoom</span>
+              </div>
+
+              {/* Canvas */}
+              <div className="h-full overflow-auto p-8 pt-96">
+                <div className="min-h-full flex items-start justify-center">
+                  <canvas
+                    ref={canvasRef}
+                    className="max-w-none shadow-2xl rounded-lg"
+                    style={{
+                      transform: `scale(${zoom})`,
+                      transformOrigin: 'top center',
+                      cursor: editMode === 'edit'
+                        ? draggingPoint !== null ? 'grabbing' : hoveredPoint !== null ? 'grab' : 'crosshair'
+                        : 'default',
+                    }}
+                    onMouseDown={handleCanvasMouseDown}
+                    onMouseMove={handleCanvasMouseMove}
+                    onMouseUp={handleCanvasMouseUp}
+                    onMouseLeave={handleCanvasMouseUp}
+                    onDoubleClick={handleCanvasDoubleClick}
+                    onContextMenu={handleCanvasRightClick}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 3D Preview */}
+          {showPreview && (
+            <div className="relative h-full">
+              <button onClick={() => setShowPreview(false)}
+                className="absolute top-4 left-4 z-10 flex items-center gap-1.5 px-3 py-2 bg-[#131318]/90 border border-[#2A2A35] rounded-lg text-sm text-[#8888A0] hover:text-white transition-colors backdrop-blur-sm">
+                <ChevronLeft size={14} /> Back to Editor
+              </button>
+              <ThreePreview contourPoints={getPreviewPoints()} config={buildConfig()}
+                onToolDrag={(toolIdx, dx, dy) => {
+                  if (toolIdx === -1) {
+                    setToolOffsetX(x => Math.round(x + dx))
+                    setToolOffsetY(y => Math.round(y + dy))
+                  } else if (toolIdx >= 0 && tools[toolIdx]) {
+                    updateTool(toolIdx, 'toolOffsetX', Math.round((tools[toolIdx].toolOffsetX || 0) + dx))
+                    updateTool(toolIdx, 'toolOffsetY', Math.round((tools[toolIdx].toolOffsetY || 0) + dy))
+                  }
+                }}
+              />
+            </div>
+          )}
+        </main>
+      </div>
+    </div>
+  )
+}
