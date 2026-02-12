@@ -242,6 +242,28 @@ export default function Editor() {
     }
   }
 
+  function captureThumbnail() {
+    try {
+      const srcCanvas = canvasRef.current
+      if (!srcCanvas || !srcCanvas.width || !srcCanvas.height) return null
+      const maxW = 400, maxH = 300
+      const scale = Math.min(maxW / srcCanvas.width, maxH / srcCanvas.height, 1)
+      const w = Math.round(srcCanvas.width * scale)
+      const h = Math.round(srcCanvas.height * scale)
+      const tmp = document.createElement('canvas')
+      tmp.width = w
+      tmp.height = h
+      const ctx = tmp.getContext('2d')
+      ctx.fillStyle = '#0D0D12'
+      ctx.fillRect(0, 0, w, h)
+      ctx.drawImage(srcCanvas, 0, 0, w, h)
+      return tmp.toDataURL('image/jpeg', 0.7)
+    } catch (e) {
+      console.warn('Thumbnail capture failed:', e)
+      return null
+    }
+  }
+
   async function handleSaveProject() {
     if (!isAuthenticated || !user?.id) {
       console.warn('[Save] Not authenticated or no user ID', { isAuthenticated, userId: user?.id })
@@ -252,9 +274,12 @@ export default function Editor() {
     setSaveMsg('')
     try {
       const cfg = buildProjectConfig()
+      const thumbnail = captureThumbnail()
       console.log('[Save] Attempting save...', { projectId, userId: user.id, projectName })
       if (projectId) {
-        const result = await updateProject(projectId, { name: projectName, config: cfg })
+        const updates = { name: projectName, config: cfg }
+        if (thumbnail) updates.thumbnail = thumbnail
+        const result = await updateProject(projectId, updates)
         console.log('[Save] Update result:', result)
         setSaveMsg('Saved!')
       } else {
@@ -265,7 +290,7 @@ export default function Editor() {
           name = input
           setProjectName(name)
         }
-        const proj = await createProject(user.id, name, cfg, null)
+        const proj = await createProject(user.id, name, cfg, thumbnail)
         console.log('[Save] Create result:', proj)
         setProjectId(proj.id)
         window.history.replaceState(null, '', `/editor?project=${proj.id}`)
