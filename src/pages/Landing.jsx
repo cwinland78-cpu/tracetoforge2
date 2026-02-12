@@ -264,7 +264,7 @@ export default function Landing() {
 
           <p className="text-base sm:text-lg text-[#9999AD] max-w-2xl mx-auto mb-4 leading-relaxed">
             Take a photo of any tool. TracetoForge turns it into a perfectly-fitted, 
-            3D-printable tray insert. No Fusion 360. No CAD experience. No design skills. 
+            3D-printable tray insert or Gridfinity bin. No CAD needed. No design skills. 
             Just your phone and your printer.
           </p>
 
