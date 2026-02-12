@@ -164,9 +164,10 @@ export default function Editor() {
 
   // Load project from URL param
   useEffect(() => {
+    if (loading) return
     const pid = searchParams.get('project')
-    if (pid && isAuthenticated) loadProjectData(pid)
-  }, [searchParams, isAuthenticated])
+    if (pid && isAuthenticated && user?.id) loadProjectData(pid)
+  }, [searchParams, isAuthenticated, loading])
 
   async function loadProjectData(pid) {
     try {
@@ -227,23 +228,39 @@ export default function Editor() {
   }
 
   async function handleSaveProject() {
-    if (!isAuthenticated) { navigate('/login'); return }
+    if (!isAuthenticated || !user?.id) {
+      console.warn('[Save] Not authenticated or no user ID', { isAuthenticated, userId: user?.id })
+      navigate('/login')
+      return
+    }
     setSaving(true)
     setSaveMsg('')
     try {
       const cfg = buildProjectConfig()
+      console.log('[Save] Attempting save...', { projectId, userId: user.id, projectName })
       if (projectId) {
-        await updateProject(projectId, { name: projectName, config: cfg })
+        const result = await updateProject(projectId, { name: projectName, config: cfg })
+        console.log('[Save] Update result:', result)
         setSaveMsg('Saved!')
       } else {
-        const proj = await createProject(user.id, projectName, cfg, null)
+        let name = projectName
+        if (name === 'Untitled Project') {
+          const input = prompt('Project name:', name)
+          if (!input) { setSaving(false); return }
+          name = input
+          setProjectName(name)
+        }
+        const proj = await createProject(user.id, name, cfg, null)
+        console.log('[Save] Create result:', proj)
         setProjectId(proj.id)
+        window.history.replaceState(null, '', `/editor?project=${proj.id}`)
         setSaveMsg('Saved!')
       }
-      setTimeout(() => setSaveMsg(''), 2000)
+      setTimeout(() => setSaveMsg(''), 4000)
     } catch (err) {
-      console.error('Save error:', err)
-      setSaveMsg('Save failed')
+      console.error('[Save] Error:', err?.message || err, err)
+      setSaveMsg(`Save failed: ${err?.message || 'Unknown error'}`)
+      setTimeout(() => setSaveMsg(''), 8000)
     }
     setSaving(false)
   }
@@ -1088,7 +1105,7 @@ export default function Editor() {
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-[#2A2A35] hover:bg-[#3A3A45] text-[#C8C8D0] rounded-lg transition-colors">
                 <Save size={13} /> {saving ? 'Saving...' : 'Save'}
               </button>
-              {saveMsg && <span className="text-xs text-green-400">{saveMsg}</span>}
+              {saveMsg && <span className={`text-xs ${saveMsg.includes('failed') ? 'text-red-400 font-bold' : 'text-green-400'}`}>{saveMsg}</span>}
               <button onClick={() => navigate('/dashboard')}
                 className="flex items-center gap-1 px-2 py-1.5 text-xs text-[#8888A0] hover:text-white transition-colors">
                 <FolderOpen size={13} /> Projects

@@ -69,10 +69,12 @@ export default function Dashboard() {
 
   async function loadProjects() {
     try {
+      console.log('[Dashboard] Loading projects for user:', user?.id)
       const data = await listProjects(user.id)
+      console.log('[Dashboard] Loaded projects:', data?.length, data)
       setProjects(data)
     } catch (err) {
-      console.error('Error loading projects:', err)
+      console.error('[Dashboard] Error loading projects:', err?.message || err, err)
     }
     setLoadingProjects(false)
   }
