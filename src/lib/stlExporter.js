@@ -776,12 +776,8 @@ function createGridfinityInsert(points, config) {
   const cb = config.cavityBevel || 0
   const topSurface = GF.baseHeight + wallHeight
 
-  // Floor section (solid, no hole) if toolDepth < wallHeight
-  if (floorZ > 0.01) {
-    const floorGeo = new THREE.ExtrudeGeometry(outerShape, { depth: floorZ, bevelEnabled: false })
-    floorGeo.translate(0, 0, GF.baseHeight)
-    group.add(new THREE.Mesh(floorGeo, trayMat))
-  }
+  // Floor + walls combined as single extrusion, then subtract tool cavity from top
+  // This eliminates non-manifold edges at the floor/wall boundary
 
   // ─── Additional tools for gridfinity ───
   const { additionalTools = [] } = config
@@ -818,8 +814,8 @@ function createGridfinityInsert(points, config) {
 
   // Cavity section: solid walls with tool cavity subtracted via CSG
   // This properly clips the tool shape to the bin boundary
-  const wallGeo = new THREE.ExtrudeGeometry(outerShape, { depth: cavityZ, bevelEnabled: false })
-  wallGeo.translate(0, 0, GF.baseHeight + floorZ)
+  const wallGeo = new THREE.ExtrudeGeometry(outerShape, { depth: wallHeight, bevelEnabled: false })
+  wallGeo.translate(0, 0, GF.baseHeight)
 
   // Build tool cavity cutter from combined hole (tool + notches)
   const toolCutterShape = new THREE.Shape()
