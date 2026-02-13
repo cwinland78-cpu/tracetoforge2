@@ -116,11 +116,28 @@ const PROMO_CODES = {
   JOELOVESTOM: { credits: 5, description: '5 free exports' },
   TESTER999: { credits: 5, description: '5 free exports' },
   KILLALUKE99: { credits: 99, description: '99 free exports' },
+  UNCLEJESSY: { credits: 20, description: '20 free exports', maxRedemptions: 1 },
 };
 
 export async function redeemPromoCode(code, userId) {
   const normalized = code.trim().toUpperCase();
   if (!normalized) return { success: false, error: 'Please enter a promo code' };
+
+  const promo = PROMO_CODES[normalized];
+  if (!promo) return { success: false, error: 'Invalid promo code' };
+
+  // Check global redemption limit (e.g. 1-time codes)
+  if (promo.maxRedemptions) {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/credit_transactions?select=id&type=eq.promo&metadata->>code=eq.${normalized}`, {
+        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+      });
+      const existing = await res.json();
+      if (existing.length >= promo.maxRedemptions) {
+        return { success: false, error: 'This code has already been claimed' };
+      }
+    } catch (e) { console.error('Max redemption check failed:', e); }
+  }
 
   if (userId) {
     const { data, error } = await callRpc('redeem_promo', {
@@ -130,8 +147,6 @@ export async function redeemPromoCode(code, userId) {
     return data;
   }
 
-  const promo = PROMO_CODES[normalized];
-  if (!promo) return { success: false, error: 'Invalid promo code' };
   const redeemed = getRedeemedPromosLocal();
   if (redeemed.includes(normalized)) return { success: false, error: 'This code has already been redeemed' };
   const newTotal = await addCredits(promo.credits, null);
