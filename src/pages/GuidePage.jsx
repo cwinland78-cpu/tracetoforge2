@@ -158,10 +158,7 @@ export default function GuidePage() {
       {/* Nav */}
       <nav className="flex items-center justify-between px-6 py-4 border-b border-surface-lighter/20 backdrop-blur-sm sticky top-0 z-50 bg-bg/80">
         <Link to="/" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-brand/15 flex items-center justify-center">
-            <Box className="text-brand" size={18} />
-          </div>
-          <span className="font-semibold text-base tracking-tight">TracetoForge</span>
+          <img src="/logo-nav.png" alt="TracetoForge" className="h-8 object-contain" />
         </Link>
         <div className="flex items-center gap-3">
           <Link to="/" className="text-xs text-[#8888A0] hover:text-white transition-colors">Home</Link>

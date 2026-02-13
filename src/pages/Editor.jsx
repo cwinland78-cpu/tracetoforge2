@@ -1141,8 +1141,7 @@ export default function Editor() {
           </button>
           <div className="w-px h-5 bg-[#2A2A35]" />
           <div className="flex items-center gap-2">
-            <Box className="text-brand" size={18} />
-            <span className="font-semibold text-sm">TracetoForge</span>
+            <img src="/logo-nav.png" alt="TracetoForge" className="h-6 object-contain" />
           </div>
         </div>
         {/* Steps */}
