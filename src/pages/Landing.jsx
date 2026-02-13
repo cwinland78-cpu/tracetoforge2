@@ -197,7 +197,11 @@ export default function Landing() {
       <nav className="flex items-center justify-between px-6 py-4 border-b border-surface-lighter/20 backdrop-blur-sm sticky top-0 z-50 bg-bg/80">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-brand/15 flex items-center justify-center">
-            <Box className="text-brand" size={18} />
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L22 7.5V16.5L12 22L2 16.5V7.5L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
+              <path d="M2 7.5L12 13L22 7.5" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" opacity="0.5"/>
+              <line x1="12" y1="13" x2="12" y2="22" stroke="currentColor" strokeWidth="1.5" opacity="0.5"/>
+            </svg>
           </div>
           <span className="text-lg font-display font-bold tracking-tight">Traceto<span className="text-brand">Forge</span></span>
         </div>
