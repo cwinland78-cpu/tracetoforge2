@@ -196,7 +196,7 @@ export default function Landing() {
       {/* Nav */}
       <nav className="flex items-center justify-between px-6 py-4 border-b border-surface-lighter/20 backdrop-blur-sm sticky top-0 z-50 bg-bg/80">
         <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => navigate('/')}>
-          <img src="/logo-nav.png" alt="TracetoForge" className="h-8 object-contain" />
+          <img src="/logo-nav.png" alt="TracetoForge" className="h-10 object-contain" />
         </div>
         <div className="flex items-center gap-3">
           <button onClick={() => navigate('/guide')}
