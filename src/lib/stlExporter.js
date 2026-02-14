@@ -940,36 +940,23 @@ function createGridfinityInsert(points, config) {
     group.add(new THREE.Mesh(fillGeo, trayMat))
   })
 
-  // ─── Stacking lip (vertical + 45deg inward slope) ───
-  const lipH = GF.lipVertical + GF.lipSlope
-  const lipInset = GF.lipSlope  // 1.8mm inward at 45deg
-
-  // Vertical section
-  const lipVOuter = createRoundedRectShape(binW, binH, GF.cornerRadius)
-  const lipVInner = createRoundedRectShape(binW - 2.4, binH - 2.4, Math.max(0, GF.cornerRadius - 1.2))
-  lipVOuter.holes.push(new THREE.Path(lipVInner.getPoints(12)))
-  const lipVGeo = new THREE.ExtrudeGeometry(lipVOuter, { depth: GF.lipVertical + 0.3, bevelEnabled: false })
-  lipVGeo.translate(0, 0, totalHeight)
+  // ─── Stacking lip - simple vertical rim around top edge ───
+  // 1.2mm wide, 4.4mm tall vertical wall - no inward slope, no overhang
+  const lipWall = 1.2
+  const lipHeight = GF.lipVertical + GF.lipSlope  // ~4.4mm total
+  const lipOuter = createRoundedRectShape(binW, binH, GF.cornerRadius)
+  const lipInner = createRoundedRectShape(
+    binW - lipWall * 2,
+    binH - lipWall * 2,
+    Math.max(0, GF.cornerRadius - lipWall)
+  )
+  lipOuter.holes.push(new THREE.Path(lipInner.getPoints(12)))
+  const lipGeo = new THREE.ExtrudeGeometry(lipOuter, { depth: lipHeight, bevelEnabled: false })
+  lipGeo.translate(0, 0, totalHeight)
   const lipMat = new THREE.MeshPhongMaterial({
     color: 0xaaaabb, transparent: true, opacity: 0.7, side: THREE.DoubleSide,
   })
-  const lipVMesh = new THREE.Mesh(lipVGeo, lipMat)
-  lipVMesh.userData.vizOnly = true
-  group.add(lipVMesh)
-
-  // Slope section (1.8mm tall, narrows inward by 1.8mm)
-  const lipSOuter = createRoundedRectShape(binW, binH, GF.cornerRadius)
-  const lipSInner = createRoundedRectShape(
-    binW - 2.4 - lipInset * 2,
-    binH - 2.4 - lipInset * 2,
-    Math.max(0, GF.cornerRadius - 1.2 - lipInset)
-  )
-  lipSOuter.holes.push(new THREE.Path(lipSInner.getPoints(12)))
-  const lipSGeo = new THREE.ExtrudeGeometry(lipSOuter, { depth: GF.lipSlope, bevelEnabled: false })
-  lipSGeo.translate(0, 0, totalHeight + GF.lipVertical)
-  const lipSMesh = new THREE.Mesh(lipSGeo, lipMat)
-  lipSMesh.userData.vizOnly = true
-  group.add(lipSMesh)
+  group.add(new THREE.Mesh(lipGeo, lipMat))
 
   // ─── Grid lines on floor ───
   const linesMat = new THREE.LineBasicMaterial({ color: 0x444455 })
