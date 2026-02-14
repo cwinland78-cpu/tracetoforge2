@@ -812,23 +812,24 @@ function createGridfinityInsert(points, config) {
     for (let gy = 0; gy < gridY; gy++) {
       const cx = -binW / 2 + GF.gridUnit / 2 + gx * GF.gridUnit
       const cy = -binH / 2 + GF.gridUnit / 2 + gy * GF.gridUnit
+      const ov = 0.2 // overlap between layers to prevent coincident faces
       let z = 0
 
       // Layer 1: 45deg chamfer (0.8mm) - tapers from 35.6 to 37.2
-      const g1 = buildFrustum(bottomW, midW, cr, cr, GF.baseChamfer1, 24)
+      const g1 = buildFrustum(bottomW, midW, cr, cr, GF.baseChamfer1 + ov, 24)
       g1.translate(cx, cy, z)
       group.add(new THREE.Mesh(g1, trayMat))
       z += GF.baseChamfer1
 
       // Layer 2: vertical section (1.8mm) - stays at 37.2
       const s2 = createRoundedRectShape(midW, midW, cr)
-      const g2 = new THREE.ExtrudeGeometry(s2, { depth: GF.baseVertical, bevelEnabled: false })
+      const g2 = new THREE.ExtrudeGeometry(s2, { depth: GF.baseVertical + ov, bevelEnabled: false })
       g2.translate(cx, cy, z)
       group.add(new THREE.Mesh(g2, trayMat))
       z += GF.baseVertical
 
       // Layer 3: 45deg chamfer (2.15mm) - tapers from 37.2 to 41.5
-      const g3 = buildFrustum(midW, topW, cr, GF.cornerRadius, GF.baseChamfer2, 24)
+      const g3 = buildFrustum(midW, topW, cr, GF.cornerRadius, GF.baseChamfer2 + ov, 24)
       g3.translate(cx, cy, z)
       group.add(new THREE.Mesh(g3, trayMat))
     }
@@ -876,9 +877,10 @@ function createGridfinityInsert(points, config) {
 
   // ─── Solid body with CSG cavity subtraction (watertight mesh) ───
   // Single solid extrusion for full wall height, then CSG-subtract tool cavities
-  // This eliminates non-manifold edges at floor/wall boundary
-  const solidGeo = new THREE.ExtrudeGeometry(outerShape, { depth: wallHeight, bevelEnabled: false })
-  solidGeo.translate(0, 0, GF.baseHeight)
+  // Extend 0.5mm below baseHeight to overlap base unit tops (eliminates non-manifold edges)
+  const baseOverlap = 0.5
+  const solidGeo = new THREE.ExtrudeGeometry(outerShape, { depth: wallHeight + baseOverlap * 2, bevelEnabled: false })
+  solidGeo.translate(0, 0, GF.baseHeight - baseOverlap)
 
   // Build tool cavity cutter shape from combined hole (tool + notches)
   const toolCutterShape = new THREE.Shape()
@@ -991,7 +993,7 @@ function createGridfinityInsert(points, config) {
   const lipVOuter = createRoundedRectShape(binW, binH, GF.cornerRadius)
   const lipVInner = createRoundedRectShape(binW - 2.4, binH - 2.4, Math.max(0, GF.cornerRadius - 1.2))
   lipVOuter.holes.push(new THREE.Path(lipVInner.getPoints(12)))
-  const lipVGeo = new THREE.ExtrudeGeometry(lipVOuter, { depth: GF.lipVertical, bevelEnabled: false })
+  const lipVGeo = new THREE.ExtrudeGeometry(lipVOuter, { depth: GF.lipVertical + 0.3, bevelEnabled: false })
   lipVGeo.translate(0, 0, totalHeight)
   const lipMat = new THREE.MeshPhongMaterial({
     color: 0xaaaabb, transparent: true, opacity: 0.7, side: THREE.DoubleSide,
