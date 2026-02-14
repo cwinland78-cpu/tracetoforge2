@@ -746,70 +746,76 @@ export default function Editor() {
 
       ctx.save()
 
-      // Width line (bottom)
-      ctx.setLineDash([6, 4])
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)'
+      // Width dimension line (bottom) - black dashed
+      ctx.setLineDash([8, 5])
+      ctx.strokeStyle = '#000000'
       ctx.lineWidth = 2
-      const wY = bounds.maxY + oy + 28
+      const wY = bounds.maxY + oy + 35
       ctx.beginPath()
       ctx.moveTo(bounds.minX + ox, wY)
       ctx.lineTo(bounds.maxX + ox, wY)
       ctx.stroke()
       // End ticks
       ctx.setLineDash([])
-      ctx.lineWidth = 2
+      ctx.lineWidth = 2.5
+      ctx.strokeStyle = '#000000'
       ctx.beginPath()
-      ctx.moveTo(bounds.minX + ox, wY - 8)
-      ctx.lineTo(bounds.minX + ox, wY + 8)
-      ctx.moveTo(bounds.maxX + ox, wY - 8)
-      ctx.lineTo(bounds.maxX + ox, wY + 8)
+      ctx.moveTo(bounds.minX + ox, wY - 10)
+      ctx.lineTo(bounds.minX + ox, wY + 10)
+      ctx.moveTo(bounds.maxX + ox, wY - 10)
+      ctx.lineTo(bounds.maxX + ox, wY + 10)
       ctx.stroke()
 
-      // Width label
+      // Width label - large orange pill with white text
       const wLabel = `${realWidth} mm`
-      ctx.font = 'bold 14px "Space Grotesk", system-ui, sans-serif'
+      ctx.font = 'bold 18px "Space Grotesk", system-ui, sans-serif'
       ctx.textAlign = 'center'
       const wLabelX = (bounds.minX + bounds.maxX) / 2 + ox
-      const wLW = ctx.measureText(wLabel).width + 16
-      ctx.fillStyle = 'rgba(232, 101, 10, 0.95)'
+      const wLW = ctx.measureText(wLabel).width + 24
+      const wLH = 32
+      ctx.fillStyle = '#E8650A'
       ctx.beginPath()
-      ctx.roundRect(wLabelX - wLW / 2, wY + 8, wLW, 24, 6)
+      ctx.roundRect(wLabelX - wLW / 2, wY + 10, wLW, wLH, 8)
       ctx.fill()
       ctx.fillStyle = '#FFFFFF'
-      ctx.fillText(wLabel, wLabelX, wY + 25)
+      ctx.fillText(wLabel, wLabelX, wY + 31)
 
-      // Height line (right)
-      ctx.setLineDash([6, 4])
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)'
+      // Height dimension line (right) - black dashed
+      ctx.setLineDash([8, 5])
+      ctx.strokeStyle = '#000000'
       ctx.lineWidth = 2
-      const hX = bounds.maxX + ox + 28
+      const hX = bounds.maxX + ox + 35
       ctx.beginPath()
       ctx.moveTo(hX, bounds.minY + oy)
       ctx.lineTo(hX, bounds.maxY + oy)
       ctx.stroke()
       // End ticks
       ctx.setLineDash([])
+      ctx.lineWidth = 2.5
+      ctx.strokeStyle = '#000000'
       ctx.beginPath()
-      ctx.moveTo(hX - 8, bounds.minY + oy)
-      ctx.lineTo(hX + 8, bounds.minY + oy)
-      ctx.moveTo(hX - 8, bounds.maxY + oy)
-      ctx.lineTo(hX + 8, bounds.maxY + oy)
+      ctx.moveTo(hX - 10, bounds.minY + oy)
+      ctx.lineTo(hX + 10, bounds.minY + oy)
+      ctx.moveTo(hX - 10, bounds.maxY + oy)
+      ctx.lineTo(hX + 10, bounds.maxY + oy)
       ctx.stroke()
 
-      // Height label
+      // Height label - large orange pill with white text (rotated)
       const hLabel = `${realHeight} mm`
+      ctx.font = 'bold 18px "Space Grotesk", system-ui, sans-serif'
       const hLabelY = (bounds.minY + bounds.maxY) / 2 + oy
       ctx.save()
-      ctx.translate(hX + 24, hLabelY)
+      ctx.translate(hX + 30, hLabelY)
       ctx.rotate(-Math.PI / 2)
-      const hLW = ctx.measureText(hLabel).width + 16
-      ctx.fillStyle = 'rgba(232, 101, 10, 0.95)'
+      const hLW = ctx.measureText(hLabel).width + 24
+      const hLH = 32
+      ctx.fillStyle = '#E8650A'
       ctx.beginPath()
-      ctx.roundRect(-hLW / 2, -16, hLW, 24, 6)
+      ctx.roundRect(-hLW / 2, -20, hLW, hLH, 8)
       ctx.fill()
       ctx.fillStyle = '#FFFFFF'
       ctx.textAlign = 'center'
-      ctx.fillText(hLabel, 0, 0)
+      ctx.fillText(hLabel, 0, 1)
       ctx.restore()
 
       ctx.restore()
