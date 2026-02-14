@@ -675,15 +675,17 @@ function createGridfinityInsert(points, config) {
     return pts
   }
 
-  gfNotches.forEach(fn => {
+  let gfNotchOrigIdx = [] // maps gfAllNotchPts index -> original fingerNotches index
+  gfNotches.forEach((fn, fnIdx) => {
     const pts = buildNotchPts(fn)
     if (pts.length < 3) return
     gfAllNotchPts.push(pts)
+    gfNotchOrigIdx.push(fnIdx)
     // Any notch with custom depth (> 0) that isn't equal to cavityZ is independent
     const isIndependent = fn.depth > 0 && Math.abs(fn.depth - cavityZ) > 0.01
     console.log('[GF Notch collect] fn.depth:', fn.depth, 'cavityZ:', cavityZ, 'isIndependent:', isIndependent)
     if (isIndependent) {
-      gfIndepNotches.push({ pts, depth: fn.depth })
+      gfIndepNotches.push({ pts, depth: fn.depth, origIdx: fnIdx })
     }
   })
 
@@ -1151,8 +1153,14 @@ function createGridfinityInsert(points, config) {
 
   // Finger notch visualizations for gridfinity (draggable)
   const gfNotchMat = new THREE.MeshPhongMaterial({ color: 0x44bb44, transparent: true, opacity: 0.4, side: THREE.DoubleSide })
-  // Default-depth notches (in gfAllNotchPts)
+  // Default-depth notches only (skip ones that have independent depths)
   gfAllNotchPts.forEach((nPts, ni) => {
+    // Check if this notch is in gfIndepNotches (has custom depth)
+    const isCustom = gfIndepNotches.some(indep => 
+      indep.pts === nPts || 
+      (indep.pts.length === nPts.length && indep.pts[0].x === nPts[0].x && indep.pts[0].y === nPts[0].y))
+    if (isCustom) return // skip - will be drawn by the indep loop below
+
     const nShape = new THREE.Shape()
     nPts.forEach((p, i) => { if (i === 0) nShape.moveTo(p.x, p.y); else nShape.lineTo(p.x, p.y) })
     nShape.closePath()
@@ -1160,19 +1168,20 @@ function createGridfinityInsert(points, config) {
     nGeo.translate(0, 0, GF.baseHeight + floorZ - 0.25)
     const nMesh = new THREE.Mesh(nGeo, gfNotchMat)
     nMesh.userData.vizOnly = true
-    nMesh.userData.notchIndex = ni
+    nMesh.userData.notchIndex = gfNotchOrigIdx[ni] !== undefined ? gfNotchOrigIdx[ni] : ni
     group.add(nMesh)
   })
-  // Custom-depth notches (in gfIndepNotches)
-  gfIndepNotches.forEach(({ pts: nPts, depth: nDepth }, ni) => {
+  // Custom-depth notches - drawn at their actual independent depth
+  const gfNotchCustomMat = new THREE.MeshPhongMaterial({ color: 0x22aa88, transparent: true, opacity: 0.5, side: THREE.DoubleSide })
+  gfIndepNotches.forEach(({ pts: nPts, depth: nDepth, origIdx }, ni) => {
     const nShape = new THREE.Shape()
     nPts.forEach((p, i) => { if (i === 0) nShape.moveTo(p.x, p.y); else nShape.lineTo(p.x, p.y) })
     nShape.closePath()
     const nGeo = new THREE.ExtrudeGeometry(nShape, { depth: nDepth + 0.5, bevelEnabled: false })
     nGeo.translate(0, 0, GF.baseHeight + floorZ + cavityZ - nDepth - 0.25)
-    const nMesh = new THREE.Mesh(nGeo, gfNotchMat)
+    const nMesh = new THREE.Mesh(nGeo, gfNotchCustomMat)
     nMesh.userData.vizOnly = true
-    nMesh.userData.notchIndex = gfAllNotchPts.length + ni
+    nMesh.userData.notchIndex = origIdx !== undefined ? origIdx : ni
     group.add(nMesh)
   })
 
