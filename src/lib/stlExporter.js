@@ -812,7 +812,7 @@ function createGridfinityInsert(points, config) {
     for (let gy = 0; gy < gridY; gy++) {
       const cx = -binW / 2 + GF.gridUnit / 2 + gx * GF.gridUnit
       const cy = -binH / 2 + GF.gridUnit / 2 + gy * GF.gridUnit
-      const ov = 0.2 // overlap between layers to prevent coincident faces
+      const ov = 0 // CSG union at export handles overlaps
       let z = 0
 
       // Layer 1: 45deg chamfer (0.8mm) - tapers from 35.6 to 37.2
@@ -877,8 +877,8 @@ function createGridfinityInsert(points, config) {
 
   // ─── Solid body with CSG cavity subtraction (watertight mesh) ───
   // Single solid extrusion for full wall height, then CSG-subtract tool cavities
-  // Extend 0.5mm below baseHeight to overlap base unit tops (eliminates non-manifold edges)
-  const baseOverlap = 0.5
+  // Extend 0.01mm overlap to prevent coincident faces with base/lip
+  const baseOverlap = 0.01
   const solidGeo = new THREE.ExtrudeGeometry(outerShape, { depth: wallHeight + baseOverlap * 2, bevelEnabled: false })
   solidGeo.translate(0, 0, GF.baseHeight - baseOverlap)
 
@@ -993,7 +993,7 @@ function createGridfinityInsert(points, config) {
   const lipVOuter = createRoundedRectShape(binW, binH, GF.cornerRadius)
   const lipVInner = createRoundedRectShape(binW - 2.4, binH - 2.4, Math.max(0, GF.cornerRadius - 1.2))
   lipVOuter.holes.push(new THREE.Path(lipVInner.getPoints(12)))
-  const lipVGeo = new THREE.ExtrudeGeometry(lipVOuter, { depth: GF.lipVertical + 0.3, bevelEnabled: false })
+  const lipVGeo = new THREE.ExtrudeGeometry(lipVOuter, { depth: GF.lipVertical, bevelEnabled: false })
   lipVGeo.translate(0, 0, totalHeight)
   const lipMat = new THREE.MeshPhongMaterial({
     color: 0xaaaabb, transparent: true, opacity: 0.7, side: THREE.DoubleSide,
@@ -1172,6 +1172,7 @@ export function createInsertMesh(toolPoints, config) {
  */
 export function exportSTL(toolPoints, config) {
   const group = createInsertMesh(toolPoints, config)
+  const mode = config.mode || 'object'
 
   // Collect all non-vizOnly mesh geometries
   const geometries = []
@@ -1184,6 +1185,31 @@ export function exportSTL(toolPoints, config) {
   })
 
   if (geometries.length === 0) throw new Error('No geometry to export')
+
+  // For gridfinity: CSG-union all parts into single watertight solid
+  if (mode === 'gridfinity' && geometries.length > 1) {
+    try {
+      const evaluator = new Evaluator()
+      // Start with the largest geometry (the wall/cavity body) as base
+      let resultBrush = new Brush(geometries[0])
+      resultBrush.updateMatrixWorld()
+
+      for (let i = 1; i < geometries.length; i++) {
+        try {
+          const nextBrush = new Brush(geometries[i])
+          nextBrush.updateMatrixWorld()
+          const unionResult = evaluator.evaluate(resultBrush, nextBrush, ADDITION)
+          resultBrush = new Brush(unionResult.geometry)
+          resultBrush.updateMatrixWorld()
+        } catch (pieceErr) {
+          console.warn('CSG union skipped piece', i, pieceErr.message)
+        }
+      }
+      return geometryToSTL(resultBrush.geometry)
+    } catch (e) {
+      console.warn('CSG union failed, falling back to merge:', e)
+    }
+  }
 
   const merged = mergeGeometries(geometries)
   return geometryToSTL(merged)
