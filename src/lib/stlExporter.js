@@ -953,7 +953,9 @@ function createGridfinityInsert(points, config) {
   const lipMat = new THREE.MeshPhongMaterial({
     color: 0xaaaabb, transparent: true, opacity: 0.7, side: THREE.DoubleSide,
   })
-  group.add(new THREE.Mesh(lipVGeo, lipMat))
+  const lipVMesh = new THREE.Mesh(lipVGeo, lipMat)
+  lipVMesh.userData.vizOnly = true
+  group.add(lipVMesh)
 
   // Slope section (1.8mm tall, narrows inward by 1.8mm)
   const lipSOuter = createRoundedRectShape(binW, binH, GF.cornerRadius)
@@ -965,7 +967,9 @@ function createGridfinityInsert(points, config) {
   lipSOuter.holes.push(new THREE.Path(lipSInner.getPoints(12)))
   const lipSGeo = new THREE.ExtrudeGeometry(lipSOuter, { depth: GF.lipSlope, bevelEnabled: false })
   lipSGeo.translate(0, 0, totalHeight + GF.lipVertical)
-  group.add(new THREE.Mesh(lipSGeo, lipMat))
+  const lipSMesh = new THREE.Mesh(lipSGeo, lipMat)
+  lipSMesh.userData.vizOnly = true
+  group.add(lipSMesh)
 
   // ─── Grid lines on floor ───
   const linesMat = new THREE.LineBasicMaterial({ color: 0x444455 })
