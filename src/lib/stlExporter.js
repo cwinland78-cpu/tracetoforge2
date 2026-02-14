@@ -965,6 +965,7 @@ function createGridfinityInsert(points, config) {
   }
 
   // Shallower notches: fill plugs at bottom to raise floor
+  const fillPlugMat = new THREE.MeshPhongMaterial({ color: 0x6688aa, transparent: true, opacity: 0.9, side: THREE.DoubleSide })
   gfIndepNotches.forEach(({ pts: nPts, depth: nDepth }) => {
     console.log('[GF Fill] nDepth:', nDepth, 'cavityZ:', cavityZ, 'action:', nDepth < cavityZ ? 'FILL PLUG' : 'skip')
     if (nDepth >= cavityZ) return
@@ -974,7 +975,7 @@ function createGridfinityInsert(points, config) {
     nShape.closePath()
     const fillGeo = new THREE.ExtrudeGeometry(nShape, { depth: fillDepth, bevelEnabled: false })
     fillGeo.translate(0, 0, GF.baseHeight + floorZ)
-    group.add(new THREE.Mesh(fillGeo, trayMat))
+    group.add(new THREE.Mesh(fillGeo, fillPlugMat))
   })
 
   // ─── Stacking lip - perimeter ring on top of walls ───
