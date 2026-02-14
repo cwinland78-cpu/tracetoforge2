@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { Brush, Evaluator, SUBTRACTION, INTERSECTION } from 'three-bvh-csg'
+import { Brush, Evaluator, SUBTRACTION, INTERSECTION, ADDITION } from 'three-bvh-csg'
 import ClipperLib from 'clipper-lib'
 
 // ─── Edge Profile Helpers ───
@@ -814,14 +814,11 @@ function createGridfinityInsert(points, config) {
     extraToolViz.push({ shape: atShape, scale: atScale, rad: atRad, ox: atOx, oy: atOy })
   })
 
-  // Cavity section: solid walls with tool cavity subtracted via CSG
-  // Build wall section with tool holes punched through (no CSG needed)
-  // Floor zone: solid from baseHeight to baseHeight+floorZ
-  if (floorZ > 0.01) {
-    const floorGeo = new THREE.ExtrudeGeometry(outerShape, { depth: floorZ, bevelEnabled: false })
-    floorGeo.translate(0, 0, GF.baseHeight)
-    group.add(new THREE.Mesh(floorGeo, trayMat))
-  }
+  // ─── Solid body with CSG cavity subtraction (watertight mesh) ───
+  // Single solid extrusion for full wall height, then CSG-subtract tool cavities
+  // This eliminates non-manifold edges at floor/wall boundary
+  const solidGeo = new THREE.ExtrudeGeometry(outerShape, { depth: wallHeight, bevelEnabled: false })
+  solidGeo.translate(0, 0, GF.baseHeight)
 
   // Build tool cavity cutter shape from combined hole (tool + notches)
   const toolCutterShape = new THREE.Shape()
@@ -831,86 +828,84 @@ function createGridfinityInsert(points, config) {
   })
   toolCutterShape.closePath()
 
-  // Wall section with holes: extrude outer shape with tool holes as path holes
-  const wallShape = outerShape.clone()
-  wallShape.holes.push(new THREE.Path(gfMainHole.map((p, i) => {
-    const pt = new THREE.Vector2(p.x, p.y)
-    return pt
-  })))
-  // Add additional tool holes
-  extraToolCutters.forEach(atEntry => {
-    const atPts = atEntry.shape.getPoints(32)
-    wallShape.holes.push(new THREE.Path(atPts))
-  })
-  const wallGeo = new THREE.ExtrudeGeometry(wallShape, { depth: cavityZ, bevelEnabled: false })
-  wallGeo.translate(0, 0, GF.baseHeight + floorZ)
+  // CSG subtract: cut tool cavity from the top of the solid block
+  const csgEval = new Evaluator()
+  let solidBrush = new Brush(solidGeo)
+  solidBrush.updateMatrixWorld()
 
-  // Apply cavity bevel via CSG only if needed
+  // Primary tool cavity subtraction
+  const cavityCutGeo = new THREE.ExtrudeGeometry(toolCutterShape, { depth: cavityZ + 0.5, bevelEnabled: false })
+  cavityCutGeo.translate(0, 0, GF.baseHeight + floorZ - 0.25)
+  const cavityCutBrush = new Brush(cavityCutGeo)
+  cavityCutBrush.updateMatrixWorld()
+
   let wallMesh
-  const hasBevel = cb > 0.1 || extraToolCutters.some(e => (e.cavityBevel || 0) > 0.1)
-  if (hasBevel) {
-    try {
-      const evaluator = new Evaluator()
-      let result
-      let currentBrush = new Brush(wallGeo)
-      currentBrush.updateMatrixWorld()
+  try {
+    let result = csgEval.evaluate(solidBrush, cavityCutBrush, SUBTRACTION)
 
-      // Apply primary tool bevel
-      if (cb > 0.1) {
-        const bevelGeo = new THREE.ExtrudeGeometry(toolCutterShape, {
+    // Subtract additional tool cavities
+    extraToolCutters.forEach(atEntry => {
+      const atCutGeo = new THREE.ExtrudeGeometry(atEntry.shape, { depth: cavityZ + 0.5, bevelEnabled: false })
+      atCutGeo.translate(0, 0, GF.baseHeight + floorZ - 0.25)
+      const atCutBrush = new Brush(atCutGeo)
+      atCutBrush.updateMatrixWorld()
+      const prevBrush = new Brush(result.geometry)
+      prevBrush.updateMatrixWorld()
+      result = csgEval.evaluate(prevBrush, atCutBrush, SUBTRACTION)
+    })
+
+    // Apply cavity bevel if needed
+    if (cb > 0.1) {
+      const bevelGeo = new THREE.ExtrudeGeometry(toolCutterShape, {
+        depth: 0.01,
+        bevelEnabled: true,
+        bevelThickness: cb,
+        bevelSize: cb,
+        bevelSegments: 1,
+        bevelOffset: 0,
+      })
+      bevelGeo.translate(0, 0, topSurface)
+      const bevelBrush = new Brush(bevelGeo)
+      bevelBrush.updateMatrixWorld()
+      const prevBrush = new Brush(result.geometry)
+      prevBrush.updateMatrixWorld()
+      result = csgEval.evaluate(prevBrush, bevelBrush, SUBTRACTION)
+    }
+
+    // Bevel additional tools
+    extraToolCutters.forEach(atEntry => {
+      const atCb = atEntry.cavityBevel || 0
+      if (atCb > 0.1) {
+        const atBevelGeo = new THREE.ExtrudeGeometry(atEntry.shape, {
           depth: 0.01,
           bevelEnabled: true,
-          bevelThickness: cb,
-          bevelSize: cb,
+          bevelThickness: atCb,
+          bevelSize: atCb,
           bevelSegments: 1,
           bevelOffset: 0,
         })
-        bevelGeo.translate(0, 0, topSurface)
-        const bevelBrush = new Brush(bevelGeo)
-        bevelBrush.updateMatrixWorld()
-        result = evaluator.evaluate(currentBrush, bevelBrush, SUBTRACTION)
-        currentBrush = new Brush(result.geometry)
-        currentBrush.updateMatrixWorld()
+        atBevelGeo.translate(0, 0, topSurface)
+        const atBevelBrush = new Brush(atBevelGeo)
+        atBevelBrush.updateMatrixWorld()
+        const prevBrush = new Brush(result.geometry)
+        prevBrush.updateMatrixWorld()
+        result = csgEval.evaluate(prevBrush, atBevelBrush, SUBTRACTION)
       }
+    })
 
-      // Bevel additional tools
-      extraToolCutters.forEach(atEntry => {
-        const atCb = atEntry.cavityBevel || 0
-        if (atCb > 0.1) {
-          const atBevelGeo = new THREE.ExtrudeGeometry(atEntry.shape, {
-            depth: 0.01,
-            bevelEnabled: true,
-            bevelThickness: atCb,
-            bevelSize: atCb,
-            bevelSegments: 1,
-            bevelOffset: 0,
-          })
-          atBevelGeo.translate(0, 0, topSurface)
-          const atBevelBrush = new Brush(atBevelGeo)
-          atBevelBrush.updateMatrixWorld()
-          if (!result) {
-            result = evaluator.evaluate(currentBrush, atBevelBrush, SUBTRACTION)
-          } else {
-            const prevBrush = new Brush(result.geometry)
-            prevBrush.updateMatrixWorld()
-            result = evaluator.evaluate(prevBrush, atBevelBrush, SUBTRACTION)
-          }
-        }
-      })
-
-      if (result) {
-        result.material = trayMat2
-        if (result.geometry) result.geometry.computeVertexNormals()
-        wallMesh = result
-      } else {
-        wallMesh = new THREE.Mesh(wallGeo, trayMat2)
-      }
-    } catch (e) {
-      console.error('Bevel CSG failed:', e)
-      wallMesh = new THREE.Mesh(wallGeo, trayMat2)
-    }
-  } else {
-    wallMesh = new THREE.Mesh(wallGeo, trayMat2)
+    if (result.geometry) result.geometry.computeVertexNormals()
+    wallMesh = new THREE.Mesh(result.geometry, trayMat2)
+  } catch (e) {
+    console.warn('CSG cavity failed, falling back to shape-holes:', e)
+    // Fallback: old approach with shape holes
+    const fallbackShape = outerShape.clone()
+    fallbackShape.holes.push(new THREE.Path(gfMainHole.map(p => new THREE.Vector2(p.x, p.y))))
+    extraToolCutters.forEach(atEntry => {
+      fallbackShape.holes.push(new THREE.Path(atEntry.shape.getPoints(32)))
+    })
+    const fallbackGeo = new THREE.ExtrudeGeometry(fallbackShape, { depth: wallHeight, bevelEnabled: false })
+    fallbackGeo.translate(0, 0, GF.baseHeight)
+    wallMesh = new THREE.Mesh(fallbackGeo, trayMat2)
   }
   group.add(wallMesh)
 
@@ -1102,7 +1097,7 @@ export function createInsertMesh(toolPoints, config) {
 export function exportSTL(toolPoints, config) {
   const group = createInsertMesh(toolPoints, config)
 
-  // Collect all mesh geometries
+  // Collect all non-vizOnly mesh geometries
   const geometries = []
   group.traverse(obj => {
     if (obj.isMesh && !obj.userData.vizOnly) {
@@ -1114,9 +1109,6 @@ export function exportSTL(toolPoints, config) {
 
   if (geometries.length === 0) throw new Error('No geometry to export')
 
-  // For STL, we need the tray with cavity subtracted
-  // Since Three.js doesn't do boolean ops natively, we export all solid geometry
-  // The slicer will handle the overlapping cavity as a subtraction
   const merged = mergeGeometries(geometries)
   return geometryToSTL(merged)
 }
