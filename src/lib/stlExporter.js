@@ -899,26 +899,41 @@ function createGridfinityInsert(points, config) {
 
   if (floorZ > 0.01) {
     if (deeperNotches.length > 0) {
-      // Floor needs notch cutouts for notches that extend below the tool cavity
-      const floorShape = outerShape.clone()
-      deeperNotches.forEach(({ pts }) => {
-        floorShape.holes.push(new THREE.Path(pts.map(p => new THREE.Vector2(p.x, p.y))))
+      // Layered floor approach: split floor into horizontal slices at each notch depth boundary
+      // Each deeper notch cuts (depth - cavityZ) into the floor from the top
+      // Floor layers go from bottom (GF.baseHeight) to top (GF.baseHeight + floorZ)
+      // A notch with extraDepth cuts from (floorZ - extraDepth) to floorZ within the floor
+      
+      const floorCuts = deeperNotches.map(n => {
+        const extraDepth = Math.min(n.depth - cavityZ, floorZ) // clamp to floor thickness
+        return { pts: n.pts, cutStart: floorZ - extraDepth } // height within floor where cut begins
       })
-      const floorGeo = new THREE.ExtrudeGeometry(floorShape, { depth: floorZ, bevelEnabled: false })
-      floorGeo.translate(0, 0, GF.baseHeight)
-      group.add(new THREE.Mesh(floorGeo, trayMat))
-
-      // Add partial floor plugs under each deep notch (to give correct depth)
-      deeperNotches.forEach(({ pts, depth }) => {
-        const extraDepth = depth - cavityZ // how much deeper than cavity
-        const plugHeight = Math.max(0, floorZ - extraDepth)
-        if (plugHeight > 0.01) {
-          const plugShape = new THREE.Shape(pts.map(p => new THREE.Vector2(p.x, p.y)))
-          const plugGeo = new THREE.ExtrudeGeometry(plugShape, { depth: plugHeight, bevelEnabled: false })
-          plugGeo.translate(0, 0, GF.baseHeight) // sits at bottom of floor
-          group.add(new THREE.Mesh(plugGeo, trayMat))
-        }
-      })
+      
+      // Get unique break heights within the floor
+      const floorBreaks = [0, ...floorCuts.map(c => c.cutStart), floorZ]
+      const uniqueFloorBreaks = [...new Set(floorBreaks)].filter(h => h >= 0 && h <= floorZ).sort((a, b) => a - b)
+      
+      console.log('[GF Floor Layers] breaks:', uniqueFloorBreaks, 'deeperNotches:', deeperNotches.length)
+      
+      for (let fi = 0; fi < uniqueFloorBreaks.length - 1; fi++) {
+        const layerBot = uniqueFloorBreaks[fi]
+        const layerTop = uniqueFloorBreaks[fi + 1]
+        const layerH = layerTop - layerBot
+        if (layerH < 0.01) continue
+        
+        // Which notch holes are open at this floor layer?
+        // A notch hole is open if layerBot >= cutStart (the cut goes from cutStart to floorZ)
+        const floorShape = outerShape.clone()
+        floorCuts.forEach(c => {
+          if (layerBot >= c.cutStart - 0.001) {
+            floorShape.holes.push(new THREE.Path(c.pts.map(p => new THREE.Vector2(p.x, p.y))))
+          }
+        })
+        
+        const floorGeo = new THREE.ExtrudeGeometry(floorShape, { depth: layerH, bevelEnabled: false })
+        floorGeo.translate(0, 0, GF.baseHeight + layerBot)
+        group.add(new THREE.Mesh(floorGeo, trayMat))
+      }
     } else {
       const floorGeo = new THREE.ExtrudeGeometry(outerShape, { depth: floorZ, bevelEnabled: false })
       floorGeo.translate(0, 0, GF.baseHeight)
