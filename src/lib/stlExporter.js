@@ -289,8 +289,9 @@ function createCustomInsert(points, config) {
 
   // ─── Finger notches ───
   const { fingerNotches = [] } = config
-  const allNotchPts = []          // same-depth notches (union with tool hole)
-  const indepNotches = []         // independent-depth notches (CSG subtract separately)
+  const allNotchPts = []          // ALL notch point sets (for visualization)
+  const defaultNotchPts = []      // default-depth notches (same as cavity depth)
+  const indepNotches = []         // independent-depth notches
   fingerNotches.forEach(fn => {
     let pts = []
     if (fn.shape === 'circle') {
@@ -312,26 +313,49 @@ function createCustomInsert(points, config) {
     }
     if (pts.length < 3) return
     allNotchPts.push(pts)
-    if (fn.depth > 0) {
+    const isIndep = fn.depth > 0 && Math.abs(fn.depth - cavityZ) > 0.01
+    if (isIndep) {
       indepNotches.push({ pts, depth: fn.depth })
+    } else {
+      defaultNotchPts.push(pts)
     }
   })
 
-  // Union tool hole + all finger notches into combined hole(s) using Clipper
+  // Union tool hole + default-depth finger notches into combined hole(s)
+  // Independent-depth notches are handled separately via layered walls
   const combinedHoles = (() => {
     const scale = 1000
-    if (allNotchPts.length === 0) return [holePts]
+    if (defaultNotchPts.length === 0 && indepNotches.length === 0) return [holePts]
+    // For the main hole (used for ALL wall layers), union tool + default notches
     const clipper = new ClipperLib.Clipper()
     const toolClip = holePts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) }))
     clipper.AddPath(toolClip, ClipperLib.PolyType.ptSubject, true)
-    allNotchPts.forEach(nPts => {
+    defaultNotchPts.forEach(nPts => {
       const notchClip = nPts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) }))
       clipper.AddPath(notchClip, ClipperLib.PolyType.ptClip, true)
     })
     const solution = []
     clipper.Execute(ClipperLib.ClipType.ctUnion, solution, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero)
     if (solution.length === 0) return [holePts]
-    // Ensure consistent winding (positive area = CCW)
+    return solution.map(path => {
+      const pts = path.map(p => ({ x: p.X / scale, y: p.Y / scale }))
+      if (ClipperLib.Clipper.Area(path) < 0) pts.reverse()
+      return pts
+    })
+  })()
+
+  // Full hole = tool + ALL notches (for upper wall layers where all notches are open)
+  const fullHoles = (() => {
+    const scale = 1000
+    if (allNotchPts.length === 0) return [holePts]
+    const clipper = new ClipperLib.Clipper()
+    clipper.AddPath(holePts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptSubject, true)
+    allNotchPts.forEach(nPts => {
+      clipper.AddPath(nPts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptClip, true)
+    })
+    const solution = []
+    clipper.Execute(ClipperLib.ClipType.ctUnion, solution, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero)
+    if (solution.length === 0) return [holePts]
     return solution.map(path => {
       const pts = path.map(p => ({ x: p.X / scale, y: p.Y / scale }))
       if (ClipperLib.Clipper.Area(path) < 0) pts.reverse()
@@ -415,8 +439,12 @@ function createCustomInsert(points, config) {
     capShape.closePath()
     group.add(new THREE.Mesh(new THREE.ShapeGeometry(capShape), trayMat))
   } else {
-    const baseGeo = new THREE.ExtrudeGeometry(outerShape, { depth: actualBaseDepth, bevelEnabled: false })
-    group.add(new THREE.Mesh(baseGeo, trayMat))
+    // Skip flat base here if deeper notches will build layered base later
+    const hasDeeperNotches = indepNotches.some(n => n.depth > cavityZ)
+    if (!hasDeeperNotches) {
+      const baseGeo = new THREE.ExtrudeGeometry(outerShape, { depth: actualBaseDepth, bevelEnabled: false })
+      group.add(new THREE.Mesh(baseGeo, trayMat))
+    }
   }
 
   // ─── Additional tools ───
@@ -453,70 +481,49 @@ function createCustomInsert(points, config) {
     extraToolViz.push({ shape: atShape, scale: atScale, rad: atRad, ox: atOx, oy: atOy, cutShape: atHolePts, cavityBevel: at.cavityBevel || 0 })
   })
 
-  // ─── Top section (with tool cavity hole) ───
+  // ─── Top section (with tool cavity hole) - layered for independent notch depths ───
   const { cavityBevel = 0 } = config
   const cb = Math.min(cavityBevel, cavityZ * 0.3, 5) // clamp
   const anyBevel = cb > 0.1 || extraToolViz.some(ev => (ev.cavityBevel || 0) > 0.1)
+  const topSurface = actualBaseDepth + cavityZ
 
-  if (anyBevel) {
-    // Full top section with normal tool hole
-    const topShape = outerShape.clone()
-    allHolePaths.forEach(hp => topShape.holes.push(hp))
-    const topGeo = new THREE.ExtrudeGeometry(topShape, { depth: cavityZ, bevelEnabled: false })
-    topGeo.translate(0, 0, actualBaseDepth)
+  // Split independent notches by relation to cavity depth
+  const shallowerIndep = indepNotches.filter(n => n.depth < cavityZ)
+  const deeperIndep = indepNotches.filter(n => n.depth > cavityZ)
 
-    const topSurface = actualBaseDepth + cavityZ
-    const evaluator = new Evaluator()
-
+  // Helper: apply bevel CSG to a wall geometry
+  const applyBevel = (wallGeo) => {
+    if (!anyBevel) return new THREE.Mesh(wallGeo, trayMat2)
     try {
-      let resultMesh = new Brush(topGeo)
+      const evaluator = new Evaluator()
+      let resultMesh = new Brush(wallGeo)
       resultMesh.updateMatrixWorld()
 
-      // Bevel primary tool if enabled
       if (cb > 0.1) {
         const bevelToolShape = new THREE.Shape()
-        scaledToolPts.forEach((p, i) => {
-          if (i === 0) bevelToolShape.moveTo(p.x, p.y)
-          else bevelToolShape.lineTo(p.x, p.y)
-        })
+        scaledToolPts.forEach((p, i) => { if (i === 0) bevelToolShape.moveTo(p.x, p.y); else bevelToolShape.lineTo(p.x, p.y) })
         bevelToolShape.closePath()
-
         const bevelGeo = new THREE.ExtrudeGeometry(bevelToolShape, {
-          depth: 0.01,
-          bevelEnabled: true,
-          bevelThickness: cb,
-          bevelSize: cb,
-          bevelSegments: 1,
-          bevelOffset: 0,
+          depth: 0.01, bevelEnabled: true,
+          bevelThickness: cb, bevelSize: cb, bevelSegments: 1, bevelOffset: 0,
         })
         bevelGeo.translate(0, 0, topSurface)
-
         const bevelBrush = new Brush(bevelGeo)
         bevelBrush.updateMatrixWorld()
         resultMesh = evaluator.evaluate(resultMesh, bevelBrush, SUBTRACTION)
       }
 
-      // Bevel each additional tool independently
       extraToolViz.forEach(ev => {
         const atCb = ev.cavityBevel || 0
         if (atCb > 0.1 && ev.cutShape && ev.cutShape.length >= 3) {
           const atBevelShape = new THREE.Shape()
-          ev.cutShape.forEach((p, i) => {
-            if (i === 0) atBevelShape.moveTo(p.x, p.y)
-            else atBevelShape.lineTo(p.x, p.y)
-          })
+          ev.cutShape.forEach((p, i) => { if (i === 0) atBevelShape.moveTo(p.x, p.y); else atBevelShape.lineTo(p.x, p.y) })
           atBevelShape.closePath()
-
           const atBevelGeo = new THREE.ExtrudeGeometry(atBevelShape, {
-            depth: 0.01,
-            bevelEnabled: true,
-            bevelThickness: atCb,
-            bevelSize: atCb,
-            bevelSegments: 1,
-            bevelOffset: 0,
+            depth: 0.01, bevelEnabled: true,
+            bevelThickness: atCb, bevelSize: atCb, bevelSegments: 1, bevelOffset: 0,
           })
           atBevelGeo.translate(0, 0, topSurface)
-
           const atBevelBrush = new Brush(atBevelGeo)
           atBevelBrush.updateMatrixWorld()
           const prevBrush = new Brush(resultMesh.geometry || resultMesh)
@@ -527,34 +534,118 @@ function createCustomInsert(points, config) {
 
       resultMesh.material = trayMat2
       if (resultMesh.geometry) resultMesh.geometry.computeVertexNormals()
-      group.add(resultMesh)
+      return resultMesh
     } catch (e) {
-      console.error('CSG failed:', e)
-      group.add(new THREE.Mesh(topGeo, trayMat2))
+      console.error('CSG bevel failed:', e)
+      return new THREE.Mesh(wallGeo, trayMat2)
+    }
+  }
+
+  // Helper: build Clipper union of tool + given notch point arrays
+  const buildHolePaths = (notchPtsArray) => {
+    const scale = 1000
+    const clipper = new ClipperLib.Clipper()
+    clipper.AddPath(holePts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptSubject, true)
+    notchPtsArray.forEach(nPts => {
+      clipper.AddPath(nPts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptClip, true)
+    })
+    const solution = []
+    clipper.Execute(ClipperLib.ClipType.ctUnion, solution, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero)
+    if (solution.length === 0) return [holePts]
+    return solution.map(path => {
+      const pts = path.map(p => ({ x: p.X / scale, y: p.Y / scale }))
+      if (ClipperLib.Clipper.Area(path) < 0) pts.reverse()
+      return pts
+    })
+  }
+
+  // For deeper notches in custom tray: cut into the base (only for flat base, not edge-profiled)
+  const hasEdgeProfile = edgeProfile && edgeProfile !== 'none' && edgeSize > 0
+  if (deeperIndep.length > 0 && actualBaseDepth > 0.01 && !hasEdgeProfile) {
+    const baseCuts = deeperIndep.map(n => {
+      const extraDepth = Math.min(n.depth - cavityZ, actualBaseDepth)
+      return { pts: n.pts, cutStart: actualBaseDepth - extraDepth }
+    })
+    const baseBreaks = [0, ...baseCuts.map(c => c.cutStart), actualBaseDepth]
+    const uniqueBaseBreaks = [...new Set(baseBreaks)].filter(h => h >= 0 && h <= actualBaseDepth).sort((a, b) => a - b)
+
+    for (let bi = 0; bi < uniqueBaseBreaks.length - 1; bi++) {
+      const layBot = uniqueBaseBreaks[bi]
+      const layTop = uniqueBaseBreaks[bi + 1]
+      const layH = layTop - layBot
+      if (layH < 0.01) continue
+      const baseLayerShape = outerShape.clone()
+      baseCuts.forEach(c => {
+        if (layBot >= c.cutStart - 0.001) {
+          baseLayerShape.holes.push(new THREE.Path(c.pts.map(p => new THREE.Vector2(p.x, p.y))))
+        }
+      })
+      const baseLayerGeo = new THREE.ExtrudeGeometry(baseLayerShape, { depth: layH, bevelEnabled: false })
+      baseLayerGeo.translate(0, 0, layBot)
+      group.add(new THREE.Mesh(baseLayerGeo, trayMat))
+    }
+  }
+
+  // Build wall layers
+  if (shallowerIndep.length > 0) {
+    const breakHeights = shallowerIndep.map(n => cavityZ - n.depth)
+    const sliceHeights = [0, ...breakHeights, cavityZ]
+    const uniqueHeights = [...new Set(sliceHeights)].sort((a, b) => a - b)
+
+    for (let li = 0; li < uniqueHeights.length - 1; li++) {
+      const layerBottom = uniqueHeights[li]
+      const layerTop = uniqueHeights[li + 1]
+      const layerHeight = layerTop - layerBottom
+      if (layerHeight < 0.01) continue
+
+      const isTopLayer = li === uniqueHeights.length - 2
+
+      // Determine which notches are open at this layer height
+      const openNotchPts = [...defaultNotchPts]
+      deeperIndep.forEach(n => openNotchPts.push(n.pts)) // deeper always open in wall
+      shallowerIndep.forEach(n => {
+        const opensAt = cavityZ - n.depth
+        if (layerBottom >= opensAt - 0.001) openNotchPts.push(n.pts)
+      })
+
+      const layerHoles = buildHolePaths(openNotchPts)
+      const layerShape = outerShape.clone()
+      layerHoles.forEach(pts => {
+        const hp = new THREE.Path()
+        pts.forEach((p, i) => { if (i === 0) hp.moveTo(p.x, p.y); else hp.lineTo(p.x, p.y) })
+        hp.closePath()
+        layerShape.holes.push(hp)
+      })
+      allHolePaths.forEach(hp => layerShape.holes.push(hp)) // additional tool holes
+
+      const layerGeo = new THREE.ExtrudeGeometry(layerShape, { depth: layerHeight, bevelEnabled: false })
+      layerGeo.translate(0, 0, actualBaseDepth + layerBottom)
+
+      if (isTopLayer) {
+        group.add(applyBevel(layerGeo))
+      } else {
+        group.add(new THREE.Mesh(layerGeo, trayMat))
+      }
     }
   } else {
-    // No cavity bevel - simple extrusion
+    // No shallower independent notches - single wall section
+    const wallNotchPts = [...defaultNotchPts]
+    deeperIndep.forEach(n => wallNotchPts.push(n.pts))
+    const wallHoles = wallNotchPts.length > 0 ? buildHolePaths(wallNotchPts) : combinedHoles
+
     const topShape = outerShape.clone()
+    wallHoles.forEach(pts => {
+      const hp = new THREE.Path()
+      pts.forEach((p, i) => { if (i === 0) hp.moveTo(p.x, p.y); else hp.lineTo(p.x, p.y) })
+      hp.closePath()
+      topShape.holes.push(hp)
+    })
     allHolePaths.forEach(hp => topShape.holes.push(hp))
     const topGeo = new THREE.ExtrudeGeometry(topShape, { depth: cavityZ, bevelEnabled: false })
     topGeo.translate(0, 0, actualBaseDepth)
-    group.add(new THREE.Mesh(topGeo, trayMat2))
+    group.add(applyBevel(topGeo))
   }
 
-  // ─── Finger notch depth fill plugs (custom tray) ───
-  const topSrf = actualBaseDepth + cavityZ
-  indepNotches.forEach(({ pts: nPts, depth: nDepth }) => {
-    if (nDepth >= cavityZ) return
-    const fillDepth = cavityZ - nDepth
-    const nShape = new THREE.Shape()
-    nPts.forEach((p, i) => { if (i === 0) nShape.moveTo(p.x, p.y); else nShape.lineTo(p.x, p.y) })
-    nShape.closePath()
-    const fillGeo = new THREE.ExtrudeGeometry(nShape, { depth: fillDepth, bevelEnabled: false })
-    fillGeo.translate(0, 0, actualBaseDepth)
-    group.add(new THREE.Mesh(fillGeo, trayMat))
-  })
-
-  // ─── Tool cavity visualization (orange) ───
   const cavityGeo = new THREE.ExtrudeGeometry(toolShape, { depth: cavityZ + 0.5, bevelEnabled: false })
   cavityGeo.scale(toolScale, toolScale, 1)
   cavityGeo.rotateZ(rad)
