@@ -857,8 +857,10 @@ function createGridfinityInsert(points, config) {
 
   // ─── Solid body with CSG cavity subtraction ───
   // Single solid for full wall height, then CSG-subtract cavities at their own depths
-  const solidGeo = new THREE.ExtrudeGeometry(outerShape, { depth: wallHeight, bevelEnabled: false })
-  solidGeo.translate(0, 0, GF.baseHeight)
+  // Overlap 0.1mm into base to avoid coincident faces (non-manifold source)
+  const ov = 0.1
+  const solidGeo = new THREE.ExtrudeGeometry(outerShape, { depth: wallHeight + ov * 2, bevelEnabled: false })
+  solidGeo.translate(0, 0, GF.baseHeight - ov)
 
   const csgEval = new Evaluator()
   let solidBrush = new Brush(solidGeo)
