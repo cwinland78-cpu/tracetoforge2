@@ -896,8 +896,8 @@ function createGridfinityInsert(points, config) {
   solidBrush.updateMatrixWorld()
 
   // Primary tool cavity subtraction
-  const cavityCutGeo = new THREE.ExtrudeGeometry(toolCutterShape, { depth: cavityZ + 0.5, bevelEnabled: false })
-  cavityCutGeo.translate(0, 0, GF.baseHeight + floorZ - 0.25)
+  const cavityCutGeo = new THREE.ExtrudeGeometry(toolCutterShape, { depth: cavityZ + 2, bevelEnabled: false })
+  cavityCutGeo.translate(0, 0, GF.baseHeight + floorZ - 0.5)
   const cavityCutBrush = new Brush(cavityCutGeo)
   cavityCutBrush.updateMatrixWorld()
 
@@ -907,8 +907,8 @@ function createGridfinityInsert(points, config) {
 
     // Subtract additional tool cavities
     extraToolCutters.forEach(atEntry => {
-      const atCutGeo = new THREE.ExtrudeGeometry(atEntry.shape, { depth: cavityZ + 0.5, bevelEnabled: false })
-      atCutGeo.translate(0, 0, GF.baseHeight + floorZ - 0.25)
+      const atCutGeo = new THREE.ExtrudeGeometry(atEntry.shape, { depth: cavityZ + 2, bevelEnabled: false })
+      atCutGeo.translate(0, 0, GF.baseHeight + floorZ - 0.5)
       const atCutBrush = new Brush(atCutGeo)
       atCutBrush.updateMatrixWorld()
       const prevBrush = new Brush(result.geometry)
@@ -921,8 +921,8 @@ function createGridfinityInsert(points, config) {
       const nShape = new THREE.Shape()
       nPts.forEach((p, i) => { if (i === 0) nShape.moveTo(p.x, p.y); else nShape.lineTo(p.x, p.y) })
       nShape.closePath()
-      const nGeo = new THREE.ExtrudeGeometry(nShape, { depth: nDepth + 0.5, bevelEnabled: false })
-      nGeo.translate(0, 0, topSurface - nDepth - 0.25)
+      const nGeo = new THREE.ExtrudeGeometry(nShape, { depth: nDepth + 2, bevelEnabled: false })
+      nGeo.translate(0, 0, topSurface - nDepth - 0.5)
       const nBrush = new Brush(nGeo)
       nBrush.updateMatrixWorld()
       const prevBrush = new Brush(result.geometry)
