@@ -678,12 +678,11 @@ function createGridfinityInsert(points, config) {
   gfNotches.forEach(fn => {
     const pts = buildNotchPts(fn)
     if (pts.length < 3) return
-    // Track notches with custom depth separately
+    // All notches go into the full union
+    gfAllNotchPts.push(pts)
+    // Track custom-depth notches separately
     if (fn.depth > 0 && fn.depth < cavityZ) {
       gfIndepNotches.push({ pts, depth: fn.depth })
-    } else {
-      // Default depth (0) or >= cavityZ: union with tool hole
-      gfAllNotchPts.push(pts)
     }
   })
 
@@ -708,8 +707,34 @@ function createGridfinityInsert(points, config) {
   })()
 
   const toolHolePath = new THREE.Path()
-  // Use first combined path for the hole
+  // Use first combined path for the hole (tool + ALL notches)
   const gfMainHole = gfCombinedHolePts[0] || holePts
+
+  // Also build tool-only hole (excluding custom-depth notches) for lower wall layers
+  const gfToolOnlyHole = (() => {
+    // Get default-depth notch pts only
+    const defaultNotchPts = gfAllNotchPts.filter((_, i) => {
+      // gfAllNotchPts has all notches in order. We need to figure out which are default.
+      // gfIndepNotches has custom ones. Compare pts references.
+      const isCustom = gfIndepNotches.some(indep => indep.pts === gfAllNotchPts[i] || 
+        (indep.pts.length === gfAllNotchPts[i].length && indep.pts[0].x === gfAllNotchPts[i][0].x && indep.pts[0].y === gfAllNotchPts[i][0].y))
+      return !isCustom
+    })
+    if (defaultNotchPts.length === 0 && gfIndepNotches.length > 0) return holePts // tool only, no default notches
+    if (defaultNotchPts.length === 0) return gfMainHole // no custom notches at all
+    const scale = 1000
+    const clipper = new ClipperLib.Clipper()
+    clipper.AddPath(holePts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptSubject, true)
+    defaultNotchPts.forEach(nPts => {
+      clipper.AddPath(nPts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptClip, true)
+    })
+    const solution = []
+    clipper.Execute(ClipperLib.ClipType.ctUnion, solution, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero)
+    if (solution.length === 0) return holePts
+    const pts = solution[0].map(p => ({ x: p.X / scale, y: p.Y / scale }))
+    if (ClipperLib.Clipper.Area(solution[0]) < 0) pts.reverse()
+    return pts
+  })()
   gfMainHole.forEach((p, i) => {
     if (i === 0) toolHolePath.moveTo(p.x, p.y)
     else toolHolePath.lineTo(p.x, p.y)
@@ -935,19 +960,23 @@ function createGridfinityInsert(points, config) {
     group.add(wallMesh)
   } else {
     // Layered wall approach for independent notch depths
-    // Sort notches by depth ascending (shallowest first = closed first from bottom)
+    // Sort by depth ascending
     const sorted = [...notchDepthMap].sort((a, b) => a.depth - b.depth)
-
-    // Each notch is open from (cavityZ - depth) to cavityZ (measured from cavity floor)
-    // So from 0 to (cavityZ - depth), that notch area is SOLID
-    const breakpoints = sorted.map(n => ({
-      opensAt: cavityZ - n.depth,  // height from cavity floor where this notch opens
-      pts: n.pts
-    }))
-
-    // Create depth slices
-    const sliceHeights = [0, ...breakpoints.map(b => b.opensAt), cavityZ]
+    
+    // Two wall sections:
+    // Bottom: from 0 to (cavityZ - maxCustomDepth) with tool-only hole
+    // Top: from (cavityZ - maxCustomDepth) to cavityZ with full hole (tool + all notches)
+    // For multiple custom depths, create a layer per unique depth
+    
+    const breakHeights = sorted.map(n => cavityZ - n.depth)
+    const sliceHeights = [0, ...breakHeights, cavityZ]
     const uniqueHeights = [...new Set(sliceHeights)].sort((a, b) => a - b)
+
+    // For each layer, determine if ALL custom notches are open
+    // Simple approach: below smallest opensAt = tool only, above = full hole
+    // More precise: build intermediate unions per layer... but let's keep it simple
+    // Use tool-only hole below the first breakpoint, full hole at/above it
+    const firstOpen = Math.min(...breakHeights)
 
     for (let li = 0; li < uniqueHeights.length - 1; li++) {
       const layerBottom = uniqueHeights[li]
@@ -956,19 +985,11 @@ function createGridfinityInsert(points, config) {
       if (layerHeight < 0.01) continue
 
       const layerShape = outerShape.clone()
-      // Tool + default notches hole (always open)
-      layerShape.holes.push(new THREE.Path(gfMainHole.map(p => new THREE.Vector2(p.x, p.y))))
-      // Extra tools always open
+      // Use tool-only hole for lower layers, full hole for upper
+      const holeToUse = layerBottom >= firstOpen ? gfMainHole : gfToolOnlyHole
+      layerShape.holes.push(new THREE.Path(holeToUse.map(p => new THREE.Vector2(p.x, p.y))))
       extraToolCutters.forEach(atEntry => {
         layerShape.holes.push(new THREE.Path(atEntry.shape.getPoints(32)))
-      })
-      // Custom notches: only open if this layer is at or above their opensAt height
-      breakpoints.forEach(bp => {
-        if (layerBottom >= bp.opensAt) {
-          const holePath = new THREE.Path()
-          bp.pts.forEach((p, i) => { if (i === 0) holePath.moveTo(p.x, p.y); else holePath.lineTo(p.x, p.y) })
-          layerShape.holes.push(holePath)
-        }
       })
 
       const layerGeo = new THREE.ExtrudeGeometry(layerShape, { depth: layerHeight, bevelEnabled: false })
