@@ -940,23 +940,12 @@ function createGridfinityInsert(points, config) {
     group.add(new THREE.Mesh(fillGeo, trayMat))
   })
 
-  // ─── Stacking lip - simple vertical rim around top edge ───
-  // 1.2mm wide, 4.4mm tall vertical wall - no inward slope, no overhang
-  const lipWall = 1.2
-  const lipHeight = GF.lipVertical + GF.lipSlope  // ~4.4mm total
-  const lipOuter = createRoundedRectShape(binW, binH, GF.cornerRadius)
-  const lipInner = createRoundedRectShape(
-    binW - lipWall * 2,
-    binH - lipWall * 2,
-    Math.max(0, GF.cornerRadius - lipWall)
-  )
-  lipOuter.holes.push(new THREE.Path(lipInner.getPoints(12)))
-  const lipGeo = new THREE.ExtrudeGeometry(lipOuter, { depth: lipHeight, bevelEnabled: false })
-  lipGeo.translate(0, 0, totalHeight)
-  const lipMat = new THREE.MeshPhongMaterial({
-    color: 0xaaaabb, transparent: true, opacity: 0.7, side: THREE.DoubleSide,
-  })
-  group.add(new THREE.Mesh(lipGeo, lipMat))
+  // ─── Stacking lip integrated into wall ───
+  // Just extend the wall upward by lip height - same profile, no overhang
+  const lipHeight = GF.lipVertical + GF.lipSlope  // ~4.4mm
+  const wallWithLipGeo = new THREE.ExtrudeGeometry(wallShape, { depth: lipHeight, bevelEnabled: false })
+  wallWithLipGeo.translate(0, 0, GF.baseHeight + floorZ + cavityZ)
+  group.add(new THREE.Mesh(wallWithLipGeo, trayMat))
 
   // ─── Grid lines on floor ───
   const linesMat = new THREE.LineBasicMaterial({ color: 0x444455 })
