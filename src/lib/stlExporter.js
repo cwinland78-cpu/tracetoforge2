@@ -681,6 +681,7 @@ function createGridfinityInsert(points, config) {
     // Always union all notches with tool hole for reliable Shape-hole cutting
     gfAllNotchPts.push(pts)
     // Track notches with custom depth for fill plugs
+    console.log('[GF Notch] depth:', fn.depth, 'cavityZ:', cavityZ, 'floorZ:', floorZ)
     if (fn.depth > 0) {
       gfIndepNotches.push({ pts, depth: fn.depth })
     }
@@ -965,6 +966,7 @@ function createGridfinityInsert(points, config) {
 
   // Shallower notches: fill plugs at bottom to raise floor
   gfIndepNotches.forEach(({ pts: nPts, depth: nDepth }) => {
+    console.log('[GF Fill] nDepth:', nDepth, 'cavityZ:', cavityZ, 'action:', nDepth < cavityZ ? 'FILL PLUG' : 'skip')
     if (nDepth >= cavityZ) return
     const fillDepth = cavityZ - nDepth
     const nShape = new THREE.Shape()
