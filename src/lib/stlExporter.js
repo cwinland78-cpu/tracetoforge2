@@ -678,9 +678,8 @@ function createGridfinityInsert(points, config) {
   gfNotches.forEach(fn => {
     const pts = buildNotchPts(fn)
     if (pts.length < 3) return
-    // All notches go into the full union
     gfAllNotchPts.push(pts)
-    // Track custom-depth notches separately
+    console.log('[GF Notch collect] fn.depth:', fn.depth, 'cavityZ:', cavityZ, 'isCustom:', fn.depth > 0 && fn.depth < cavityZ)
     if (fn.depth > 0 && fn.depth < cavityZ) {
       gfIndepNotches.push({ pts, depth: fn.depth })
     }
@@ -897,6 +896,7 @@ function createGridfinityInsert(points, config) {
       notchDepthMap.push({ pts, depth })
     }
   })
+  console.log('[GF Wall] gfIndepNotches:', gfIndepNotches.length, 'notchDepthMap:', notchDepthMap.length, 'cavityZ:', cavityZ)
 
   if (notchDepthMap.length === 0) {
     // Simple case: no independent depths, single wall section
