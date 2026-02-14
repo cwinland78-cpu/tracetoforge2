@@ -981,23 +981,15 @@ function createGridfinityInsert(points, config) {
     group.add(wallMesh)
   } else {
     // Layered wall approach for independent notch depths
-    // Sort by depth ascending
-    const sorted = [...notchDepthMap].sort((a, b) => a.depth - b.depth)
+    // Each shallower notch opens at a different height from the cavity floor
+    // A notch with depth D opens at height (cavityZ - D) from cavity bottom
     
-    // Two wall sections:
-    // Bottom: from 0 to (cavityZ - maxCustomDepth) with tool-only hole
-    // Top: from (cavityZ - maxCustomDepth) to cavityZ with full hole (tool + all notches)
-    // For multiple custom depths, create a layer per unique depth
-    
-    const breakHeights = sorted.map(n => cavityZ - n.depth)
+    // Build break heights where notch holes change
+    const breakHeights = shallowerNotches.map(n => cavityZ - n.depth)
     const sliceHeights = [0, ...breakHeights, cavityZ]
     const uniqueHeights = [...new Set(sliceHeights)].sort((a, b) => a - b)
 
-    // For each layer, determine if ALL custom notches are open
-    // Simple approach: below smallest opensAt = tool only, above = full hole
-    // More precise: build intermediate unions per layer... but let's keep it simple
-    // Use tool-only hole below the first breakpoint, full hole at/above it
-    const firstOpen = Math.min(...breakHeights)
+    console.log('[GF Layered Wall] uniqueHeights:', uniqueHeights, 'shallowerNotches depths:', shallowerNotches.map(n => n.depth))
 
     for (let li = 0; li < uniqueHeights.length - 1; li++) {
       const layerBottom = uniqueHeights[li]
@@ -1005,10 +997,47 @@ function createGridfinityInsert(points, config) {
       const layerHeight = layerTop - layerBottom
       if (layerHeight < 0.01) continue
 
+      // Determine which notches are open at this layer
+      // A notch is open if layerBottom >= (cavityZ - notchDepth), i.e. notchDepth >= (cavityZ - layerBottom)
+      const openNotchPts = []
+      shallowerNotches.forEach(n => {
+        const opensAt = cavityZ - n.depth
+        if (layerBottom >= opensAt - 0.001) {
+          openNotchPts.push(n.pts)
+        }
+      })
+      // Also include default-depth notches (depth=0 or depth==cavityZ) which are always open
+      const defaultNotchPts = gfAllNotchPts.filter((_, i) => {
+        const isCustom = gfIndepNotches.some(indep => 
+          indep.pts === gfAllNotchPts[i] || 
+          (indep.pts.length === gfAllNotchPts[i].length && indep.pts[0].x === gfAllNotchPts[i][0].x && indep.pts[0].y === gfAllNotchPts[i][0].y))
+        return !isCustom
+      })
+
+      // Build the hole for this layer: tool + default notches + open custom notches
+      const layerNotchPts = [...defaultNotchPts, ...openNotchPts]
+      let layerHole
+      if (layerNotchPts.length === 0) {
+        layerHole = holePts
+      } else {
+        const scale = 1000
+        const clipper = new ClipperLib.Clipper()
+        clipper.AddPath(holePts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptSubject, true)
+        layerNotchPts.forEach(nPts => {
+          clipper.AddPath(nPts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptClip, true)
+        })
+        const solution = []
+        clipper.Execute(ClipperLib.ClipType.ctUnion, solution, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero)
+        if (solution.length > 0) {
+          layerHole = solution[0].map(p => ({ x: p.X / scale, y: p.Y / scale }))
+          if (ClipperLib.Clipper.Area(solution[0]) < 0) layerHole.reverse()
+        } else {
+          layerHole = holePts
+        }
+      }
+
       const layerShape = outerShape.clone()
-      // Use tool-only hole for lower layers, full hole for upper
-      const holeToUse = layerBottom >= firstOpen ? gfMainHole : gfToolOnlyHole
-      layerShape.holes.push(new THREE.Path(holeToUse.map(p => new THREE.Vector2(p.x, p.y))))
+      layerShape.holes.push(new THREE.Path(layerHole.map(p => new THREE.Vector2(p.x, p.y))))
       extraToolCutters.forEach(atEntry => {
         layerShape.holes.push(new THREE.Path(atEntry.shape.getPoints(32)))
       })
