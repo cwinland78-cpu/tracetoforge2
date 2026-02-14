@@ -927,16 +927,51 @@ function createGridfinityInsert(points, config) {
   }
   group.add(wallMesh)
 
-  // ─── Finger notch depth fill plugs ───
-  // For notches with custom depth < cavityZ, add solid fill to raise their floor
+  // ─── Finger notch depth adjustments ───
+  // Collect deeper notches that need to cut into the floor
+  const deeperNotches = gfIndepNotches.filter(n => n.depth > cavityZ && floorZ > 0.5)
+  const maxExtraDepth = deeperNotches.reduce((max, n) => {
+    const extra = Math.min(n.depth - cavityZ, floorZ - 0.5)
+    return Math.max(max, extra)
+  }, 0)
+
+  // Floor zone: solid from baseHeight to baseHeight+floorZ
+  // If deeper notches exist, split floor into bottom solid + top with notch holes
+  if (floorZ > 0.01) {
+    if (maxExtraDepth > 0.1) {
+      // Bottom floor: solid, below the notch cuts
+      const bottomFloorDepth = floorZ - maxExtraDepth
+      if (bottomFloorDepth > 0.01) {
+        const bFloorGeo = new THREE.ExtrudeGeometry(outerShape, { depth: bottomFloorDepth, bevelEnabled: false })
+        bFloorGeo.translate(0, 0, GF.baseHeight)
+        group.add(new THREE.Mesh(bFloorGeo, trayMat))
+      }
+      // Top floor: has holes where deeper notches cut through
+      const topFloorShape = outerShape.clone()
+      deeperNotches.forEach(({ pts: nPts }) => {
+        const holePath = new THREE.Path()
+        nPts.forEach((p, i) => { if (i === 0) holePath.moveTo(p.x, p.y); else holePath.lineTo(p.x, p.y) })
+        topFloorShape.holes.push(holePath)
+      })
+      const tFloorGeo = new THREE.ExtrudeGeometry(topFloorShape, { depth: maxExtraDepth, bevelEnabled: false })
+      tFloorGeo.translate(0, 0, GF.baseHeight + bottomFloorDepth)
+      group.add(new THREE.Mesh(tFloorGeo, trayMat))
+    } else {
+      const floorGeo = new THREE.ExtrudeGeometry(outerShape, { depth: floorZ, bevelEnabled: false })
+      floorGeo.translate(0, 0, GF.baseHeight)
+      group.add(new THREE.Mesh(floorGeo, trayMat))
+    }
+  }
+
+  // Shallower notches: fill plugs at bottom to raise floor
   gfIndepNotches.forEach(({ pts: nPts, depth: nDepth }) => {
-    if (nDepth >= cavityZ) return  // notch is as deep or deeper than tool, no fill needed
-    const fillDepth = cavityZ - nDepth  // how much to fill from the bottom
+    if (nDepth >= cavityZ) return
+    const fillDepth = cavityZ - nDepth
     const nShape = new THREE.Shape()
     nPts.forEach((p, i) => { if (i === 0) nShape.moveTo(p.x, p.y); else nShape.lineTo(p.x, p.y) })
     nShape.closePath()
     const fillGeo = new THREE.ExtrudeGeometry(nShape, { depth: fillDepth, bevelEnabled: false })
-    fillGeo.translate(0, 0, GF.baseHeight + floorZ)  // start at bottom of cavity
+    fillGeo.translate(0, 0, GF.baseHeight + floorZ)
     group.add(new THREE.Mesh(fillGeo, trayMat))
   })
 
