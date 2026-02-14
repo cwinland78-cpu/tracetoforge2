@@ -503,6 +503,7 @@ export default function Editor() {
         setContours(detected)
         setSelectedContour(0)
         setStep(2)
+        setEditMode('edit')
 
         src.delete(); gray.delete(); binary.delete(); edges.delete()
         contoursMat.delete(); hierarchy.delete()
@@ -733,8 +734,88 @@ export default function Editor() {
       }
     }
 
+    // ─── Dimension measurement overlay ───
+    if (step >= 2 && contours[selectedContour] && realWidth > 0 && realHeight > 0) {
+      const pts = contours[selectedContour]
+      const bounds = pts.reduce(
+        (acc, p) => ({ minX: Math.min(acc.minX, p.x), maxX: Math.max(acc.maxX, p.x), minY: Math.min(acc.minY, p.y), maxY: Math.max(acc.maxY, p.y) }),
+        { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity }
+      )
+      const pxW = bounds.maxX - bounds.minX
+      const pxH = bounds.maxY - bounds.minY
+      const ox = imgOffsetX || 0
+      const oy = imgOffsetY || 0
+
+      ctx.save()
+      ctx.setLineDash([4, 4])
+      ctx.strokeStyle = 'rgba(232, 101, 10, 0.4)'
+      ctx.lineWidth = 1
+
+      // Width line (bottom)
+      const wY = bounds.maxY + oy + 20
+      ctx.beginPath()
+      ctx.moveTo(bounds.minX + ox, wY)
+      ctx.lineTo(bounds.maxX + ox, wY)
+      ctx.stroke()
+      // End ticks
+      ctx.setLineDash([])
+      ctx.beginPath()
+      ctx.moveTo(bounds.minX + ox, wY - 6)
+      ctx.lineTo(bounds.minX + ox, wY + 6)
+      ctx.moveTo(bounds.maxX + ox, wY - 6)
+      ctx.lineTo(bounds.maxX + ox, wY + 6)
+      ctx.stroke()
+
+      // Width label
+      const wLabel = `${realWidth} mm`
+      ctx.font = 'bold 12px "Space Grotesk", system-ui, sans-serif'
+      ctx.textAlign = 'center'
+      const wLabelX = (bounds.minX + bounds.maxX) / 2 + ox
+      const wLW = ctx.measureText(wLabel).width + 10
+      ctx.fillStyle = 'rgba(13, 13, 18, 0.85)'
+      ctx.beginPath()
+      ctx.roundRect(wLabelX - wLW / 2, wY + 6, wLW, 20, 4)
+      ctx.fill()
+      ctx.fillStyle = '#E8650A'
+      ctx.fillText(wLabel, wLabelX, wY + 20)
+
+      // Height line (right)
+      ctx.setLineDash([4, 4])
+      const hX = bounds.maxX + ox + 20
+      ctx.beginPath()
+      ctx.moveTo(hX, bounds.minY + oy)
+      ctx.lineTo(hX, bounds.maxY + oy)
+      ctx.stroke()
+      // End ticks
+      ctx.setLineDash([])
+      ctx.beginPath()
+      ctx.moveTo(hX - 6, bounds.minY + oy)
+      ctx.lineTo(hX + 6, bounds.minY + oy)
+      ctx.moveTo(hX - 6, bounds.maxY + oy)
+      ctx.lineTo(hX + 6, bounds.maxY + oy)
+      ctx.stroke()
+
+      // Height label
+      const hLabel = `${realHeight} mm`
+      const hLabelY = (bounds.minY + bounds.maxY) / 2 + oy
+      ctx.save()
+      ctx.translate(hX + 20, hLabelY)
+      ctx.rotate(-Math.PI / 2)
+      const hLW = ctx.measureText(hLabel).width + 10
+      ctx.fillStyle = 'rgba(13, 13, 18, 0.85)'
+      ctx.beginPath()
+      ctx.roundRect(-hLW / 2, -14, hLW, 20, 4)
+      ctx.fill()
+      ctx.fillStyle = '#E8650A'
+      ctx.textAlign = 'center'
+      ctx.fillText(hLabel, 0, 0)
+      ctx.restore()
+
+      ctx.restore()
+    }
+
     ctx.restore()
-  }, [image, zoom, contours, selectedContour, editMode, hoveredPoint, draggingPoint, editingOuter, outerShapePoints, hoveredOuterPoint, draggingOuterPoint, realWidth, tolerance])
+  }, [image, zoom, contours, selectedContour, editMode, hoveredPoint, draggingPoint, editingOuter, outerShapePoints, hoveredOuterPoint, draggingOuterPoint, realWidth, realHeight, tolerance, step])
 
   useEffect(() => { drawCanvas() }, [drawCanvas])
 
@@ -1058,7 +1139,7 @@ export default function Editor() {
 
   const addNotch = () => {
     if (fingerNotches.length >= 5) return
-    setFingerNotches(prev => [...prev, { shape: 'circle', radius: 12, w: 24, h: 16, x: 0, y: 0 }])
+    setFingerNotches(prev => [...prev, { shape: 'circle', radius: 12, w: 24, h: 16, x: 0, y: 0, depth: 0 }])
     setActiveNotchIdx(fingerNotches.length)
   }
   const removeNotch = (idx) => {
@@ -1549,6 +1630,10 @@ export default function Editor() {
                               </ParamRow>
                             </>
                           )}
+                          <ParamRow label="Depth" tooltip="Independent depth for this finger cutout. 0 = same as tool cavity depth.">
+                            <input type="number" value={n.depth || 0} onChange={e => updateNotch(ni, 'depth', Math.max(0, +e.target.value))} className="w-[4.5rem] text-right" min="0" step="1" />
+                            <span className="text-xs text-[#8888A0] w-7">mm</span>
+                          </ParamRow>
                           <button onClick={() => removeNotch(ni)} className="w-full text-xs text-red-400 hover:text-red-300 py-1 transition-colors">Remove Notch {ni + 1}</button>
                         </>
                         )
@@ -1688,6 +1773,10 @@ export default function Editor() {
                               </ParamRow>
                             </>
                           )}
+                          <ParamRow label="Depth" tooltip="Independent depth for this finger cutout. 0 = same as tool cavity depth.">
+                            <input type="number" value={n.depth || 0} onChange={e => updateNotch(ni, 'depth', Math.max(0, +e.target.value))} className="w-[4.5rem] text-right" min="0" step="1" />
+                            <span className="text-xs text-[#8888A0] w-7">mm</span>
+                          </ParamRow>
                           <button onClick={() => removeNotch(ni)} className="w-full text-xs text-red-400 hover:text-red-300 py-1 transition-colors">Remove Notch {ni + 1}</button>
                         </>
                         )

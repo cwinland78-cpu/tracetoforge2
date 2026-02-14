@@ -568,11 +568,13 @@ function createCustomInsert(points, config) {
   // Finger notch visualizations (draggable)
   const notchMat = new THREE.MeshPhongMaterial({ color: 0x44bb44, transparent: true, opacity: 0.4, side: THREE.DoubleSide })
   allNotchPts.forEach((nPts, ni) => {
+    const fn = fingerNotches[ni]
+    const notchDepth = (fn && fn.depth > 0) ? fn.depth : cavityZ
     const nShape = new THREE.Shape()
     nPts.forEach((p, i) => { if (i === 0) nShape.moveTo(p.x, p.y); else nShape.lineTo(p.x, p.y) })
     nShape.closePath()
-    const nGeo = new THREE.ExtrudeGeometry(nShape, { depth: cavityZ + 0.5, bevelEnabled: false })
-    nGeo.translate(0, 0, actualBaseDepth - 0.25)
+    const nGeo = new THREE.ExtrudeGeometry(nShape, { depth: notchDepth + 0.5, bevelEnabled: false })
+    nGeo.translate(0, 0, actualBaseDepth + cavityZ - notchDepth - 0.25)
     const nMesh = new THREE.Mesh(nGeo, notchMat)
     nMesh.userData.vizOnly = true
     nMesh.userData.notchIndex = ni
@@ -1014,11 +1016,13 @@ function createGridfinityInsert(points, config) {
   // Finger notch visualizations for gridfinity (draggable)
   const gfNotchMat = new THREE.MeshPhongMaterial({ color: 0x44bb44, transparent: true, opacity: 0.4, side: THREE.DoubleSide })
   gfAllNotchPts.forEach((nPts, ni) => {
+    const fn = gfNotches[ni]
+    const notchDepth = (fn && fn.depth > 0) ? fn.depth : cavityZ
     const nShape = new THREE.Shape()
     nPts.forEach((p, i) => { if (i === 0) nShape.moveTo(p.x, p.y); else nShape.lineTo(p.x, p.y) })
     nShape.closePath()
-    const nGeo = new THREE.ExtrudeGeometry(nShape, { depth: cavityZ + 0.5, bevelEnabled: false })
-    nGeo.translate(0, 0, GF.baseHeight + floorZ - 0.25)
+    const nGeo = new THREE.ExtrudeGeometry(nShape, { depth: notchDepth + 0.5, bevelEnabled: false })
+    nGeo.translate(0, 0, GF.baseHeight + floorZ + cavityZ - notchDepth - 0.25)
     const nMesh = new THREE.Mesh(nGeo, gfNotchMat)
     nMesh.userData.vizOnly = true
     nMesh.userData.notchIndex = ni
