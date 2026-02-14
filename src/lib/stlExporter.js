@@ -289,7 +289,8 @@ function createCustomInsert(points, config) {
 
   // ─── Finger notches ───
   const { fingerNotches = [] } = config
-  const allNotchPts = []
+  const allNotchPts = []          // same-depth notches (union with tool hole)
+  const indepNotches = []         // independent-depth notches (CSG subtract separately)
   fingerNotches.forEach(fn => {
     let pts = []
     if (fn.shape === 'circle') {
@@ -309,7 +310,12 @@ function createCustomInsert(points, config) {
         { x: (fn.x || 0) - hw, y: (fn.y || 0) + hh },
       )
     }
-    if (pts.length >= 3) allNotchPts.push(pts)
+    if (pts.length < 3) return
+    if (fn.depth > 0) {
+      indepNotches.push({ pts, depth: fn.depth })
+    } else {
+      allNotchPts.push(pts)
+    }
   })
 
   // Union tool hole + all finger notches into combined hole(s) using Clipper
@@ -520,6 +526,21 @@ function createCustomInsert(points, config) {
         }
       })
 
+      // Subtract independent-depth finger notches
+      indepNotches.forEach(({ pts: nPts, depth: nDepth }) => {
+        const nShape = new THREE.Shape()
+        nPts.forEach((p, i) => { if (i === 0) nShape.moveTo(p.x, p.y); else nShape.lineTo(p.x, p.y) })
+        nShape.closePath()
+        const topSrf = actualBaseDepth + cavityZ
+        const nGeo = new THREE.ExtrudeGeometry(nShape, { depth: nDepth + 0.5, bevelEnabled: false })
+        nGeo.translate(0, 0, topSrf - nDepth - 0.25)
+        const nBrush = new Brush(nGeo)
+        nBrush.updateMatrixWorld()
+        const prevBrush = new Brush(resultMesh.geometry || resultMesh)
+        prevBrush.updateMatrixWorld()
+        resultMesh = evaluator.evaluate(prevBrush, nBrush, SUBTRACTION)
+      })
+
       resultMesh.material = trayMat2
       if (resultMesh.geometry) resultMesh.geometry.computeVertexNormals()
       group.add(resultMesh)
@@ -528,12 +549,39 @@ function createCustomInsert(points, config) {
       group.add(new THREE.Mesh(topGeo, trayMat2))
     }
   } else {
-    // No cavity bevel - simple extrusion
+    // No cavity bevel - simple extrusion (+ CSG for independent-depth notches)
     const topShape = outerShape.clone()
     allHolePaths.forEach(hp => topShape.holes.push(hp))
     const topGeo = new THREE.ExtrudeGeometry(topShape, { depth: cavityZ, bevelEnabled: false })
     topGeo.translate(0, 0, actualBaseDepth)
-    group.add(new THREE.Mesh(topGeo, trayMat2))
+
+    if (indepNotches.length > 0) {
+      try {
+        const evaluator = new Evaluator()
+        let resultMesh = new Brush(topGeo)
+        resultMesh.updateMatrixWorld()
+        const topSrf = actualBaseDepth + cavityZ
+        indepNotches.forEach(({ pts: nPts, depth: nDepth }) => {
+          const nShape = new THREE.Shape()
+          nPts.forEach((p, i) => { if (i === 0) nShape.moveTo(p.x, p.y); else nShape.lineTo(p.x, p.y) })
+          nShape.closePath()
+          const nGeo = new THREE.ExtrudeGeometry(nShape, { depth: nDepth + 0.5, bevelEnabled: false })
+          nGeo.translate(0, 0, topSrf - nDepth - 0.25)
+          const nBrush = new Brush(nGeo)
+          nBrush.updateMatrixWorld()
+          const prevBrush = new Brush(resultMesh.geometry || resultMesh)
+          prevBrush.updateMatrixWorld()
+          resultMesh = evaluator.evaluate(prevBrush, nBrush, SUBTRACTION)
+        })
+        if (resultMesh.geometry) resultMesh.geometry.computeVertexNormals()
+        group.add(new THREE.Mesh(resultMesh.geometry, trayMat2))
+      } catch (e) {
+        console.warn('Independent notch CSG failed:', e)
+        group.add(new THREE.Mesh(topGeo, trayMat2))
+      }
+    } else {
+      group.add(new THREE.Mesh(topGeo, trayMat2))
+    }
   }
 
   // ─── Tool cavity visualization (orange) ───
@@ -632,8 +680,10 @@ function createGridfinityInsert(points, config) {
 
   // ─── Finger notches for Gridfinity ───
   const { fingerNotches: gfNotches = [] } = config
-  const gfAllNotchPts = []
-  gfNotches.forEach(fn => {
+  const gfAllNotchPts = []       // same-depth notches (union with tool hole)
+  const gfIndepNotches = []      // independent-depth notches (CSG subtract separately)
+
+  function buildNotchPts(fn) {
     let pts = []
     if (fn.shape === 'circle') {
       const fnr = Math.max(5, fn.radius || 12)
@@ -652,7 +702,17 @@ function createGridfinityInsert(points, config) {
         { x: (fn.x || 0) - hw, y: (fn.y || 0) + hh },
       )
     }
-    if (pts.length >= 3) gfAllNotchPts.push(pts)
+    return pts
+  }
+
+  gfNotches.forEach(fn => {
+    const pts = buildNotchPts(fn)
+    if (pts.length < 3) return
+    if (fn.depth > 0) {
+      gfIndepNotches.push({ pts, depth: fn.depth })
+    } else {
+      gfAllNotchPts.push(pts)
+    }
   })
 
   // Union tool hole + notches for Gridfinity
@@ -852,6 +912,20 @@ function createGridfinityInsert(points, config) {
       const prevBrush = new Brush(result.geometry)
       prevBrush.updateMatrixWorld()
       result = csgEval.evaluate(prevBrush, atCutBrush, SUBTRACTION)
+    })
+
+    // Subtract independent-depth finger notches
+    gfIndepNotches.forEach(({ pts: nPts, depth: nDepth }) => {
+      const nShape = new THREE.Shape()
+      nPts.forEach((p, i) => { if (i === 0) nShape.moveTo(p.x, p.y); else nShape.lineTo(p.x, p.y) })
+      nShape.closePath()
+      const nGeo = new THREE.ExtrudeGeometry(nShape, { depth: nDepth + 0.5, bevelEnabled: false })
+      nGeo.translate(0, 0, topSurface - nDepth - 0.25)
+      const nBrush = new Brush(nGeo)
+      nBrush.updateMatrixWorld()
+      const prevBrush = new Brush(result.geometry)
+      prevBrush.updateMatrixWorld()
+      result = csgEval.evaluate(prevBrush, nBrush, SUBTRACTION)
     })
 
     // Apply cavity bevel if needed

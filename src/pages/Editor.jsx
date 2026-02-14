@@ -741,47 +741,48 @@ export default function Editor() {
         (acc, p) => ({ minX: Math.min(acc.minX, p.x), maxX: Math.max(acc.maxX, p.x), minY: Math.min(acc.minY, p.y), maxY: Math.max(acc.maxY, p.y) }),
         { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity }
       )
-      const pxW = bounds.maxX - bounds.minX
-      const pxH = bounds.maxY - bounds.minY
       const ox = imgOffsetX || 0
       const oy = imgOffsetY || 0
 
       ctx.save()
-      ctx.setLineDash([4, 4])
-      ctx.strokeStyle = 'rgba(232, 101, 10, 0.4)'
-      ctx.lineWidth = 1
 
       // Width line (bottom)
-      const wY = bounds.maxY + oy + 20
+      ctx.setLineDash([6, 4])
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)'
+      ctx.lineWidth = 2
+      const wY = bounds.maxY + oy + 28
       ctx.beginPath()
       ctx.moveTo(bounds.minX + ox, wY)
       ctx.lineTo(bounds.maxX + ox, wY)
       ctx.stroke()
       // End ticks
       ctx.setLineDash([])
+      ctx.lineWidth = 2
       ctx.beginPath()
-      ctx.moveTo(bounds.minX + ox, wY - 6)
-      ctx.lineTo(bounds.minX + ox, wY + 6)
-      ctx.moveTo(bounds.maxX + ox, wY - 6)
-      ctx.lineTo(bounds.maxX + ox, wY + 6)
+      ctx.moveTo(bounds.minX + ox, wY - 8)
+      ctx.lineTo(bounds.minX + ox, wY + 8)
+      ctx.moveTo(bounds.maxX + ox, wY - 8)
+      ctx.lineTo(bounds.maxX + ox, wY + 8)
       ctx.stroke()
 
       // Width label
       const wLabel = `${realWidth} mm`
-      ctx.font = 'bold 12px "Space Grotesk", system-ui, sans-serif'
+      ctx.font = 'bold 14px "Space Grotesk", system-ui, sans-serif'
       ctx.textAlign = 'center'
       const wLabelX = (bounds.minX + bounds.maxX) / 2 + ox
-      const wLW = ctx.measureText(wLabel).width + 10
-      ctx.fillStyle = 'rgba(13, 13, 18, 0.85)'
+      const wLW = ctx.measureText(wLabel).width + 16
+      ctx.fillStyle = 'rgba(232, 101, 10, 0.95)'
       ctx.beginPath()
-      ctx.roundRect(wLabelX - wLW / 2, wY + 6, wLW, 20, 4)
+      ctx.roundRect(wLabelX - wLW / 2, wY + 8, wLW, 24, 6)
       ctx.fill()
-      ctx.fillStyle = '#E8650A'
-      ctx.fillText(wLabel, wLabelX, wY + 20)
+      ctx.fillStyle = '#FFFFFF'
+      ctx.fillText(wLabel, wLabelX, wY + 25)
 
       // Height line (right)
-      ctx.setLineDash([4, 4])
-      const hX = bounds.maxX + ox + 20
+      ctx.setLineDash([6, 4])
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)'
+      ctx.lineWidth = 2
+      const hX = bounds.maxX + ox + 28
       ctx.beginPath()
       ctx.moveTo(hX, bounds.minY + oy)
       ctx.lineTo(hX, bounds.maxY + oy)
@@ -789,24 +790,24 @@ export default function Editor() {
       // End ticks
       ctx.setLineDash([])
       ctx.beginPath()
-      ctx.moveTo(hX - 6, bounds.minY + oy)
-      ctx.lineTo(hX + 6, bounds.minY + oy)
-      ctx.moveTo(hX - 6, bounds.maxY + oy)
-      ctx.lineTo(hX + 6, bounds.maxY + oy)
+      ctx.moveTo(hX - 8, bounds.minY + oy)
+      ctx.lineTo(hX + 8, bounds.minY + oy)
+      ctx.moveTo(hX - 8, bounds.maxY + oy)
+      ctx.lineTo(hX + 8, bounds.maxY + oy)
       ctx.stroke()
 
       // Height label
       const hLabel = `${realHeight} mm`
       const hLabelY = (bounds.minY + bounds.maxY) / 2 + oy
       ctx.save()
-      ctx.translate(hX + 20, hLabelY)
+      ctx.translate(hX + 24, hLabelY)
       ctx.rotate(-Math.PI / 2)
-      const hLW = ctx.measureText(hLabel).width + 10
-      ctx.fillStyle = 'rgba(13, 13, 18, 0.85)'
+      const hLW = ctx.measureText(hLabel).width + 16
+      ctx.fillStyle = 'rgba(232, 101, 10, 0.95)'
       ctx.beginPath()
-      ctx.roundRect(-hLW / 2, -14, hLW, 20, 4)
+      ctx.roundRect(-hLW / 2, -16, hLW, 24, 6)
       ctx.fill()
-      ctx.fillStyle = '#E8650A'
+      ctx.fillStyle = '#FFFFFF'
       ctx.textAlign = 'center'
       ctx.fillText(hLabel, 0, 0)
       ctx.restore()
@@ -1960,7 +1961,7 @@ export default function Editor() {
 
               {/* Canvas */}
               <div className="h-full overflow-auto p-8 pt-96">
-                <div className="min-h-full flex items-start justify-center">
+                <div className="min-h-full flex items-start justify-center" style={{ paddingBottom: `${Math.max(400, 800 * zoom)}px` }}>
                   <canvas
                     ref={canvasRef}
                     className="max-w-none shadow-2xl rounded-lg"
