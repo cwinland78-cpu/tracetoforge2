@@ -768,17 +768,17 @@ export default function Editor() {
 
       // Width label - large orange pill with white text
       const wLabel = `${realWidth} mm`
-      ctx.font = 'bold 18px "Space Grotesk", system-ui, sans-serif'
+      ctx.font = 'bold 48px "Space Grotesk", system-ui, sans-serif'
       ctx.textAlign = 'center'
       const wLabelX = (bounds.minX + bounds.maxX) / 2 + ox
-      const wLW = ctx.measureText(wLabel).width + 24
-      const wLH = 32
+      const wLW = ctx.measureText(wLabel).width + 40
+      const wLH = 64
       ctx.fillStyle = '#E8650A'
       ctx.beginPath()
-      ctx.roundRect(wLabelX - wLW / 2, wY + 10, wLW, wLH, 8)
+      ctx.roundRect(wLabelX - wLW / 2, wY + 12, wLW, wLH, 14)
       ctx.fill()
       ctx.fillStyle = '#FFFFFF'
-      ctx.fillText(wLabel, wLabelX, wY + 31)
+      ctx.fillText(wLabel, wLabelX, wY + 53)
 
       // Height dimension line (right) - black dashed
       ctx.setLineDash([8, 5])
@@ -802,20 +802,20 @@ export default function Editor() {
 
       // Height label - large orange pill with white text (rotated)
       const hLabel = `${realHeight} mm`
-      ctx.font = 'bold 18px "Space Grotesk", system-ui, sans-serif'
+      ctx.font = 'bold 48px "Space Grotesk", system-ui, sans-serif'
       const hLabelY = (bounds.minY + bounds.maxY) / 2 + oy
       ctx.save()
       ctx.translate(hX + 30, hLabelY)
       ctx.rotate(-Math.PI / 2)
-      const hLW = ctx.measureText(hLabel).width + 24
-      const hLH = 32
+      const hLW = ctx.measureText(hLabel).width + 40
+      const hLH = 64
       ctx.fillStyle = '#E8650A'
       ctx.beginPath()
-      ctx.roundRect(-hLW / 2, -20, hLW, hLH, 8)
+      ctx.roundRect(-hLW / 2, -38, hLW, hLH, 14)
       ctx.fill()
       ctx.fillStyle = '#FFFFFF'
       ctx.textAlign = 'center'
-      ctx.fillText(hLabel, 0, 1)
+      ctx.fillText(hLabel, 0, 4)
       ctx.restore()
 
       ctx.restore()
