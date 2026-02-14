@@ -679,8 +679,10 @@ function createGridfinityInsert(points, config) {
     const pts = buildNotchPts(fn)
     if (pts.length < 3) return
     gfAllNotchPts.push(pts)
-    console.log('[GF Notch collect] fn.depth:', fn.depth, 'cavityZ:', cavityZ, 'isCustom:', fn.depth > 0 && fn.depth < cavityZ)
-    if (fn.depth > 0 && fn.depth < cavityZ) {
+    // Any notch with custom depth (> 0) that isn't equal to cavityZ is independent
+    const isIndependent = fn.depth > 0 && Math.abs(fn.depth - cavityZ) > 0.01
+    console.log('[GF Notch collect] fn.depth:', fn.depth, 'cavityZ:', cavityZ, 'isIndependent:', isIndependent)
+    if (isIndependent) {
       gfIndepNotches.push({ pts, depth: fn.depth })
     }
   })
@@ -880,23 +882,42 @@ function createGridfinityInsert(points, config) {
   toolCutterShape.closePath()
 
   // ─── Floor + Layered walls for independent notch depths ───
-  // Floor slab
+  // Floor slab - may need notch cutouts if any notch is deeper than cavity
+  const deeperNotches = gfIndepNotches.filter(n => n.depth > cavityZ) // notches deeper than tool cavity
+  const shallowerNotches = gfIndepNotches.filter(n => n.depth > 0 && n.depth < cavityZ) // notches shallower than tool cavity
+
   if (floorZ > 0.01) {
-    const floorGeo = new THREE.ExtrudeGeometry(outerShape, { depth: floorZ, bevelEnabled: false })
-    floorGeo.translate(0, 0, GF.baseHeight)
-    group.add(new THREE.Mesh(floorGeo, trayMat))
+    if (deeperNotches.length > 0) {
+      // Floor needs notch cutouts for notches that extend below the tool cavity
+      const floorShape = outerShape.clone()
+      deeperNotches.forEach(({ pts }) => {
+        floorShape.holes.push(new THREE.Path(pts.map(p => new THREE.Vector2(p.x, p.y))))
+      })
+      const floorGeo = new THREE.ExtrudeGeometry(floorShape, { depth: floorZ, bevelEnabled: false })
+      floorGeo.translate(0, 0, GF.baseHeight)
+      group.add(new THREE.Mesh(floorGeo, trayMat))
+
+      // Add partial floor plugs under each deep notch (to give correct depth)
+      deeperNotches.forEach(({ pts, depth }) => {
+        const extraDepth = depth - cavityZ // how much deeper than cavity
+        const plugHeight = Math.max(0, floorZ - extraDepth)
+        if (plugHeight > 0.01) {
+          const plugShape = new THREE.Shape(pts.map(p => new THREE.Vector2(p.x, p.y)))
+          const plugGeo = new THREE.ExtrudeGeometry(plugShape, { depth: plugHeight, bevelEnabled: false })
+          plugGeo.translate(0, 0, GF.baseHeight) // sits at bottom of floor
+          group.add(new THREE.Mesh(plugGeo, trayMat))
+        }
+      })
+    } else {
+      const floorGeo = new THREE.ExtrudeGeometry(outerShape, { depth: floorZ, bevelEnabled: false })
+      floorGeo.translate(0, 0, GF.baseHeight)
+      group.add(new THREE.Mesh(floorGeo, trayMat))
+    }
   }
 
-  // Collect all unique depths: tool cavity + each custom notch depth
-  // depth=0 notches use cavityZ, custom depth notches use their own
-  // We build wall layers from bottom to top, closing notch holes as we go up
-  const notchDepthMap = [] // { notchIdx, depth } for custom-depth notches only
-  gfIndepNotches.forEach(({ pts, depth }, i) => {
-    if (depth > 0 && depth < cavityZ) {
-      notchDepthMap.push({ pts, depth })
-    }
-  })
-  console.log('[GF Wall] gfIndepNotches:', gfIndepNotches.length, 'notchDepthMap:', notchDepthMap.length, 'cavityZ:', cavityZ)
+  // Collect shallower-than-cavity notches for layered wall approach
+  const notchDepthMap = shallowerNotches.map(({ pts, depth }) => ({ pts, depth }))
+  console.log('[GF Wall] gfIndepNotches:', gfIndepNotches.length, 'shallower:', shallowerNotches.length, 'deeper:', deeperNotches.length, 'notchDepthMap:', notchDepthMap.length, 'cavityZ:', cavityZ, 'floorZ:', floorZ)
 
   if (notchDepthMap.length === 0) {
     // Simple case: no independent depths, single wall section
