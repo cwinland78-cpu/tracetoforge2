@@ -940,10 +940,17 @@ function createGridfinityInsert(points, config) {
     group.add(new THREE.Mesh(fillGeo, trayMat))
   })
 
-  // ─── Stacking lip - wall extended upward ───
-  // Uses exact same wallShape as the wall section below for perfect alignment
+  // ─── Stacking lip - perimeter ring on top of walls ───
+  // 1.9mm thick ring matching outer wall profile exactly
   const lipHeight = GF.lipVertical + GF.lipSlope  // ~4.4mm
-  const lipGeo = new THREE.ExtrudeGeometry(wallShape, { depth: lipHeight, bevelEnabled: false })
+  const lipThick = 1.9  // Gridfinity spec
+  const lipOuter = createRoundedRectShape(binW, binH, GF.cornerRadius)
+  const lipInnerW = binW - lipThick * 2
+  const lipInnerH = binH - lipThick * 2
+  const lipInnerR = Math.max(0.5, GF.cornerRadius - lipThick)
+  const lipInner = createRoundedRectShape(lipInnerW, lipInnerH, lipInnerR)
+  lipOuter.holes.push(new THREE.Path(lipInner.getPoints(12)))
+  const lipGeo = new THREE.ExtrudeGeometry(lipOuter, { depth: lipHeight, bevelEnabled: false })
   lipGeo.translate(0, 0, totalHeight)
   group.add(new THREE.Mesh(lipGeo, trayMat))
 
