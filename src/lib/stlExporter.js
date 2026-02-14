@@ -783,7 +783,7 @@ function createGridfinityInsert(points, config) {
     for (let gy = 0; gy < gridY; gy++) {
       const cx = -binW / 2 + GF.gridUnit / 2 + gx * GF.gridUnit
       const cy = -binH / 2 + GF.gridUnit / 2 + gy * GF.gridUnit
-      const ov = 0.2 // overlap between layers to prevent coincident faces
+      const ov = 0 // no overlap needed
       let z = 0
 
       // Layer 1: 45deg chamfer (0.8mm) - tapers from 35.6 to 37.2
@@ -940,12 +940,20 @@ function createGridfinityInsert(points, config) {
     group.add(new THREE.Mesh(fillGeo, trayMat))
   })
 
-  // ─── Stacking lip integrated into wall ───
-  // Just extend the wall upward by lip height - same profile, no overhang
+  // ─── Stacking lip - outer wall extended upward ───
+  // Simple wall ring: same outer profile, inset by wall thickness, no tool hole
   const lipHeight = GF.lipVertical + GF.lipSlope  // ~4.4mm
-  const wallWithLipGeo = new THREE.ExtrudeGeometry(wallShape, { depth: lipHeight, bevelEnabled: false })
-  wallWithLipGeo.translate(0, 0, GF.baseHeight + floorZ + cavityZ)
-  group.add(new THREE.Mesh(wallWithLipGeo, trayMat))
+  const wallThickness = 1.2
+  const lipOuter = createRoundedRectShape(binW, binH, GF.cornerRadius)
+  const lipInner = createRoundedRectShape(
+    binW - wallThickness * 2,
+    binH - wallThickness * 2,
+    Math.max(0, GF.cornerRadius - wallThickness)
+  )
+  lipOuter.holes.push(new THREE.Path(lipInner.getPoints(12)))
+  const lipGeo = new THREE.ExtrudeGeometry(lipOuter, { depth: lipHeight, bevelEnabled: false })
+  lipGeo.translate(0, 0, totalHeight)
+  group.add(new THREE.Mesh(lipGeo, trayMat))
 
   // ─── Grid lines on floor ───
   const linesMat = new THREE.LineBasicMaterial({ color: 0x444455 })
