@@ -52,8 +52,10 @@ export default function ThreePreview({ contourPoints, config, onToolDrag, onNotc
     group.traverse(obj => { if (obj.isMesh && obj.userData.vizOnly && (obj.userData.toolIndex !== undefined || obj.userData.notchIndex !== undefined)) vizMeshes.push(obj) })
     const hits = raycaster.intersectObjects(vizMeshes)
     if (hits.length === 0) return null
+    // Prioritize notch hits over tool hits - notches sit inside cavities and are hard to click
+    const notchHit = hits.find(h => h.object.userData.notchIndex !== undefined)
+    if (notchHit) return { notchIndex: notchHit.object.userData.notchIndex }
     const hit = hits[0].object
-    if (hit.userData.notchIndex !== undefined) return { notchIndex: hit.userData.notchIndex }
     return { toolIndex: hit.userData.toolIndex }
   }, [])
 

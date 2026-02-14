@@ -585,6 +585,7 @@ function createCustomInsert(points, config) {
 
   // Finger notch visualizations (draggable)
   const notchMat = new THREE.MeshPhongMaterial({ color: 0x44bb44, transparent: true, opacity: 0.4, side: THREE.DoubleSide })
+  const grabHandleMat = new THREE.MeshBasicMaterial({ visible: false }) // invisible but raycastable
   allNotchPts.forEach((nPts, ni) => {
     const fn = fingerNotches[ni]
     const notchDepth = (fn && fn.depth > 0) ? fn.depth : cavityZ
@@ -597,6 +598,14 @@ function createCustomInsert(points, config) {
     nMesh.userData.vizOnly = true
     nMesh.userData.notchIndex = ni
     group.add(nMesh)
+
+    // Invisible grab handle on top surface - extends above wall for easy clicking
+    const handleGeo = new THREE.ExtrudeGeometry(nShape, { depth: 3, bevelEnabled: false })
+    handleGeo.translate(0, 0, actualBaseDepth + cavityZ - 0.5)
+    const handleMesh = new THREE.Mesh(handleGeo, grabHandleMat)
+    handleMesh.userData.vizOnly = true
+    handleMesh.userData.notchIndex = ni
+    group.add(handleMesh)
   })
 
   return group
@@ -1153,6 +1162,21 @@ function createGridfinityInsert(points, config) {
 
   // Finger notch visualizations for gridfinity (draggable)
   const gfNotchMat = new THREE.MeshPhongMaterial({ color: 0x44bb44, transparent: true, opacity: 0.4, side: THREE.DoubleSide })
+  const gfGrabHandleMat = new THREE.MeshBasicMaterial({ visible: false }) // invisible but raycastable
+
+  // Helper to add grab handle on top surface for a notch
+  const addGrabHandle = (nPts, notchIdx) => {
+    const hShape = new THREE.Shape()
+    nPts.forEach((p, i) => { if (i === 0) hShape.moveTo(p.x, p.y); else hShape.lineTo(p.x, p.y) })
+    hShape.closePath()
+    const handleGeo = new THREE.ExtrudeGeometry(hShape, { depth: 3, bevelEnabled: false })
+    handleGeo.translate(0, 0, topSurface - 0.5)
+    const handleMesh = new THREE.Mesh(handleGeo, gfGrabHandleMat)
+    handleMesh.userData.vizOnly = true
+    handleMesh.userData.notchIndex = notchIdx
+    group.add(handleMesh)
+  }
+
   // Default-depth notches only (skip ones that have independent depths)
   gfAllNotchPts.forEach((nPts, ni) => {
     // Check if this notch is in gfIndepNotches (has custom depth)
@@ -1166,10 +1190,12 @@ function createGridfinityInsert(points, config) {
     nShape.closePath()
     const nGeo = new THREE.ExtrudeGeometry(nShape, { depth: cavityZ + 0.5, bevelEnabled: false })
     nGeo.translate(0, 0, GF.baseHeight + floorZ - 0.25)
+    const origIdx = gfNotchOrigIdx[ni] !== undefined ? gfNotchOrigIdx[ni] : ni
     const nMesh = new THREE.Mesh(nGeo, gfNotchMat)
     nMesh.userData.vizOnly = true
-    nMesh.userData.notchIndex = gfNotchOrigIdx[ni] !== undefined ? gfNotchOrigIdx[ni] : ni
+    nMesh.userData.notchIndex = origIdx
     group.add(nMesh)
+    addGrabHandle(nPts, origIdx)
   })
   // Custom-depth notches - drawn at their actual independent depth
   const gfNotchCustomMat = new THREE.MeshPhongMaterial({ color: 0x22aa88, transparent: true, opacity: 0.5, side: THREE.DoubleSide })
@@ -1179,10 +1205,12 @@ function createGridfinityInsert(points, config) {
     nShape.closePath()
     const nGeo = new THREE.ExtrudeGeometry(nShape, { depth: nDepth + 0.5, bevelEnabled: false })
     nGeo.translate(0, 0, GF.baseHeight + floorZ + cavityZ - nDepth - 0.25)
+    const idx = origIdx !== undefined ? origIdx : ni
     const nMesh = new THREE.Mesh(nGeo, gfNotchCustomMat)
     nMesh.userData.vizOnly = true
-    nMesh.userData.notchIndex = origIdx !== undefined ? origIdx : ni
+    nMesh.userData.notchIndex = idx
     group.add(nMesh)
+    addGrabHandle(nPts, idx)
   })
 
   return group
