@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Box, Upload, Download, ChevronLeft, Pencil, MousePointer, Eye,
-  Info, ZoomIn, ZoomOut, Save, FolderOpen, X, Camera, Sun, Contrast
+  Info, ZoomIn, ZoomOut, Save, FolderOpen, X, Camera, Sun, Contrast, Crop
 } from 'lucide-react'
 import ThreePreview from '../components/ThreePreview'
 import PaywallModal from '../components/PaywallModal'
@@ -140,6 +140,9 @@ export default function Editor() {
   const [showPreview, setShowPreview] = useState(false)
   const [showPhotoTips, setShowPhotoTips] = useState(false)
   const [minContourPct, setMinContourPct] = useState(0.05) // % of image area
+  const [isCropping, setIsCropping] = useState(false)
+  const [cropStart, setCropStart] = useState(null)
+  const [cropRect, setCropRect] = useState(null)
 
   // OpenCV
   const [cvReady, setCvReady] = useState(false)
@@ -456,6 +459,31 @@ export default function Editor() {
     if (!file || !file.type.startsWith('image/')) return
     handleImageUpload({ target: { files: [file] } })
   }, [handleImageUpload])
+
+  /* ── Crop ── */
+  const applyCrop = useCallback(() => {
+    if (!cropRect || !imageRef.current) return
+    const img = imageRef.current
+    const { x, y, w, h } = cropRect
+    if (w < 10 || h < 10) return
+    const tmpCanvas = document.createElement('canvas')
+    tmpCanvas.width = w
+    tmpCanvas.height = h
+    const ctx = tmpCanvas.getContext('2d')
+    ctx.drawImage(img, x, y, w, h, 0, 0, w, h)
+    const dataUrl = tmpCanvas.toDataURL('image/png')
+    const croppedImg = new Image()
+    croppedImg.onload = () => {
+      setImage(dataUrl)
+      setImageSize({ w: croppedImg.width, h: croppedImg.height })
+      imageRef.current = croppedImg
+      setCropRect(null)
+      setCropStart(null)
+      setIsCropping(false)
+      setContours([])
+    }
+    croppedImg.src = dataUrl
+  }, [cropRect])
 
   /* ── Edge Detection ── */
   const runEdgeDetection = useCallback(() => {
@@ -909,8 +937,31 @@ export default function Editor() {
       ctx.restore()
     }
 
+    // Draw crop overlay
+    if (isCropping && cropRect) {
+      const { x, y, w, h } = cropRect
+      // Dim everything outside crop
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.6)'
+      ctx.fillRect(0, 0, canvas.width, y)
+      ctx.fillRect(0, y, x, h)
+      ctx.fillRect(x + w, y, canvas.width - x - w, h)
+      ctx.fillRect(0, y + h, canvas.width, canvas.height - y - h)
+      // Crop border
+      ctx.strokeStyle = '#E8650A'
+      ctx.lineWidth = 2
+      ctx.setLineDash([6, 4])
+      ctx.strokeRect(x, y, w, h)
+      ctx.setLineDash([])
+      // Corner handles
+      const hs = 8
+      ctx.fillStyle = '#E8650A'
+      ;[[x, y], [x + w, y], [x, y + h], [x + w, y + h]].forEach(([cx, cy]) => {
+        ctx.fillRect(cx - hs / 2, cy - hs / 2, hs, hs)
+      })
+    }
+
     ctx.restore()
-  }, [image, zoom, contours, selectedContour, editMode, hoveredPoint, draggingPoint, editingOuter, outerShapePoints, hoveredOuterPoint, draggingOuterPoint, realWidth, realHeight, tolerance, step])
+  }, [image, zoom, contours, selectedContour, editMode, hoveredPoint, draggingPoint, editingOuter, outerShapePoints, hoveredOuterPoint, draggingOuterPoint, realWidth, realHeight, tolerance, step, isCropping, cropRect])
 
   useEffect(() => { drawCanvas() }, [drawCanvas])
 
@@ -923,6 +974,13 @@ export default function Editor() {
     const scaleY = canvas.height / rect.height
     const off = imgOffsetRef.current
     return { x: (e.clientX - rect.left) * scaleX - off.x, y: (e.clientY - rect.top) * scaleY - off.y }
+  }
+
+  const getRawCanvasPoint = (e) => {
+    const canvas = canvasRef.current
+    if (!canvas) return null
+    const rect = canvas.getBoundingClientRect()
+    return { x: (e.clientX - rect.left) * (canvas.width / rect.width), y: (e.clientY - rect.top) * (canvas.height / rect.height) }
   }
 
   const findNearestPoint = (pos, maxDist = 15) => {
@@ -963,6 +1021,13 @@ export default function Editor() {
   }
 
   const handleCanvasMouseDown = (e) => {
+    if (isCropping) {
+      const pos = getRawCanvasPoint(e)
+      if (!pos) return
+      setCropStart(pos)
+      setCropRect(null)
+      return
+    }
     if (editMode !== 'edit') return
     const pos = getCanvasPoint(e)
     if (!pos) return
@@ -1002,6 +1067,17 @@ export default function Editor() {
   }
 
   const handleCanvasMouseMove = (e) => {
+    if (isCropping && cropStart) {
+      const pos = getRawCanvasPoint(e)
+      if (!pos) return
+      const x = Math.min(cropStart.x, pos.x)
+      const y = Math.min(cropStart.y, pos.y)
+      const w = Math.abs(pos.x - cropStart.x)
+      const h = Math.abs(pos.y - cropStart.y)
+      setCropRect({ x, y, w, h })
+      drawCanvas()
+      return
+    }
     if (editMode !== 'edit') return
     const pos = getCanvasPoint(e)
     if (!pos) return
@@ -1061,6 +1137,10 @@ export default function Editor() {
   }
 
   const handleCanvasMouseUp = () => {
+    if (isCropping) {
+      setCropStart(null)
+      return
+    }
     setDraggingPoint(null)
     setDraggingOuterPoint(null)
   }
@@ -1370,6 +1450,33 @@ export default function Editor() {
         {/* ── Sidebar ── */}
         <aside className="w-72 border-r border-[#2A2A35]/50 bg-surface/30 overflow-y-auto flex-shrink-0">
           <div className="p-4 pb-32 space-y-5">
+
+            {/* Crop */}
+            {step >= 1 && step < 2 && (
+              <div>
+                <h3 className="text-xs font-semibold text-[#8888A0] uppercase tracking-wider mb-3">Crop</h3>
+                {!isCropping ? (
+                  <button onClick={() => { setIsCropping(true); setCropRect(null) }}
+                    className="w-full py-2 rounded-lg bg-[#2A2A35] hover:bg-[#3A3A45] text-[#C8C8D0] text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                    <Crop size={14} /> Crop Image
+                  </button>
+                ) : (
+                  <div className="space-y-2">
+                    <p className="text-xs text-[#8888A0]">Drag on the image to select the area to keep.</p>
+                    <div className="flex gap-2">
+                      <button onClick={applyCrop} disabled={!cropRect || cropRect.w < 10 || cropRect.h < 10}
+                        className="flex-1 py-2 rounded-lg bg-brand hover:bg-brand-light disabled:bg-[#2A2A35] disabled:text-[#555566] text-white text-sm font-medium transition-colors">
+                        Apply Crop
+                      </button>
+                      <button onClick={() => { setIsCropping(false); setCropRect(null); setCropStart(null); drawCanvas() }}
+                        className="px-3 py-2 rounded-lg bg-[#2A2A35] hover:bg-[#3A3A45] text-[#C8C8D0] text-sm font-medium transition-colors">
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Detection */}
             {step >= 1 && (
@@ -2166,7 +2273,7 @@ export default function Editor() {
                     style={{
                       transform: `scale(${zoom})`,
                       transformOrigin: 'top center',
-                      cursor: editMode === 'edit'
+                      cursor: isCropping ? 'crosshair' : editMode === 'edit'
                         ? draggingPoint !== null ? 'grabbing' : hoveredPoint !== null ? 'grab' : 'crosshair'
                         : 'default',
                     }}
