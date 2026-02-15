@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Box, Upload, Download, ChevronLeft, Pencil, MousePointer, Eye,
-  Info, ZoomIn, ZoomOut, Save, FolderOpen
+  Info, ZoomIn, ZoomOut, Save, FolderOpen, X, Camera, Sun, Contrast
 } from 'lucide-react'
 import ThreePreview from '../components/ThreePreview'
 import PaywallModal from '../components/PaywallModal'
@@ -137,6 +137,7 @@ export default function Editor() {
   const [simplification, setSimplification] = useState(0.5)
   const [sensitivity, setSensitivity] = useState(6)
   const [showPreview, setShowPreview] = useState(false)
+  const [showPhotoTips, setShowPhotoTips] = useState(false)
 
   // OpenCV
   const [cvReady, setCvReady] = useState(false)
@@ -1999,7 +2000,7 @@ export default function Editor() {
             <div className="flex flex-col items-center justify-center h-full gap-4 p-8"
               onDragOver={e => e.preventDefault()} onDrop={handleDrop}>
               <div className="w-24 h-24 rounded-2xl bg-[#131318] border-2 border-dashed border-[#2A2A35] flex items-center justify-center hover:border-brand/50 transition-colors cursor-pointer"
-                onClick={() => fileInputRef.current?.click()}>
+                onClick={() => setShowPhotoTips(true)}>
                 <Upload className="text-[#8888A0]" size={32} />
               </div>
               <div className="text-center">
@@ -2007,6 +2008,73 @@ export default function Editor() {
                 <p className="text-sm text-[#8888A0]">Drag and drop or click to browse</p>
               </div>
               <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+
+              {/* Photo Tips Popup */}
+              {showPhotoTips && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowPhotoTips(false)}>
+                  <div className="bg-[#1A1A24] border border-[#2A2A35] rounded-2xl max-w-md w-full mx-4 p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <Camera className="text-brand" size={20} />
+                        <h3 className="text-white font-semibold text-lg">Photo Tips</h3>
+                      </div>
+                      <button onClick={() => setShowPhotoTips(false)} className="text-[#8888A0] hover:text-white transition-colors">
+                        <X size={18} />
+                      </button>
+                    </div>
+
+                    <p className="text-[#8888A0] text-sm mb-4">Better photos mean cleaner edge detection. A few quick tips:</p>
+
+                    <div className="space-y-3 mb-6">
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-brand/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <Contrast className="text-brand" size={16} />
+                        </div>
+                        <div>
+                          <p className="text-[#C8C8D0] text-sm font-medium">Use a contrasting background</p>
+                          <p className="text-[#6666A0] text-xs">Dark tools on white paper. Metallic/silver tools on dark paper or a black surface.</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-brand/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <Sun className="text-brand" size={16} />
+                        </div>
+                        <div>
+                          <p className="text-[#C8C8D0] text-sm font-medium">Even lighting, no harsh shadows</p>
+                          <p className="text-[#6666A0] text-xs">Indirect or overhead light works best. Shadows confuse edge detection.</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-brand/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <Camera className="text-brand" size={16} />
+                        </div>
+                        <div>
+                          <p className="text-[#C8C8D0] text-sm font-medium">Shoot straight down</p>
+                          <p className="text-[#6666A0] text-xs">Hold your camera directly above the tool. Angles distort the outline.</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-brand/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <span className="text-brand text-xs font-bold">!</span>
+                        </div>
+                        <div>
+                          <p className="text-[#C8C8D0] text-sm font-medium">Avoid textured surfaces</p>
+                          <p className="text-[#6666A0] text-xs">No cloth, towels, or wood grain. Flat paper, cutting mats, or solid surfaces only.</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => { setShowPhotoTips(false); fileInputRef.current?.click(); }}
+                      className="w-full py-3 bg-brand hover:bg-brand/90 text-white font-semibold rounded-xl transition-colors">
+                      Got it, choose photo
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
