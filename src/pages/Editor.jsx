@@ -2158,8 +2158,8 @@ export default function Editor() {
               </div>
 
               {/* Canvas */}
-              <div className="h-full overflow-auto p-8 pt-96" ref={scrollRef}>
-                <div className="min-h-full flex items-start justify-center" style={{ paddingBottom: `${Math.max(400, 800 * zoom)}px`, paddingLeft: `${Math.max(32, 400 * zoom)}px`, paddingRight: `${Math.max(32, 400 * zoom)}px` }}>
+              <div className="h-full overflow-auto pt-96" ref={scrollRef} style={{ padding: `384px ${Math.max(32, 500 * zoom)}px 32px` }}>
+                <div className="min-h-full flex items-start justify-center" style={{ paddingBottom: `${Math.max(400, 800 * zoom)}px` }}>
                   <canvas
                     ref={canvasRef}
                     className="max-w-none shadow-2xl rounded-lg"
