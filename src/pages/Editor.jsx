@@ -2159,30 +2159,24 @@ export default function Editor() {
 
               {/* Canvas */}
               <div className="h-full overflow-auto p-8 pt-96" ref={scrollRef}>
-                <div className="min-h-full flex items-start justify-center" style={{ paddingBottom: `${Math.max(400, 800 * zoom)}px` }}>
-                  <div style={{
-                    width: canvasSize.w ? `${canvasSize.w * zoom}px` : 'auto',
-                    height: canvasSize.h ? `${canvasSize.h * zoom}px` : 'auto',
-                    flexShrink: 0,
-                  }}>
-                    <canvas
-                      ref={canvasRef}
-                      className="max-w-none shadow-2xl rounded-lg"
-                      style={{
-                        transform: `scale(${zoom})`,
-                        transformOrigin: 'top left',
-                        cursor: editMode === 'edit'
-                          ? draggingPoint !== null ? 'grabbing' : hoveredPoint !== null ? 'grab' : 'crosshair'
-                          : 'default',
-                      }}
-                      onMouseDown={handleCanvasMouseDown}
-                      onMouseMove={handleCanvasMouseMove}
-                      onMouseUp={handleCanvasMouseUp}
-                      onMouseLeave={handleCanvasMouseUp}
-                      onDoubleClick={handleCanvasDoubleClick}
-                      onContextMenu={handleCanvasRightClick}
-                    />
-                  </div>
+                <div className="min-h-full flex items-start justify-center" style={{ paddingBottom: `${Math.max(400, 800 * zoom)}px`, paddingLeft: `${Math.max(32, 400 * zoom)}px`, paddingRight: `${Math.max(32, 400 * zoom)}px` }}>
+                  <canvas
+                    ref={canvasRef}
+                    className="max-w-none shadow-2xl rounded-lg"
+                    style={{
+                      transform: `scale(${zoom})`,
+                      transformOrigin: 'top center',
+                      cursor: editMode === 'edit'
+                        ? draggingPoint !== null ? 'grabbing' : hoveredPoint !== null ? 'grab' : 'crosshair'
+                        : 'default',
+                    }}
+                    onMouseDown={handleCanvasMouseDown}
+                    onMouseMove={handleCanvasMouseMove}
+                    onMouseUp={handleCanvasMouseUp}
+                    onMouseLeave={handleCanvasMouseUp}
+                    onDoubleClick={handleCanvasDoubleClick}
+                    onContextMenu={handleCanvasRightClick}
+                  />
                 </div>
               </div>
             </div>
