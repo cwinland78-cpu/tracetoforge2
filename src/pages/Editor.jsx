@@ -482,13 +482,13 @@ export default function Editor() {
         cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY)
 
         // Adaptive blur based on sensitivity - less blur = more detail kept
-        const blurSize = sensitivity <= 3 ? 3 : sensitivity <= 6 ? 5 : 7
+        const blurSize = sensitivity <= 3 ? 3 : sensitivity <= 6 ? 5 : sensitivity <= 10 ? 7 : 9
         cv.GaussianBlur(gray, gray, new cv.Size(blurSize, blurSize), 0)
 
-        // Multi-strategy detection based on sensitivity (1-10 scale)
-        // Center (5) = Canny with balanced thresholds - best general purpose
-        // Lower (1-4) = tighter detection, ignores faint edges, cleaner outlines
-        // Higher (6-10) = looser detection, picks up more detail and faint edges
+        // Multi-strategy detection based on sensitivity (1-14 scale, displayed as -5 to +8)
+        // Center (6) = Canny with balanced thresholds - best general purpose
+        // Lower (1-5) = tighter detection, ignores faint edges, cleaner outlines
+        // Higher (7-14) = looser detection, picks up more detail and faint edges
         
         if (sensitivity <= 2) {
           // Otsu threshold - strictest, only works on high-contrast
@@ -508,8 +508,8 @@ export default function Editor() {
           cv.dilate(edges, binary, k)
           cv.morphologyEx(binary, binary, cv.MORPH_CLOSE, k)
           k.delete()
-        } else {
-          // Adaptive threshold + Canny combo for very low contrast (9-10)
+        } else if (sensitivity <= 10) {
+          // Adaptive threshold + Canny combo for low contrast (9-10)
           const blockSize = sensitivity === 9 ? 21 : 31
           const adaptC = sensitivity === 9 ? 5 : 3
           cv.adaptiveThreshold(gray, binary, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY_INV, blockSize, adaptC)
@@ -522,6 +522,27 @@ export default function Editor() {
           cv.morphologyEx(binary, binary, cv.MORPH_CLOSE, k2)
           k.delete()
           k2.delete()
+        } else {
+          // Ultra-sensitive: aggressive adaptive threshold + heavy morphology (11-14)
+          // For very low contrast tools (metallic on light backgrounds, etc.)
+          const blockSize = Math.min(51, 21 + (sensitivity - 11) * 10) // 21, 31, 41, 51
+          const adaptC = Math.max(1, 5 - (sensitivity - 11))           // 5, 4, 3, 2
+          cv.adaptiveThreshold(gray, binary, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY_INV, blockSize | 1, adaptC)
+          // Very loose Canny to catch any remaining edges
+          cv.Canny(gray, edges, 8, 25)
+          const dilateK = cv.getStructuringElement(cv.MORPH_ELLIPSE, new cv.Size(7, 7))
+          cv.dilate(edges, edges, dilateK)
+          cv.bitwise_or(binary, edges, binary)
+          // Heavy morphological closing to merge fragmented regions
+          const closeSize = 7 + (sensitivity - 11) * 2 // 7, 9, 11, 13
+          const closeK = cv.getStructuringElement(cv.MORPH_ELLIPSE, new cv.Size(closeSize, closeSize))
+          cv.morphologyEx(binary, binary, cv.MORPH_CLOSE, closeK)
+          // Second pass with even larger kernel to fill gaps
+          const closeK2 = cv.getStructuringElement(cv.MORPH_ELLIPSE, new cv.Size(closeSize + 4, closeSize + 4))
+          cv.morphologyEx(binary, binary, cv.MORPH_CLOSE, closeK2)
+          dilateK.delete()
+          closeK.delete()
+          closeK2.delete()
         }
 
         // Find contours
@@ -1358,8 +1379,8 @@ export default function Editor() {
                       <div className="flex items-center text-sm text-[#C8C8D0] mb-1">Sensitivity <Tooltip text="Adjust edge detection sensitivity. Slide left for fewer edges, right for more." /></div>
                       <div className="flex items-center gap-2">
                         <button onClick={() => setSensitivity(s => Math.max(1, s - 1))} className="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded bg-[#1C1C24] hover:bg-[#2A2A35] text-[#8888A0] hover:text-white text-sm font-bold transition-colors">-</button>
-                        <input type="range" min="1" max="10" step="1" value={sensitivity} onChange={e => setSensitivity(+e.target.value)} className="flex-1 min-w-0" />
-                        <button onClick={() => setSensitivity(s => Math.min(10, s + 1))} className="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded bg-[#1C1C24] hover:bg-[#2A2A35] text-[#8888A0] hover:text-white text-sm font-bold transition-colors">+</button>
+                        <input type="range" min="1" max="14" step="1" value={sensitivity} onChange={e => setSensitivity(+e.target.value)} className="flex-1 min-w-0" />
+                        <button onClick={() => setSensitivity(s => Math.min(14, s + 1))} className="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded bg-[#1C1C24] hover:bg-[#2A2A35] text-[#8888A0] hover:text-white text-sm font-bold transition-colors">+</button>
                         <span className="text-xs text-[#8888A0] w-7 text-right flex-shrink-0">{sensitivity < 6 ? `${sensitivity - 6}` : sensitivity > 6 ? `+${sensitivity - 6}` : '0'}</span>
                       </div>
                     </div>
