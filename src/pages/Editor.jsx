@@ -1398,9 +1398,9 @@ export default function Editor() {
                     <div>
                       <div className="flex items-center text-sm text-[#C8C8D0] mb-1">Min Size <Tooltip text="Filter out small detected shapes. Increase to ignore noise and tiny contours, decrease to keep fine details." /></div>
                       <div className="flex items-center gap-2">
-                        <button onClick={() => setMinContourPct(s => Math.max(0.01, Math.round((s - 0.05) * 100) / 100))} className="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded bg-[#1C1C24] hover:bg-[#2A2A35] text-[#8888A0] hover:text-white text-sm font-bold transition-colors">-</button>
-                        <input type="range" min="0.01" max="2" step="0.01" value={minContourPct} onChange={e => setMinContourPct(+e.target.value)} className="flex-1 min-w-0" />
-                        <button onClick={() => setMinContourPct(s => Math.min(2, Math.round((s + 0.05) * 100) / 100))} className="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded bg-[#1C1C24] hover:bg-[#2A2A35] text-[#8888A0] hover:text-white text-sm font-bold transition-colors">+</button>
+                        <button onClick={() => setMinContourPct(s => Math.max(0, Math.round((s - 0.5) * 10) / 10))} className="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded bg-[#1C1C24] hover:bg-[#2A2A35] text-[#8888A0] hover:text-white text-sm font-bold transition-colors">-</button>
+                        <input type="range" min="0" max="25" step="0.5" value={minContourPct} onChange={e => setMinContourPct(+e.target.value)} className="flex-1 min-w-0" />
+                        <button onClick={() => setMinContourPct(s => Math.min(25, Math.round((s + 0.5) * 10) / 10))} className="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded bg-[#1C1C24] hover:bg-[#2A2A35] text-[#8888A0] hover:text-white text-sm font-bold transition-colors">+</button>
                         <span className="text-xs text-[#8888A0] w-7 text-right flex-shrink-0">{minContourPct}%</span>
                       </div>
                     </div>
