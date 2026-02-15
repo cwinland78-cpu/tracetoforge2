@@ -9,6 +9,7 @@ import ThreePreview from '../components/ThreePreview'
 import PaywallModal from '../components/PaywallModal'
 import { useAuth } from '../components/AuthContext'
 import { exportSTL } from '../lib/stlExporter'
+import { exportSVG, exportDXF, export3MF, bundleAsZip } from '../lib/exportFormats'
 import { hasCredits, useCredit, getCredits, initPurchases } from '../lib/purchases'
 import { queryTable } from '../lib/supabase'
 import { createProject, updateProject, getProject } from './Dashboard'
@@ -81,6 +82,7 @@ export default function Editor() {
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState('')
   const [showDisclaimer, setShowDisclaimer] = useState(false)
+  const [exportFormats, setExportFormats] = useState({ stl: true, svg: false, dxf: false, '3mf': false })
   const [imageSize, setImageSize] = useState({ w: 0, h: 0 })
   const [contours, setContours] = useState([])
   const [selectedContour, setSelectedContour] = useState(0)
@@ -316,6 +318,11 @@ export default function Editor() {
     if (!pts || pts.length < 3) return
     const scaledPts = scalePoints(pts)
     const config = buildConfig()
+
+    // Ensure at least one format is selected
+    const selectedFormats = Object.entries(exportFormats).filter(([, v]) => v).map(([k]) => k)
+    if (selectedFormats.length === 0) return
+
     try {
       // Deduct credit server-side first (for logged-in users)
       if (user?.id) {
@@ -326,16 +333,71 @@ export default function Editor() {
         }
       }
 
-      const buffer = exportSTL(scaledPts, config)
-      const blob = new Blob([buffer], { type: 'application/octet-stream' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.style.display = 'none'
-      a.href = url
-      a.download = `tracetoforge-${outputMode}-${Date.now()}.stl`
-      document.body.appendChild(a)
-      a.click()
-      setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url) }, 200)
+      const timestamp = Date.now()
+      const baseName = `tracetoforge-${outputMode}-${timestamp}`
+
+      // Always generate STL buffer (needed for STL and 3MF)
+      const stlBuffer = exportSTL(scaledPts, config)
+
+      // If only one format selected, download directly
+      if (selectedFormats.length === 1) {
+        const fmt = selectedFormats[0]
+        let blob, ext
+
+        if (fmt === 'stl') {
+          blob = new Blob([stlBuffer], { type: 'application/octet-stream' })
+          ext = 'stl'
+        } else if (fmt === 'svg') {
+          const svgStr = exportSVG(scaledPts, config)
+          blob = new Blob([svgStr], { type: 'image/svg+xml' })
+          ext = 'svg'
+        } else if (fmt === 'dxf') {
+          const dxfStr = exportDXF(scaledPts, config)
+          blob = new Blob([dxfStr], { type: 'application/dxf' })
+          ext = 'dxf'
+        } else if (fmt === '3mf') {
+          blob = await export3MF(stlBuffer, scaledPts, config)
+          ext = '3mf'
+        }
+
+        if (blob) {
+          const url = URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.style.display = 'none'
+          a.href = url
+          a.download = `${baseName}.${ext}`
+          document.body.appendChild(a)
+          a.click()
+          setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url) }, 200)
+        }
+      } else {
+        // Multiple formats: bundle as zip
+        const files = {}
+
+        if (exportFormats.stl) {
+          files[`${baseName}.stl`] = stlBuffer
+        }
+        if (exportFormats.svg) {
+          files[`${baseName}.svg`] = exportSVG(scaledPts, config)
+        }
+        if (exportFormats.dxf) {
+          files[`${baseName}.dxf`] = exportDXF(scaledPts, config)
+        }
+        if (exportFormats['3mf']) {
+          const threemfBlob = await export3MF(stlBuffer, scaledPts, config)
+          files[`${baseName}.3mf`] = threemfBlob
+        }
+
+        const zipBlob = await bundleAsZip(files)
+        const url = URL.createObjectURL(zipBlob)
+        const a = document.createElement('a')
+        a.style.display = 'none'
+        a.href = url
+        a.download = `${baseName}.zip`
+        document.body.appendChild(a)
+        a.click()
+        setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url) }, 200)
+      }
 
       // Update local credit display
       if (user?.id) {
@@ -1837,7 +1899,7 @@ export default function Editor() {
                 </button>
                 <button onClick={handleExport}
                   className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-brand hover:bg-brand-light text-white text-sm font-medium transition-colors">
-                  <Download size={15} /> Export STL {credits > 0 ? `(${credits} credits)` : ''}
+                  <Download size={15} /> Export {credits > 0 ? `(${credits} credits)` : ''}
                 </button>
               </div>
             )}
@@ -1878,6 +1940,34 @@ export default function Editor() {
                         <span>The <strong className="text-white">3D preview</strong> looks correct</span>
                       </li>
                     </ul>
+                    <div className="bg-zinc-800/50 border border-zinc-700 rounded-lg px-4 py-3">
+                      <p className="text-zinc-300 text-xs font-medium mb-2">Export Formats</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        {[
+                          { key: 'stl', label: 'STL', desc: '3D Print' },
+                          { key: '3mf', label: '3MF', desc: '3D Print (modern)' },
+                          { key: 'svg', label: 'SVG', desc: 'Laser / Vector' },
+                          { key: 'dxf', label: 'DXF', desc: 'CAD / CNC' },
+                        ].map(fmt => (
+                          <label key={fmt.key} className={`flex items-center gap-2 px-3 py-2 rounded-md cursor-pointer transition-colors text-xs ${exportFormats[fmt.key] ? 'bg-orange-600/20 border border-orange-500/40' : 'bg-zinc-800 border border-zinc-700 hover:border-zinc-600'}`}>
+                            <input type="checkbox" checked={exportFormats[fmt.key]}
+                              onChange={e => {
+                                const next = { ...exportFormats, [fmt.key]: e.target.checked }
+                                if (!Object.values(next).some(v => v)) return
+                                setExportFormats(next)
+                              }}
+                              className="accent-orange-500 w-3.5 h-3.5" />
+                            <span>
+                              <span className="text-white font-medium">{fmt.label}</span>
+                              <span className="text-zinc-500 ml-1">{fmt.desc}</span>
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                      {Object.values(exportFormats).filter(v => v).length > 1 && (
+                        <p className="text-zinc-500 text-xs mt-2">Multiple formats will download as a .zip file</p>
+                      )}
+                    </div>
                     <div className="bg-red-500/10 border border-red-500/30 rounded-lg px-4 py-3">
                       <p className="text-red-300 text-xs leading-relaxed">
                         <strong>This will use 1 export credit.</strong> Credits are non-refundable. Please double-check your settings before proceeding.
