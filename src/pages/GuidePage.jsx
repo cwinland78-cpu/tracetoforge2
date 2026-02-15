@@ -76,7 +76,7 @@ const TUTORIAL_STEPS = [
       'Cavity Bevel adds a chamfer around the top edge of the cavity for easier tool insertion.',
       'Edge Profile (Tray mode) lets you add a rounded or chamfered edge to the tray itself.',
       'Outer Shape (Tray mode) can be Rectangle, Oval, or a Custom polygon you draw.',
-      'When everything looks right, click "3D Preview & Export" then "Export STL" to download your file.',
+      'When everything looks right, click "3D Preview & Export" then "Export" to choose your formats and download.',
     ],
     tip: 'Pro tip: A 1-2mm cavity bevel makes a big difference in how smoothly the tool drops in.',
   },
@@ -92,8 +92,8 @@ const FAQ_ITEMS = [
     a: 'The core features are free and run entirely in your browser. No account required to get started. Premium features with additional export options are available for power users.',
   },
   {
-    q: 'What file format does it export?',
-    a: 'TracetoForge exports standard STL files that work with every major slicer including Cura, PrusaSlicer, BambuStudio, Creality Print, and OrcaSlicer.',
+    q: 'What file formats does it export?',
+    a: 'TracetoForge exports in 4 formats: STL and 3MF for 3D printing (compatible with Cura, PrusaSlicer, BambuStudio, Creality Print, and OrcaSlicer), SVG for laser cutters and design tools, and DXF for CAD software and CNC routers. Pick one or download all as a zip.',
   },
   {
     q: 'Do I need CAD experience?',
@@ -176,7 +176,7 @@ export default function GuidePage() {
             How to Use <span className="text-brand">TracetoForge</span>
           </h1>
           <p className="text-[#999AAB] text-base max-w-xl mx-auto">
-            From photo to print-ready STL in minutes. Follow this step-by-step guide to create custom tool tray inserts and Gridfinity bins.
+            From photo to print-ready files in minutes. Follow this step-by-step guide to create custom tool tray inserts and Gridfinity bins.
           </p>
         </div>
       </section>

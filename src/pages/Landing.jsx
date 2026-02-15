@@ -22,8 +22,8 @@ const STEPS = [
     icon: Download,
     num: '03',
     title: 'Export & Print',
-    desc: 'Download a print-ready STL file. Load it into your slicer and hit print.',
-    detail: 'Works with any 3D printer and any slicer software.',
+    desc: 'Download STL, 3MF, SVG, or DXF files. Pick one or grab them all as a zip.',
+    detail: 'Works with any 3D printer, laser cutter, or CNC router.',
   },
 ]
 
@@ -260,7 +260,7 @@ export default function Landing() {
           </h1>
 
           <p className="text-base sm:text-lg text-[#9999AD] max-w-2xl mx-auto mb-4 leading-relaxed">
-            Auto-trace any tool. Export a print-ready STL. Gridfinity compatible. 
+            Auto-trace any tool. Export STL, 3MF, SVG, or DXF. Gridfinity compatible. 
             Zero CAD skills required. Just your phone and your printer.
           </p>
 
@@ -367,7 +367,7 @@ export default function Landing() {
               Three Ways to Forge
             </h2>
             <p className="text-[#8888A0] max-w-lg mx-auto">
-              Choose the output that matches your setup. Every mode exports a print-ready STL.
+              Choose the output that matches your setup. Every mode exports STL, 3MF, SVG, and DXF.
             </p>
           </div>
 
@@ -439,7 +439,7 @@ export default function Landing() {
             Works With What You Already Own
           </h2>
           <p className="text-[#8888A0] max-w-lg mx-auto mb-14">
-            Export STL files sized for your exact organizer system. Pick your brand, set your case, and print inserts that fit.
+            Export files sized for your exact organizer system. Pick your brand, set your case, and print, cut, or machine inserts that fit.
           </p>
 
           {/* Tier 1 - Primary Systems */}
@@ -495,18 +495,60 @@ export default function Landing() {
             ))}
           </div>
 
-          {/* Printers & Slicers row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
-            <div className="p-5 rounded-xl bg-surface border border-surface-lighter/40 card-hover">
+          {/* Printers, Slicers, Laser, CNC row */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl mx-auto">
+            <div className="p-5 rounded-xl bg-surface border border-surface-lighter/40 card-hover text-center">
               <Printer size={18} className="text-brand mx-auto mb-2" />
-              <h3 className="font-display font-bold text-sm mb-1">Any 3D Printer</h3>
-              <p className="text-xs text-[#666680] font-mono">FDM, Resin, or SLA</p>
+              <h3 className="font-display font-bold text-xs mb-1">Any 3D Printer</h3>
+              <p className="text-[10px] text-[#666680] font-mono">FDM, Resin, or SLA</p>
             </div>
-            <div className="p-5 rounded-xl bg-surface border border-surface-lighter/40 card-hover">
+            <div className="p-5 rounded-xl bg-surface border border-surface-lighter/40 card-hover text-center">
               <Cpu size={18} className="text-brand mx-auto mb-2" />
-              <h3 className="font-display font-bold text-sm mb-1">Any Slicer</h3>
-              <p className="text-xs text-[#666680] font-mono">Cura, PrusaSlicer, Bambu, OrcaSlicer</p>
+              <h3 className="font-display font-bold text-xs mb-1">Any Slicer</h3>
+              <p className="text-[10px] text-[#666680] font-mono">Cura, PrusaSlicer, OrcaSlicer</p>
             </div>
+            <div className="p-5 rounded-xl bg-surface border border-surface-lighter/40 card-hover text-center">
+              <Wrench size={18} className="text-brand mx-auto mb-2" />
+              <h3 className="font-display font-bold text-xs mb-1">Laser Cutters</h3>
+              <p className="text-[10px] text-[#666680] font-mono">Cut foam or acrylic inserts</p>
+            </div>
+            <div className="p-5 rounded-xl bg-surface border border-surface-lighter/40 card-hover text-center">
+              <Box size={18} className="text-brand mx-auto mb-2" />
+              <h3 className="font-display font-bold text-xs mb-1">CNC Routers</h3>
+              <p className="text-[10px] text-[#666680] font-mono">Mill wood or plastic trays</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="glow-line" />
+
+      {/* Export Formats */}
+      <section className="px-6 py-20 md:py-28">
+        <div className="max-w-5xl mx-auto text-center">
+          <span className="font-mono text-xs text-brand tracking-widest uppercase mb-3 block">Export</span>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-extrabold tracking-tight mb-4">
+            Four Formats. One Click.
+          </h2>
+          <p className="text-[#8888A0] max-w-lg mx-auto mb-14">
+            Every design exports in 4 industry-standard formats. Pick one or download all as a zip.
+          </p>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { ext: 'STL', title: '3D Printing', desc: 'The universal 3D print format. Works with every slicer and every printer.', color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/30' },
+              { ext: '3MF', title: 'Modern 3D Print', desc: 'The next-gen format preferred by Bambu Lab, PrusaSlicer, and OrcaSlicer.', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
+              { ext: 'SVG', title: 'Laser / Vector', desc: 'Scalable vector for laser cutting foam inserts, vinyl cutters, and design tools.', color: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/30' },
+              { ext: 'DXF', title: 'CAD / CNC', desc: 'Industry standard for AutoCAD, Fusion 360, CNC routers, and machining.', color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/30' },
+            ].map(({ ext, title, desc, color, bg, border }, i) => (
+              <div key={i} className={`p-6 rounded-xl bg-surface border ${border} card-hover text-center`}>
+                <div className={`inline-flex items-center justify-center w-14 h-14 rounded-xl ${bg} mb-4`}>
+                  <span className={`font-mono font-black text-lg ${color}`}>.{ext.toLowerCase()}</span>
+                </div>
+                <h3 className="font-display font-bold text-sm mb-2">{title}</h3>
+                <p className="text-xs text-[#666680] leading-relaxed">{desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -539,8 +581,8 @@ export default function Landing() {
             <span className="text-brand">Start forging.</span>
           </h2>
           <p className="text-[#8888A0] mb-8 max-w-md mx-auto">
-            From photo to print-ready STL in under two minutes. 
-            Free to use. No sign-up. No downloads.
+            From photo to print-ready files in under two minutes. 
+            STL, 3MF, SVG, and DXF. No sign-up required.
           </p>
           <button
             onClick={() => navigate('/editor')}
