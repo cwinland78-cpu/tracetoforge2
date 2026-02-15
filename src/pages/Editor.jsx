@@ -598,7 +598,7 @@ export default function Editor() {
       }
       setProcessing(false)
     }, 50)
-  }, [cvReady, simplification, sensitivity])
+  }, [cvReady, simplification, sensitivity, minContourPct])
 
   // Auto re-detect when settings change (after first detection)
   useEffect(() => {
@@ -607,7 +607,7 @@ export default function Editor() {
       runEdgeDetection()
     }, 300)
     return () => clearTimeout(timer)
-  }, [simplification, sensitivity])
+  }, [simplification, sensitivity, minContourPct])
 
   /* ── Canvas Drawing ── */
   const drawCanvas = useCallback(() => {
