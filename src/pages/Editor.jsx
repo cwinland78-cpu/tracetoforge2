@@ -588,6 +588,13 @@ export default function Editor() {
             continue
           }
 
+          // Skip contours that span nearly the full image (border artifacts from crop)
+          const br = cv.boundingRect(contour)
+          if (br.width > img.width * 0.9 && br.height > img.height * 0.9) {
+            contour.delete()
+            continue
+          }
+
           // Simplify contour - scale epsilon with simplification slider
           const epsilon = simplification * 0.002 * cv.arcLength(contour, true)
           const approx = new cv.Mat()
