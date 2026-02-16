@@ -729,7 +729,7 @@ export default function Editor() {
           ctx.moveTo(pts[0].x + imgOffsetX, pts[0].y + imgOffsetY)
           pts.forEach((p, i) => { if (i > 0) ctx.lineTo(p.x + imgOffsetX, p.y + imgOffsetY) })
           ctx.closePath()
-          ctx.strokeStyle = 'rgba(0, 200, 120, 0.25)'
+          ctx.strokeStyle = 'rgba(232, 101, 10, 0.15)'
           ctx.lineWidth = tolerancePx * 2
           ctx.stroke()
         }
