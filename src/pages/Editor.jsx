@@ -66,6 +66,7 @@ export default function Editor() {
   const [searchParams] = useSearchParams()
   const { user, profile, isAuthenticated, refreshProfile, loading } = useAuth()
   const canvasRef = useRef(null)
+  const lastThumbnailRef = useRef(null)
   const imageRef = useRef(null)
   const fileInputRef = useRef(null)
   const containerRef = useRef(null)
@@ -247,7 +248,7 @@ export default function Editor() {
   function captureThumbnail() {
     try {
       const srcCanvas = canvasRef.current
-      if (!srcCanvas || !srcCanvas.width || !srcCanvas.height) return null
+      if (!srcCanvas || !srcCanvas.width || !srcCanvas.height) return lastThumbnailRef.current
       const maxW = 400, maxH = 300
       const scale = Math.min(maxW / srcCanvas.width, maxH / srcCanvas.height, 1)
       const w = Math.round(srcCanvas.width * scale)
@@ -259,10 +260,12 @@ export default function Editor() {
       ctx.fillStyle = '#0D0D12'
       ctx.fillRect(0, 0, w, h)
       ctx.drawImage(srcCanvas, 0, 0, w, h)
-      return tmp.toDataURL('image/jpeg', 0.7)
+      const dataUrl = tmp.toDataURL('image/jpeg', 0.7)
+      lastThumbnailRef.current = dataUrl
+      return dataUrl
     } catch (e) {
       console.warn('Thumbnail capture failed:', e)
-      return null
+      return lastThumbnailRef.current
     }
   }
 
@@ -2042,7 +2045,7 @@ export default function Editor() {
             {/* Actions */}
             {step >= 2 && (
               <div className="space-y-2 pt-2 border-t border-[#2A2A35]/50">
-                <button onClick={() => { setShowPreview(true); setStep(3) }}
+                <button onClick={() => { captureThumbnail(); setShowPreview(true); setStep(3) }}
                   className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-[#1C1C24] hover:bg-[#2A2A35] text-sm font-medium transition-colors border border-[#2A2A35]">
                   <Eye size={15} /> 3D Preview
                 </button>
