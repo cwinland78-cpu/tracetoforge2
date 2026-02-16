@@ -10,6 +10,7 @@ const STEPS = [
     title: 'Snap a Photo',
     desc: 'Place your tool on a sheet of paper. Take a photo with your phone. That\'s it.',
     detail: 'Any contrasting background works. No scanning equipment needed.',
+    image: '/flow-1-photo.jpeg',
   },
   {
     icon: MousePointerClick,
@@ -17,13 +18,23 @@ const STEPS = [
     title: 'Trace & Adjust',
     desc: 'Our edge detection finds the outline automatically. Fine-tune with simple click-and-drag controls.',
     detail: 'Set real-world dimensions, tolerances, and depth with sliders.',
+    image: '/flow-2-trace.png',
+  },
+  {
+    icon: Eye,
+    num: '03',
+    title: '3D Preview',
+    desc: 'See your insert in full 3D before exporting. Verify fit, finger notches, and dimensions.',
+    detail: 'Rotate, zoom, and inspect every detail before printing.',
+    image: '/flow-3-preview.png',
   },
   {
     icon: Download,
-    num: '03',
+    num: '04',
     title: 'Export & Print',
-    desc: 'Download STL, 3MF, SVG, or DXF files. Pick one or grab them all as a zip.',
+    desc: 'Download STL, 3MF, SVG, or DXF files. Slice it and hit print.',
     detail: 'Works with any 3D printer, laser cutter, or CNC router.',
+    image: '/flow-4-print.png',
   },
 ]
 
@@ -325,31 +336,36 @@ export default function Landing() {
 
       {/* How It Works */}
       <section className="px-6 py-20 md:py-28">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <span className="font-mono text-xs text-brand tracking-widest uppercase mb-3 block">Process</span>
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-extrabold tracking-tight">
-              Three Steps. Two Minutes. Done.
+              Four Steps. Two Minutes. Done.
             </h2>
           </div>
 
-          <div className="relative grid md:grid-cols-3 gap-8">
-            {/* Connecting line (desktop) */}
-            <div className="step-line hidden md:block" />
-
-            {STEPS.map(({ icon: Icon, num, title, desc, detail }, i) => (
+          <div className="relative grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            {STEPS.map(({ icon: Icon, num, title, desc, detail, image }, i) => (
               <div key={i} className="relative text-center group">
-                {/* Number circle */}
-                <div className="relative inline-flex items-center justify-center w-[72px] h-[72px] rounded-2xl bg-surface border border-surface-lighter/60 mb-6 group-hover:border-brand/40 transition-colors">
-                  <Icon size={28} className="text-brand" />
-                  <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-brand text-white text-[10px] font-mono font-bold flex items-center justify-center">
+                {/* Image */}
+                <div className="relative rounded-xl overflow-hidden border-2 border-surface-lighter/60 group-hover:border-brand/50 transition-colors mb-4 aspect-[3/4] bg-surface">
+                  <img src={image} alt={title} className="w-full h-full object-cover" />
+                  {/* Step number badge */}
+                  <span className="absolute top-2 left-2 w-7 h-7 rounded-full bg-brand text-white text-xs font-mono font-bold flex items-center justify-center shadow-lg">
                     {num}
                   </span>
                 </div>
 
-                <h3 className="font-display font-bold text-lg mb-2">{title}</h3>
-                <p className="text-sm text-[#BBBBCC] leading-relaxed mb-2">{desc}</p>
-                <p className="text-xs text-[#666680] font-mono">{detail}</p>
+                {/* Arrow between cards (desktop only) */}
+                {i < STEPS.length - 1 && (
+                  <div className="hidden md:flex absolute -right-3 top-1/3 z-10 text-brand">
+                    <ArrowRight size={20} />
+                  </div>
+                )}
+
+                <h3 className="font-display font-bold text-base mb-1">{title}</h3>
+                <p className="text-xs text-[#BBBBCC] leading-relaxed mb-1">{desc}</p>
+                <p className="text-[10px] text-[#666680] font-mono">{detail}</p>
               </div>
             ))}
           </div>
