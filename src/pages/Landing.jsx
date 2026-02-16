@@ -297,43 +297,6 @@ export default function Landing() {
       {/* Divider */}
       <div className="glow-line" />
 
-      {/* Anti-CAD messaging */}
-      <section className="px-6 py-20 md:py-28">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-extrabold tracking-tight mb-4">
-              Built for <span className="text-brand">Makers</span>, Not Engineers
-            </h2>
-            <p className="text-[#8888A0] max-w-xl mx-auto leading-relaxed">
-              You shouldn't need a CAD degree to organize your toolbox.
-              TracetoForge turns anyone with a phone camera into a custom insert designer.
-            </p>
-          </div>
-
-          {/* Pain points grid */}
-          <div className="grid md:grid-cols-2 gap-4">
-            {PAIN_POINTS.map(({ problem, solution }, i) => (
-              <div key={i} className="flex gap-4 p-5 rounded-xl bg-surface border border-surface-lighter/40 card-hover">
-                <div className="flex-shrink-0 mt-0.5">
-                  <div className="w-7 h-7 rounded-full bg-red-500/10 flex items-center justify-center">
-                    <span className="text-red-400 text-xs font-bold font-mono">&#x2715;</span>
-                  </div>
-                </div>
-                <div>
-                  <p className="text-sm text-[#8888A0] mb-2 line-through decoration-[#555]/50">{problem}</p>
-                  <p className="text-sm text-[#CCCCDD] font-medium flex items-start gap-2">
-                    <span className="text-brand flex-shrink-0 mt-0.5">&rarr;</span>
-                    {solution}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <div className="glow-line" />
-
       {/* How It Works */}
       <section className="px-6 py-20 md:py-28">
         <div className="max-w-6xl mx-auto">
@@ -366,6 +329,43 @@ export default function Landing() {
                 <h3 className="font-display font-bold text-base mb-1">{title}</h3>
                 <p className="text-xs text-[#BBBBCC] leading-relaxed mb-1">{desc}</p>
                 <p className="text-[10px] text-[#666680] font-mono">{detail}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <div className="glow-line" />
+
+      {/* Anti-CAD messaging */}
+      <section className="px-6 py-20 md:py-28">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-extrabold tracking-tight mb-4">
+              Built for <span className="text-brand">Makers</span>, Not Engineers
+            </h2>
+            <p className="text-[#8888A0] max-w-xl mx-auto leading-relaxed">
+              You shouldn't need a CAD degree to organize your toolbox.
+              TracetoForge turns anyone with a phone camera into a custom insert designer.
+            </p>
+          </div>
+
+          {/* Pain points grid */}
+          <div className="grid md:grid-cols-2 gap-4">
+            {PAIN_POINTS.map(({ problem, solution }, i) => (
+              <div key={i} className="flex gap-4 p-5 rounded-xl bg-surface border border-surface-lighter/40 card-hover">
+                <div className="flex-shrink-0 mt-0.5">
+                  <div className="w-7 h-7 rounded-full bg-red-500/10 flex items-center justify-center">
+                    <span className="text-red-400 text-xs font-bold font-mono">&#x2715;</span>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm text-[#8888A0] mb-2 line-through decoration-[#555]/50">{problem}</p>
+                  <p className="text-sm text-[#CCCCDD] font-medium flex items-start gap-2">
+                    <span className="text-brand flex-shrink-0 mt-0.5">&rarr;</span>
+                    {solution}
+                  </p>
+                </div>
               </div>
             ))}
           </div>
