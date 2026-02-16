@@ -1452,7 +1452,7 @@ export default function Editor() {
           <div className="p-4 pb-32 space-y-5">
 
             {/* Crop */}
-            {step >= 1 && step < 2 && (
+            {step >= 1 && (
               <div>
                 <h3 className="text-xs font-semibold text-[#8888A0] uppercase tracking-wider mb-3">Crop</h3>
                 {!isCropping ? (
