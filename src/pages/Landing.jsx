@@ -294,11 +294,8 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Divider */}
-      <div className="glow-line" />
-
       {/* How It Works */}
-      <section className="px-6 py-20 md:py-28">
+      <section className="px-6 py-10 md:py-16">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <span className="font-mono text-xs text-brand tracking-widest uppercase mb-3 block">Process</span>
