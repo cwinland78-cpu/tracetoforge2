@@ -1701,7 +1701,7 @@ export default function Editor() {
                       <ParamRow label="Rotate" tooltip="Rotate tool cavity in degrees.">
                         <input type="number" value={activeToolIdx === -1 ? toolRotation : (tools[activeToolIdx]?.toolRotation || 0)}
                           onChange={e => activeToolIdx === -1 ? setToolRotation(+e.target.value) : updateTool(activeToolIdx, 'toolRotation', +e.target.value)}
-                          className="w-[4.5rem] text-right" step="2" />
+                          className="w-[4.5rem] text-right" step="0.5" />
                         <span className="text-xs text-[#8888A0] w-7">°</span>
                       </ParamRow>
                     </>
@@ -1918,11 +1918,11 @@ export default function Editor() {
                         <h4 className="text-[11px] font-semibold text-brand/80 uppercase tracking-wider mb-3">Gridfinity</h4>
                       </div>
                       <ParamRow label="Grid X" tooltip="Grid units wide (42mm each).">
-                        <input type="number" value={gridX} onChange={e => setGridX(+e.target.value)} className="w-[4.5rem] text-right" min="1" max="6" />
+                        <input type="number" value={gridX} onChange={e => setGridX(+e.target.value)} className="w-[4.5rem] text-right" min="1" max="16" />
                         <span className="text-xs text-[#8888A0] w-7">units</span>
                       </ParamRow>
                       <ParamRow label="Grid Y" tooltip="Grid units deep (42mm each).">
-                        <input type="number" value={gridY} onChange={e => setGridY(+e.target.value)} className="w-[4.5rem] text-right" min="1" max="6" />
+                        <input type="number" value={gridY} onChange={e => setGridY(+e.target.value)} className="w-[4.5rem] text-right" min="1" max="16" />
                         <span className="text-xs text-[#8888A0] w-7">units</span>
                       </ParamRow>
                       <ParamRow label="Height" tooltip="Wall height in mm (excludes the 4.75mm base)." tooltipPos="above">
