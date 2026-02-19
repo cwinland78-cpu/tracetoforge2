@@ -568,6 +568,130 @@ export default function Landing() {
 
       <div className="glow-line" />
 
+      {/* Pricing */}
+      <section className="px-6 py-20 md:py-28">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <span className="font-mono text-xs text-brand tracking-widest uppercase mb-3 block">Pricing</span>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-extrabold tracking-tight mb-4">
+              Simple. No Subscription.
+            </h2>
+            <p className="text-[#8888A0] max-w-lg mx-auto">
+              Start free. Pay only when you're ready to export. Credits never expire.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-5">
+            {/* Free tier */}
+            <div className="p-7 rounded-2xl bg-surface border border-surface-lighter/40 card-hover flex flex-col">
+              <div className="mb-5">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-green-500/10 text-green-400 text-[10px] font-mono font-semibold uppercase tracking-wider mb-4">
+                  Free to Start
+                </span>
+                <div className="flex items-end gap-2 mb-1">
+                  <span className="text-4xl font-display font-black">$0</span>
+                </div>
+                <p className="text-xs text-[#666680] font-mono">No credit card required</p>
+              </div>
+              <ul className="space-y-2.5 mb-8 flex-1">
+                {[
+                  '3 free export credits on signup',
+                  'Full editor access',
+                  'All 3 output modes',
+                  'STL, 3MF, SVG & DXF',
+                  'Unlimited tracing & previewing',
+                ].map((item, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-[#BBBBCC]">
+                    <span className="text-green-400 mt-0.5 flex-shrink-0">&#10003;</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <button
+                onClick={() => navigate('/login')}
+                className="w-full py-3 rounded-lg border border-surface-lighter/60 text-sm font-semibold text-[#CCCCDD] hover:border-brand/40 hover:text-white transition-all"
+              >
+                Create Free Account
+              </button>
+            </div>
+
+            {/* Starter pack */}
+            <div className="p-7 rounded-2xl bg-surface border border-surface-lighter/40 card-hover flex flex-col">
+              <div className="mb-5">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-brand/10 text-brand text-[10px] font-mono font-semibold uppercase tracking-wider mb-4">
+                  Starter Pack
+                </span>
+                <div className="flex items-end gap-2 mb-1">
+                  <span className="text-4xl font-display font-black">$9.99</span>
+                </div>
+                <p className="text-xs text-[#666680] font-mono">5 export credits &bull; $2.00 per export</p>
+              </div>
+              <ul className="space-y-2.5 mb-8 flex-1">
+                {[
+                  '5 export credits',
+                  'Credits never expire',
+                  'All output modes & formats',
+                  'Priority support',
+                ].map((item, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-[#BBBBCC]">
+                    <span className="text-brand mt-0.5 flex-shrink-0">&#10003;</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <button
+                onClick={() => navigate('/editor')}
+                className="w-full py-3 rounded-lg border border-brand/40 text-sm font-semibold text-brand hover:bg-brand/10 transition-all"
+              >
+                Get Started
+              </button>
+            </div>
+
+            {/* Pro pack - highlighted */}
+            <div className="relative p-7 rounded-2xl bg-brand/5 border border-brand/30 card-hover flex flex-col">
+              <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] font-bold uppercase tracking-widest bg-brand text-white px-3 py-1 rounded-full">
+                Best Value
+              </span>
+              <div className="mb-5">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-brand/10 text-brand text-[10px] font-mono font-semibold uppercase tracking-wider mb-4">
+                  Pro Pack
+                </span>
+                <div className="flex items-end gap-2 mb-1">
+                  <span className="text-4xl font-display font-black">$34.99</span>
+                </div>
+                <p className="text-xs text-[#666680] font-mono">20 export credits &bull; $1.75 per export</p>
+              </div>
+              <ul className="space-y-2.5 mb-8 flex-1">
+                {[
+                  '20 export credits',
+                  'Credits never expire',
+                  'All output modes & formats',
+                  'Priority support',
+                  'Best price per export',
+                ].map((item, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-[#BBBBCC]">
+                    <span className="text-brand mt-0.5 flex-shrink-0">&#10003;</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <button
+                onClick={() => navigate('/editor')}
+                className="w-full py-3 rounded-xl bg-brand hover:bg-brand-light text-white text-sm font-bold transition-all shadow-lg shadow-brand/20"
+              >
+                Get 20 Credits
+              </button>
+            </div>
+          </div>
+
+          <p className="text-center text-xs text-[#555568] font-mono mt-6">
+            Tracing and previewing are always free. You only use a credit when you export a file.
+          </p>
+        </div>
+      </section>
+
+      <div className="glow-line" />
+
       {/* Privacy / Trust */}
       <section className="px-6 py-16">
         <div className="max-w-3xl mx-auto">
