@@ -1,6 +1,8 @@
 import { Purchases } from '@revenuecat/purchases-js';
 import { callRpc, queryTable } from './supabase';
 
+const SUPABASE_URL = 'https://pzmykycxmbzbrzkyotkc.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6bXlreWN4bWJ6YnJ6a3lvdGtjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA1NjUxNjYsImV4cCI6MjA4NjE0MTE2Nn0.382YBaplfZJVl_ngKbGSpEPm1w3urlrxYAQFzRJW3z0';
 const RC_API_KEY = import.meta.env.VITE_RC_API_KEY || 'rcb_qocDHLqCasYLKEOvPuyDacOrCFOt';
 const CREDITS_KEY = 'ttf_credits';
 const CUSTOMER_ID_KEY = 'ttf_customer_id';
@@ -51,11 +53,17 @@ export async function purchasePackage(pkg, userId) {
     const purchases = await initPurchases(userId);
     if (!purchases) throw new Error('RevenueCat not initialized');
     const result = await purchases.purchase({ rcPackage: pkg });
-    // Credits are added server-side via webhook - no client-side addition needed
     const productId = pkg.rcBillingProduct?.identifier || pkg.identifier || '';
     let creditsToAdd = 0;
     if (productId.includes('20')) creditsToAdd = 20;
     else if (productId.includes('5')) creditsToAdd = 5;
+    // Grant credits client-side since webhook is not yet set up
+    if (creditsToAdd > 0 && userId) {
+      await addCredits(creditsToAdd, userId, 'purchase', { product_id: productId });
+    } else if (creditsToAdd > 0) {
+      const current = (parseInt(localStorage.getItem(CREDITS_KEY) || '0', 10) || 0) + creditsToAdd;
+      localStorage.setItem(CREDITS_KEY, String(current));
+    }
     return { success: true, credits: creditsToAdd, result };
   } catch (err) {
     if (err.errorCode === 1) return { success: false, cancelled: true };

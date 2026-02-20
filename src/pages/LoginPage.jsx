@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../components/AuthContext'
+import { supabase } from '../lib/supabase'
 
 export default function LoginPage() {
   const [mode, setMode] = useState('login') // login | signup | forgot
@@ -10,8 +11,19 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showResend, setShowResend] = useState(false)
   const { signIn, signUp, resetPassword } = useAuth()
   const navigate = useNavigate()
+
+  async function handleResendConfirmation() {
+    try {
+      const { error } = await supabase.auth.resend({ type: 'signup', email })
+      if (error) throw error
+      setSuccess('Confirmation email resent! Check your inbox and spam folder.')
+    } catch (err) {
+      setError(err.message || 'Failed to resend confirmation email')
+    }
+  }
 
   async function handleSubmit(e) {
     e?.preventDefault?.()
@@ -33,7 +45,8 @@ export default function LoginPage() {
         if (data?.user?.identities?.length === 0) {
           setError('An account with this email already exists')
         } else if (data?.user && !data?.session) {
-          setSuccess('Check your email for a confirmation link!')
+          setSuccess('Check your email for a confirmation link! If you don\'t see it, check spam or click Resend below.')
+          setShowResend(true)
         } else {
           navigate('/editor')
         }
@@ -76,6 +89,14 @@ export default function LoginPage() {
           {success && (
             <div className="bg-green-500/20 border border-green-500/50 text-green-300 px-4 py-3 rounded-lg mb-4 text-sm">
               {success}
+              {showResend && (
+                <button
+                  onClick={handleResendConfirmation}
+                  className="block mt-2 text-orange-400 hover:text-orange-300 underline underline-offset-2 text-xs"
+                >
+                  Resend confirmation email
+                </button>
+              )}
             </div>
           )}
 
