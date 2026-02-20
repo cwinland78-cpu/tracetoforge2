@@ -6,7 +6,6 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const RC_API_KEY = import.meta.env.VITE_RC_API_KEY || 'rcb_qocDHLqCasYLKEOvPuyDacOrCFOt';
 const CREDITS_KEY = 'ttf_credits';
 const CUSTOMER_ID_KEY = 'ttf_customer_id';
-const REDEEMED_PROMOS_KEY = 'ttf_redeemed_promos';
 
 let purchasesInstance = null;
 let currentCustomerId = null;
@@ -115,38 +114,11 @@ export function hasCredits() {
   return !isNaN(val) && val > 0;
 }
 
-function getRedeemedPromosLocal() {
-  try { return JSON.parse(localStorage.getItem(REDEEMED_PROMOS_KEY) || '[]'); }
-  catch { return []; }
-}
-
-const PROMO_CODES = {
-  JOELOVESTOM: { credits: 5, description: '5 free exports' },
-  TESTER999: { credits: 5, description: '5 free exports' },
-  KILLALUKE99: { credits: 99, description: '99 free exports' },
-  UNCLEJESSY: { credits: 20, description: '20 free exports', maxRedemptions: 1 },
-};
-
 export async function redeemPromoCode(code, userId) {
   const normalized = code.trim().toUpperCase();
   if (!normalized) return { success: false, error: 'Please enter a promo code' };
 
-  const promo = PROMO_CODES[normalized];
-  if (!promo) return { success: false, error: 'Invalid promo code' };
-
-  // Check global redemption limit (e.g. 1-time codes)
-  if (promo.maxRedemptions) {
-    try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/credit_transactions?select=id&type=eq.promo&metadata->>code=eq.${normalized}`, {
-        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
-      });
-      const existing = await res.json();
-      if (existing.length >= promo.maxRedemptions) {
-        return { success: false, error: 'This code has already been claimed' };
-      }
-    } catch (e) { console.error('Max redemption check failed:', e); }
-  }
-
+  // Logged-in users: validate entirely server-side
   if (userId) {
     const { data, error } = await callRpc('redeem_promo', {
       p_user_id: userId, p_code: normalized,
@@ -155,10 +127,6 @@ export async function redeemPromoCode(code, userId) {
     return data;
   }
 
-  const redeemed = getRedeemedPromosLocal();
-  if (redeemed.includes(normalized)) return { success: false, error: 'This code has already been redeemed' };
-  const newTotal = await addCredits(promo.credits, null);
-  redeemed.push(normalized);
-  localStorage.setItem(REDEEMED_PROMOS_KEY, JSON.stringify(redeemed));
-  return { success: true, credits: promo.credits, total: newTotal, description: promo.description };
+  // Guest users: must log in to redeem promos
+  return { success: false, error: 'Please create an account to redeem promo codes' };
 }

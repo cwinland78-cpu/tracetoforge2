@@ -311,17 +311,6 @@ export default function Editor() {
   }
 
   // Export with disclaimer
-  function handleExportClick() {
-    const pts = contours[selectedContour]
-    if (!pts || pts.length < 3) return
-    if (credits <= 0) {
-      if (!isAuthenticated) { navigate('/login'); return }
-      setShowPaywall(true)
-      return
-    }
-    setShowDisclaimer(true)
-  }
-
   async function handleConfirmExport() {
     setShowDisclaimer(false)
     const pts = contours[selectedContour]
@@ -334,13 +323,20 @@ export default function Editor() {
     if (selectedFormats.length === 0) return
 
     try {
-      // Deduct credit server-side first (for logged-in users)
+      // Deduct credit first (server-side for logged-in, localStorage for guest)
       if (user?.id) {
         const spent = await useCredit(user.id, { outputMode })
         if (!spent) {
           setShowPaywall(true)
           return
         }
+      } else {
+        const spent = await useCredit(null, { outputMode })
+        if (!spent) {
+          navigate('/login')
+          return
+        }
+        setCredits(prev => Math.max(0, prev - 1))
       }
 
       const timestamp = Date.now()
@@ -409,13 +405,9 @@ export default function Editor() {
         setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url) }, 200)
       }
 
-      // Update local credit display
+      // Update local credit display for logged-in users
       if (user?.id) {
         getCredits(user.id).then(c => setCredits(c))
-      } else {
-        // Anonymous: localStorage fallback
-        useCredit(null, { outputMode })
-        setCredits(prev => Math.max(0, prev - 1))
       }
     } catch (err) {
       console.error('Export error:', err)
