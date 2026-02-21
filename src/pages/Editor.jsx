@@ -646,17 +646,17 @@ export default function Editor() {
 
     // Resolve active tool's image and contours
     const activeTool = activeToolIdx >= 0 ? tools[activeToolIdx] : null
-    const activeImg = activeTool?.imageEl || imageRef.current
-    const activeContours = activeTool ? activeTool.contours : contours
-    const activeSelectedContour = activeTool ? activeTool.selectedContour : selectedContour
+    const activeImg = activeTool ? activeTool.imageEl : imageRef.current
+    const activeContours = activeTool ? (activeTool.contours || []) : contours
+    const activeSelectedContour = activeTool ? (activeTool.selectedContour || 0) : selectedContour
 
-    if (!canvas || !activeImg) return
+    if (!canvas || !activeImg || !activeImg.naturalWidth) return
     const ctx = canvas.getContext('2d')
     const img = activeImg
 
     // Calculate canvas size: expand if outer shape extends beyond image
-    let canvasW = img.width
-    let canvasH = img.height
+    let canvasW = img.naturalWidth || img.width
+    let canvasH = img.naturalHeight || img.height
     let imgOffsetX = 0
     let imgOffsetY = 0
 
