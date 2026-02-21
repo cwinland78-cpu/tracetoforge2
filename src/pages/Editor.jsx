@@ -787,9 +787,10 @@ export default function Editor() {
         pts.forEach((p, pi) => {
           const hov = hoveredPoint === pi
           const drag = draggingPoint === pi
+          if (drag) return // hide dot while dragging
           ctx.beginPath()
-          ctx.arc(p.x + imgOffsetX, p.y + imgOffsetY, drag ? 5 : hov ? 4 : 3, 0, Math.PI * 2)
-          ctx.fillStyle = drag ? '#FF8534' : hov ? '#E8650A' : '#E8650Acc'
+          ctx.arc(p.x + imgOffsetX, p.y + imgOffsetY, hov ? 4 : 3, 0, Math.PI * 2)
+          ctx.fillStyle = hov ? '#E8650A' : '#E8650Acc'
           ctx.fill()
           ctx.strokeStyle = '#fff'
           ctx.lineWidth = 1.5
@@ -869,9 +870,10 @@ export default function Editor() {
           const py = cy - p.y * scale
           const hov = hoveredOuterPoint === pi
           const drag = draggingOuterPoint === pi
+          if (drag) return // hide dot while dragging
           ctx.beginPath()
-          ctx.arc(px, py, drag ? 5 : hov ? 4 : 3, 0, Math.PI * 2)
-          ctx.fillStyle = drag ? '#66AAFF' : hov ? '#4488FF' : '#4488FFcc'
+          ctx.arc(px, py, hov ? 4 : 3, 0, Math.PI * 2)
+          ctx.fillStyle = hov ? '#4488FF' : '#4488FFcc'
           ctx.fill()
           ctx.strokeStyle = '#fff'
           ctx.lineWidth = 1.5
