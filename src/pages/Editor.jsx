@@ -1584,7 +1584,7 @@ export default function Editor() {
           <div className="p-4 pb-32 space-y-5">
 
             {/* Tool selector tabs - at top of sidebar */}
-            {step >= 2 && outputMode !== 'object' && tools.length > 0 && (
+            {step >= 2 && outputMode !== 'object' && (
               <div>
                 <h3 className="text-xs font-semibold text-[#8888A0] uppercase tracking-wider mb-2">Tools</h3>
                 <div className="flex flex-wrap gap-1">
