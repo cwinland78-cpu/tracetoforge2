@@ -1349,7 +1349,9 @@ function createGridfinityInsert(points, config) {
 
   // ─── Stacking lip - perimeter ring on top of walls ───
   // 1.9mm thick ring matching outer wall profile exactly
-  const lipHeight = GF.lipVertical + GF.lipSlope  // ~4.4mm
+  // Extra 1.5mm added for better stacking grip
+  const lipExtra = 1.5
+  const lipHeight = GF.lipVertical + GF.lipSlope + lipExtra  // ~3.7 + 1.5 = 5.2mm
   const lipThick = 1.9  // Gridfinity spec
   const lipOuter = createRoundedRectShape(binW, binH, GF.cornerRadius)
   const lipInnerW = binW - lipThick * 2
