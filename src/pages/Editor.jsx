@@ -238,6 +238,17 @@ export default function Editor() {
         setTools(restoredTools)
         if (cfg.activeToolIdx != null) setActiveToolIdx(cfg.activeToolIdx)
       }
+      // Restore image for the primary/active tool
+      if (cfg.image) {
+        setImage(cfg.image)
+        if (cfg.imageSize) setImageSize(cfg.imageSize)
+        const img = new Image()
+        img.onload = () => {
+          imageRef.current = img
+          setZoom(0.4)
+        }
+        img.src = cfg.image
+      }
       if (cfg.step != null) setStep(cfg.step)
       if (cfg.edgeProfile) setEdgeProfile(cfg.edgeProfile)
       if (cfg.edgeSize != null) setEdgeSize(cfg.edgeSize)
@@ -250,17 +261,6 @@ export default function Editor() {
       if (cfg.simplification) setSimplification(cfg.simplification)
       if (cfg.sensitivity) setSensitivity(cfg.sensitivity)
       if (cfg.minContourPct != null) setMinContourPct(cfg.minContourPct)
-      // Restore image
-      if (cfg.image) {
-        setImage(cfg.image)
-        if (cfg.imageSize) setImageSize(cfg.imageSize)
-        const img = new Image()
-        img.onload = () => {
-          imageRef.current = img
-          setZoom(0.4)
-        }
-        img.src = cfg.image
-      }
     } catch (err) { console.error('Error loading project:', err) }
   }
 
