@@ -2369,7 +2369,7 @@ export default function Editor() {
                       transform: `scale(${zoom})`,
                       transformOrigin: 'top center',
                       cursor: isCropping ? 'crosshair' : editMode === 'edit'
-                        ? draggingPoint !== null ? 'grabbing' : hoveredPoint !== null ? 'grab' : 'crosshair'
+                        ? `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Ccircle cx='8' cy='8' r='3' fill='%23ff6600' stroke='white' stroke-width='1.5'/%3E%3C/svg%3E") 8 8, crosshair`
                         : 'default',
                     }}
                     onMouseDown={handleCanvasMouseDown}
