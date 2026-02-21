@@ -117,6 +117,14 @@ export default function ThreePreview({ contourPoints, config, onToolDrag, onNotc
     maxDimRef.current = maxDim
     centerRef.current.copy(center)
 
+    // Grid on the floor for alignment reference
+    const gridSize = Math.ceil(maxDim * 1.5 / 10) * 10
+    const gridDivisions = Math.round(gridSize / 10)
+    const grid = new THREE.GridHelper(gridSize, gridDivisions, 0x444455, 0x222233)
+    grid.rotation.x = Math.PI / 2  // rotate to XY plane (Z-up)
+    grid.position.set(center.x, center.y, box.min.z - 0.5)
+    scene.add(grid)
+
     if (prevControls) prevControls.dispose()
     const controls = new OrbitControls(camera, rendererRef.current.domElement)
     controls.enableDamping = true; controls.dampingFactor = 0.12
