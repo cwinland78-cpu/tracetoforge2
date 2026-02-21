@@ -812,7 +812,8 @@ function createCustomInsert(points, config) {
   try {
     const brandGeo = createBrandGeometry(trayWidth, trayHeight, actualBaseDepth, 2)
     if (brandGeo) {
-      const brandMesh = new THREE.Mesh(brandGeo, trayMat)
+      const brandMat = new THREE.MeshPhongMaterial({ color: 0x6a6a7a, side: THREE.DoubleSide })
+      const brandMesh = new THREE.Mesh(brandGeo, brandMat)
       group.add(brandMesh)
     }
   } catch (e) { /* branding is non-critical */ }
@@ -1486,7 +1487,8 @@ function createGridfinityInsert(points, config) {
   try {
     const brandGeo = createBrandGeometry(binW, binH, GF.baseHeight + floorZ, 2)
     if (brandGeo) {
-      const brandMesh = new THREE.Mesh(brandGeo, trayMat)
+      const brandMat = new THREE.MeshPhongMaterial({ color: 0x6a6a7a, side: THREE.DoubleSide })
+      const brandMesh = new THREE.Mesh(brandGeo, brandMat)
       group.add(brandMesh)
     }
   } catch (e) { /* branding is non-critical */ }
