@@ -643,16 +643,9 @@ export default function Editor() {
   /* ── Canvas Drawing ── */
   const drawCanvas = useCallback(() => {
     const canvas = canvasRef.current
-
-    // Resolve active tool's image and contours
-    const activeTool = activeToolIdx >= 0 ? tools[activeToolIdx] : null
-    const activeImg = activeTool ? activeTool.imageEl : imageRef.current
-    const activeContours = activeTool ? (activeTool.contours || []) : contours
-    const activeSelectedContour = activeTool ? (activeTool.selectedContour || 0) : selectedContour
-
-    if (!canvas || !activeImg || !activeImg.naturalWidth) return
+    if (!canvas || !imageRef.current) return
     const ctx = canvas.getContext('2d')
-    const img = activeImg
+    const img = imageRef.current
 
     // Calculate canvas size: expand if outer shape extends beyond image
     let canvasW = img.naturalWidth || img.width
@@ -660,8 +653,8 @@ export default function Editor() {
     let imgOffsetX = 0
     let imgOffsetY = 0
 
-    if (editingOuter && outerShapePoints && outerShapePoints.length >= 3 && activeContours[activeSelectedContour]) {
-      const pts = activeContours[activeSelectedContour]
+    if (editingOuter && outerShapePoints && outerShapePoints.length >= 3 && contours[selectedContour]) {
+      const pts = contours[selectedContour]
       const bounds = pts.reduce(
         (acc, p) => ({ minX: Math.min(acc.minX, p.x), maxX: Math.max(acc.maxX, p.x), minY: Math.min(acc.minY, p.y), maxY: Math.max(acc.maxY, p.y) }),
         { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity }
@@ -712,9 +705,9 @@ export default function Editor() {
 
     ctx.drawImage(img, imgOffsetX, imgOffsetY)
 
-    activeContours.forEach((pts, ci) => {
+    contours.forEach((pts, ci) => {
       if (pts.length < 2) return
-      const isSel = ci === activeSelectedContour
+      const isSel = ci === selectedContour
 
       // Draw tolerance zone for selected contour (green band around the outline)
       if (isSel && tolerance > 0 && realWidth > 0 && pts.length >= 3) {
@@ -766,7 +759,7 @@ export default function Editor() {
     // Draw outer shape overlay when editing
     if (editingOuter && outerShapePoints && outerShapePoints.length >= 3) {
       // Convert mm outer points to pixel space for overlay
-      const pts = activeContours[activeSelectedContour]
+      const pts = contours[selectedContour]
       if (pts && pts.length >= 3) {
         const bounds = pts.reduce(
           (acc, p) => ({ minX: Math.min(acc.minX, p.x), maxX: Math.max(acc.maxX, p.x), minY: Math.min(acc.minY, p.y), maxY: Math.max(acc.maxY, p.y) }),
@@ -860,8 +853,8 @@ export default function Editor() {
     }
 
     // ─── Dimension measurement overlay ───
-    if (step >= 2 && activeContours[activeSelectedContour] && realWidth > 0 && realHeight > 0) {
-      const pts = activeContours[activeSelectedContour]
+    if (step >= 2 && contours[selectedContour] && realWidth > 0 && realHeight > 0) {
+      const pts = contours[selectedContour]
       const bounds = pts.reduce(
         (acc, p) => ({ minX: Math.min(acc.minX, p.x), maxX: Math.max(acc.maxX, p.x), minY: Math.min(acc.minY, p.y), maxY: Math.max(acc.maxY, p.y) }),
         { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity }
@@ -970,7 +963,7 @@ export default function Editor() {
     }
 
     ctx.restore()
-  }, [image, zoom, contours, selectedContour, editMode, hoveredPoint, draggingPoint, editingOuter, outerShapePoints, hoveredOuterPoint, draggingOuterPoint, realWidth, realHeight, tolerance, step, isCropping, cropRect, activeToolIdx, tools])
+  }, [image, zoom, contours, selectedContour, editMode, hoveredPoint, draggingPoint, editingOuter, outerShapePoints, hoveredOuterPoint, draggingOuterPoint, realWidth, realHeight, tolerance, step, isCropping, cropRect])
 
   useEffect(() => { drawCanvas() }, [drawCanvas])
 
@@ -1294,27 +1287,98 @@ export default function Editor() {
     return pts.map(p => ({ x: p.x * (w / pw), y: p.y * (h / ph) }))
   }
 
+  // Save current top-level state into a tool object
+  const saveCurrentToolState = useCallback(() => ({
+    image, imageSize, imageEl: imageRef.current,
+    contours, selectedContour,
+    realWidth, realHeight, toolDepth, tolerance,
+    toolOffsetX, toolOffsetY, toolRotation, cavityBevel,
+    sensitivity, simplification, minContourPct,
+    step: Math.max(step, 0),
+  }), [image, imageSize, contours, selectedContour, realWidth, realHeight, toolDepth, tolerance, toolOffsetX, toolOffsetY, toolRotation, cavityBevel, sensitivity, simplification, minContourPct, step])
+
+  // Restore a tool object into top-level state
+  const restoreToolState = useCallback((t) => {
+    setImage(t.image || null)
+    setImageSize(t.imageSize || { w: 0, h: 0 })
+    imageRef.current = t.imageEl || null
+    setContours(t.contours || [])
+    setSelectedContour(t.selectedContour || 0)
+    setRealWidth(t.realWidth ?? 100)
+    setRealHeight(t.realHeight ?? 100)
+    setToolDepth(t.toolDepth ?? 25)
+    setTolerance(t.tolerance ?? 1.5)
+    setToolOffsetX(t.toolOffsetX ?? 0)
+    setToolOffsetY(t.toolOffsetY ?? 0)
+    setToolRotation(t.toolRotation ?? 0)
+    setCavityBevel(t.cavityBevel ?? 0)
+    setSensitivity(t.sensitivity ?? 6)
+    setSimplification(t.simplification ?? 0.5)
+    setMinContourPct(t.minContourPct ?? 0.05)
+    setStep(t.step ?? 0)
+  }, [])
+
+  // Switch active tool - save current, restore target
+  const switchTool = useCallback((targetIdx) => {
+    if (targetIdx === activeToolIdx) return
+    const currentState = saveCurrentToolState()
+    // Save current tool state back into tools array
+    setTools(prev => {
+      const updated = [...prev]
+      if (activeToolIdx === -1) {
+        // Save to tool 0 (primary)
+        updated[0] = { ...updated[0], ...currentState, name: updated[0]?.name || 'Tool 1' }
+      } else if (activeToolIdx >= 0 && activeToolIdx < prev.length) {
+        updated[activeToolIdx] = { ...updated[activeToolIdx], ...currentState }
+      }
+      return updated
+    })
+    // Restore target tool state
+    setTools(prev => {
+      const targetTool = targetIdx === -1 ? prev[0] : prev[targetIdx]
+      if (targetTool) {
+        // Use setTimeout to batch with setActiveToolIdx
+        setTimeout(() => restoreToolState(targetTool), 0)
+      }
+      return prev
+    })
+    setActiveToolIdx(targetIdx)
+  }, [activeToolIdx, saveCurrentToolState, restoreToolState])
+
   const addTool = () => {
-    setTools(prev => [...prev, {
-      name: `Tool ${prev.length + 2}`,
-      contours: [],
-      selectedContour: 0,
-      image: null,
-      realWidth: 100,
-      realHeight: 100,
-      toolDepth: 25,
-      tolerance: 1.5,
-      toolOffsetX: 0,
-      toolOffsetY: 0,
-      toolRotation: 0,
-      cavityBevel: 0,
-    }])
+    // If this is the first add, save primary tool as tools[0]
+    if (tools.length === 0) {
+      const primaryState = saveCurrentToolState()
+      setTools([
+        { ...primaryState, name: 'Tool 1' },
+        {
+          name: 'Tool 2',
+          contours: [], selectedContour: 0,
+          image: null, imageSize: { w: 0, h: 0 }, imageEl: null,
+          realWidth: 100, realHeight: 100, toolDepth: 25, tolerance: 1.5,
+          toolOffsetX: 0, toolOffsetY: 0, toolRotation: 0, cavityBevel: 0,
+          sensitivity: 6, simplification: 0.5, minContourPct: 0.05, step: 0,
+        }
+      ])
+    } else {
+      setTools(prev => [...prev, {
+        name: `Tool ${prev.length + 1}`,
+        contours: [], selectedContour: 0,
+        image: null, imageSize: { w: 0, h: 0 }, imageEl: null,
+        realWidth: 100, realHeight: 100, toolDepth: 25, tolerance: 1.5,
+        toolOffsetX: 0, toolOffsetY: 0, toolRotation: 0, cavityBevel: 0,
+        sensitivity: 6, simplification: 0.5, minContourPct: 0.05, step: 0,
+      }])
+    }
   }
 
   const removeTool = (idx) => {
+    if (activeToolIdx === idx) {
+      // Switch to tool 1 first, then remove
+      switchTool(-1)
+    }
     setTools(prev => prev.filter((_, i) => i !== idx))
-    if (activeToolIdx === idx) setActiveToolIdx(-1)
-    else if (activeToolIdx > idx) setActiveToolIdx(activeToolIdx - 1)
+    if (activeToolIdx > idx) setActiveToolIdx(activeToolIdx - 1)
   }
 
   const updateTool = (idx, key, val) => {
@@ -1335,10 +1399,20 @@ export default function Editor() {
   }
 
   const buildConfig = () => {
-    const base = { mode: outputMode, depth: outputMode === 'object' ? depth : toolDepth, tolerance, realWidth, toolDepth, toolOffsetX, toolOffsetY, toolRotation, objectEdgeRadius }
+    // Tool 0's values for the primary cavity
+    const t0 = (activeToolIdx === -1 || activeToolIdx === 0)
+      ? { toolDepth, tolerance, realWidth, toolOffsetX, toolOffsetY, toolRotation, cavityBevel }
+      : (tools[0] || { toolDepth, tolerance, realWidth, toolOffsetX, toolOffsetY, toolRotation, cavityBevel })
+    const base = { mode: outputMode, depth: outputMode === 'object' ? depth : t0.toolDepth, tolerance: t0.tolerance, realWidth: t0.realWidth, toolDepth: t0.toolDepth, toolOffsetX: t0.toolOffsetX, toolOffsetY: t0.toolOffsetY, toolRotation: t0.toolRotation, objectEdgeRadius }
 
-    // Build additional tools array
-    const additionalTools = tools.filter(t => t.contours[t.selectedContour] && t.contours[t.selectedContour].length >= 3).map(t => ({
+    // Build additional tools array from all tools except tool 0
+    const allTools = tools.map((t, i) => {
+      if ((activeToolIdx === -1 && i === 0) || i === activeToolIdx) {
+        return { contours, selectedContour, realWidth, realHeight, toolDepth, tolerance, toolOffsetX, toolOffsetY, toolRotation, cavityBevel }
+      }
+      return t
+    })
+    const additionalTools = allTools.slice(1).filter(t => t.contours[t.selectedContour] && t.contours[t.selectedContour].length >= 3).map(t => ({
       points: scaleToolPoints(t.contours[t.selectedContour], t.realWidth, t.realHeight),
       toolDepth: t.toolDepth,
       tolerance: t.tolerance,
@@ -1347,6 +1421,13 @@ export default function Editor() {
       toolRotation: t.toolRotation,
       cavityBevel: t.cavityBevel || 0,
     }))
+
+    // If active tool is not tool 0, the primary contour in the 3D preview
+    // should come from tools[0], and current active goes into additionalTools
+    // Actually - the 3D preview uses `contourPoints` (top-level) as the primary cavity.
+    // When we switch tools, top-level contours become the active tool's.
+    // So we need to pass tools[0]'s contours as primary when tool 0 is not active.
+    // For now, just pass all non-primary tools as additional.
 
     if (outputMode === 'custom') {
       let outerPts = null
@@ -1390,9 +1471,25 @@ export default function Editor() {
 
   /* ── Preview points ── */
   const getPreviewPoints = () => {
-    const pts = contours[selectedContour]
+    // Always use tool 0 (primary tool) as the base cavity for 3D preview
+    const tool0 = (activeToolIdx === -1 || activeToolIdx === 0)
+      ? { contours, selectedContour, realWidth, realHeight }
+      : tools[0]
+    if (!tool0) return null
+    const pts = tool0.contours?.[tool0.selectedContour ?? 0]
     if (!pts || pts.length < 3) return null
-    return scalePoints(pts)
+    // Scale using tool 0's dimensions
+    const bounds = pts.reduce(
+      (acc, p) => ({ minX: Math.min(acc.minX, p.x), maxX: Math.max(acc.maxX, p.x), minY: Math.min(acc.minY, p.y), maxY: Math.max(acc.maxY, p.y) }),
+      { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity }
+    )
+    const pw = bounds.maxX - bounds.minX, ph = bounds.maxY - bounds.minY
+    if (pw === 0 || ph === 0) return pts
+    const w = tool0.realWidth ?? realWidth, h = tool0.realHeight ?? realHeight
+    return pts.map(p => ({
+      x: (p.x - bounds.minX) * (w / pw) - w / 2,
+      y: -((p.y - bounds.minY) * (h / ph) - h / 2),
+    }))
   }
 
   /* ═══════════════════ RENDER ═══════════════════ */
@@ -1465,13 +1562,13 @@ export default function Editor() {
               <div>
                 <h3 className="text-xs font-semibold text-[#8888A0] uppercase tracking-wider mb-2">Tools</h3>
                 <div className="flex flex-wrap gap-1">
-                  <button onClick={() => setActiveToolIdx(-1)}
+                  <button onClick={() => switchTool(-1)}
                     className={`text-[11px] px-2.5 py-1 rounded-md transition-colors ${activeToolIdx === -1 ? 'bg-brand text-white' : 'bg-[#1C1C24] text-[#8888A0] hover:text-white'}`}>
                     Tool 1
                   </button>
                   {tools.map((t, i) => (
                     <div key={i} className="flex items-center gap-0.5">
-                      <button onClick={() => setActiveToolIdx(i)}
+                      <button onClick={() => switchTool(i)}
                         className={`text-[11px] px-2.5 py-1 rounded-l-md transition-colors ${activeToolIdx === i ? 'bg-brand text-white' : 'bg-[#1C1C24] text-[#8888A0] hover:text-white'}`}>
                         {t.name}
                       </button>
@@ -1491,8 +1588,8 @@ export default function Editor() {
               </div>
             )}
 
-            {/* Crop - only for primary tool */}
-            {step >= 1 && activeToolIdx === -1 && (
+            {/* Crop */}
+            {step >= 1 && (
               <div>
                 <h3 className="text-xs font-semibold text-[#8888A0] uppercase tracking-wider mb-3">Crop</h3>
                 {!isCropping ? (
@@ -1518,8 +1615,8 @@ export default function Editor() {
               </div>
             )}
 
-            {/* Detection - only for primary tool */}
-            {step >= 1 && activeToolIdx === -1 && (
+            {/* Detection */}
+            {step >= 1 && (
               <div>
                 <h3 className="text-xs font-semibold text-[#8888A0] uppercase tracking-wider mb-3">Detection</h3>
                 <div className="space-y-3">
@@ -1566,140 +1663,52 @@ export default function Editor() {
                 <h3 className="text-xs font-semibold text-[#8888A0] uppercase tracking-wider mb-1">Tool Dimensions</h3>
                 <p className="text-[10px] text-[#666680] mb-3 italic">* Measure your tool and enter exact dimensions</p>
 
-                {/* Upload & detect for secondary tools */}
-                {outputMode !== 'object' && activeToolIdx >= 0 && tools[activeToolIdx] && (
-                  <div className="bg-[#1A1A22] rounded-lg p-3 border border-[#2A2A35]/50 mb-3 space-y-2">
-                    <p className="text-[10px] text-[#8888A0]">Upload a photo of this tool and detect its edges.</p>
-                    <input type="file" accept="image/*"
-                      onChange={e => {
-                        const file = e.target.files?.[0]
-                        if (!file) return
-                        const reader = new FileReader()
-                        reader.onload = ev => {
-                          updateTool(activeToolIdx, 'image', ev.target.result)
-                          const img = new Image()
-                          img.onload = () => {
-                            updateTool(activeToolIdx, 'imageSize', { w: img.width, h: img.height })
-                            updateTool(activeToolIdx, 'imageEl', img)
-                          }
-                          img.src = ev.target.result
-                        }
-                        reader.readAsDataURL(file)
-                      }}
-                      className="text-xs text-[#8888A0] w-full"
-                    />
-                    {tools[activeToolIdx].image && (
-                      <button onClick={() => {
-                        const t = tools[activeToolIdx]
-                        if (!t.imageEl || !window.cv) return
-                        const cv = window.cv
-                        const canvas = document.createElement('canvas')
-                        canvas.width = t.imageEl.width
-                        canvas.height = t.imageEl.height
-                        const ctx = canvas.getContext('2d')
-                        ctx.drawImage(t.imageEl, 0, 0)
-                        const src = cv.imread(canvas)
-                        const gray = new cv.Mat()
-                        cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY)
-                        const blurred = new cv.Mat()
-                        cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0)
-                        const edges = new cv.Mat()
-                        cv.Canny(blurred, edges, 30, 100)
-                        const dilated = new cv.Mat()
-                        const kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(3, 3))
-                        cv.dilate(edges, dilated, kernel)
-                        const contoursMat = new cv.MatVector()
-                        const hierarchy = new cv.Mat()
-                        cv.findContours(dilated, contoursMat, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-                        const found = []
-                        for (let i = 0; i < contoursMat.size(); i++) {
-                          const c = contoursMat.get(i)
-                          const area = cv.contourArea(c)
-                          if (area < 500) continue
-                          const epsilon = simplification * 0.002 * cv.arcLength(c, true)
-                          const approx = new cv.Mat()
-                          cv.approxPolyDP(c, approx, epsilon, true)
-                          const pts = []
-                          for (let j = 0; j < approx.rows; j++) pts.push({ x: approx.data32S[j * 2], y: approx.data32S[j * 2 + 1] })
-                          if (pts.length >= 3) found.push(pts)
-                          approx.delete()
-                        }
-                        found.sort((a, b) => {
-                          const areaA = Math.abs(a.reduce((s, p, i) => { const n = a[(i + 1) % a.length]; return s + (p.x * n.y - n.x * p.y) }, 0) / 2)
-                          const areaB = Math.abs(b.reduce((s, p, i) => { const n = b[(i + 1) % b.length]; return s + (p.x * n.y - n.x * p.y) }, 0) / 2)
-                          return areaB - areaA
-                        })
-                        updateTool(activeToolIdx, 'contours', found)
-                        updateTool(activeToolIdx, 'selectedContour', 0)
-                        src.delete(); gray.delete(); blurred.delete(); edges.delete(); dilated.delete(); kernel.delete(); contoursMat.delete(); hierarchy.delete()
-                      }}
-                      className="w-full py-1.5 rounded-md bg-brand/80 hover:bg-brand text-white text-xs font-medium transition-colors">
-                        Detect Edges
-                      </button>
-                    )}
-                    {tools[activeToolIdx].contours.length > 0 && (
-                      <p className="text-[10px] text-green-400">&#10003; {tools[activeToolIdx].contours.length} contour(s) detected</p>
-                    )}
-                    {tools[activeToolIdx].contours.length > 1 && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-[#8888A0]">Contour:</span>
-                        <select value={tools[activeToolIdx].selectedContour}
-                          onChange={e => updateTool(activeToolIdx, 'selectedContour', +e.target.value)}
-                          className="text-xs bg-[#131318] border border-[#2A2A35] rounded px-1 py-0.5 text-white">
-                          {tools[activeToolIdx].contours.map((_, ci) => (
-                            <option key={ci} value={ci}>#{ci + 1}</option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-                  </div>
-                )}
 
                 {/* Tool dimensions for active tool */}
                 <div className="space-y-3">
                   <div className="bg-[#1A1A22] rounded-lg p-3 space-y-3 border border-[#2A2A35]/50">
                     <ParamRow label="Width" tooltip="Real-world width of your tool in mm.">
-                      <input type="number" value={activeToolIdx === -1 ? realWidth : (tools[activeToolIdx]?.realWidth || 100)}
-                        onChange={e => activeToolIdx === -1 ? setRealWidth(+e.target.value) : updateTool(activeToolIdx, 'realWidth', +e.target.value)}
+                      <input type="number" value={realWidth}
+                        onChange={e => setRealWidth(+e.target.value)}
                         className="w-[4.5rem] text-right" min="1" />
                       <span className="text-xs text-[#8888A0] w-7">mm</span>
                     </ParamRow>
                     <ParamRow label="Height" tooltip="Real-world height of your tool in mm.">
-                      <input type="number" value={activeToolIdx === -1 ? realHeight : (tools[activeToolIdx]?.realHeight || 100)}
-                        onChange={e => activeToolIdx === -1 ? setRealHeight(+e.target.value) : updateTool(activeToolIdx, 'realHeight', +e.target.value)}
+                      <input type="number" value={realHeight}
+                        onChange={e => setRealHeight(+e.target.value)}
                         className="w-[4.5rem] text-right" min="1" />
                       <span className="text-xs text-[#8888A0] w-7">mm</span>
                     </ParamRow>
                     <ParamRow label="Depth" tooltip="How deep the tool sits in the tray (Z height of the cavity).">
-                      <input type="number" value={activeToolIdx === -1 ? toolDepth : (tools[activeToolIdx]?.toolDepth || 25)}
-                        onChange={e => activeToolIdx === -1 ? setToolDepth(+e.target.value) : updateTool(activeToolIdx, 'toolDepth', +e.target.value)}
+                      <input type="number" value={toolDepth}
+                        onChange={e => setToolDepth(+e.target.value)}
                         className="w-[4.5rem] text-right" min="1" />
                       <span className="text-xs text-[#8888A0] w-7">mm</span>
                     </ParamRow>
                   </div>
                   <ParamRow label="Tolerance" tooltip="Extra clearance around the tool cavity.">
-                    <input type="number" value={activeToolIdx === -1 ? tolerance : (tools[activeToolIdx]?.tolerance || 1.5)}
-                      onChange={e => activeToolIdx === -1 ? setTolerance(+e.target.value) : updateTool(activeToolIdx, 'tolerance', +e.target.value)}
+                    <input type="number" value={tolerance}
+                      onChange={e => setTolerance(+e.target.value)}
                       className="w-[4.5rem] text-right" min="0" step="0.25" />
                     <span className="text-xs text-[#8888A0] w-7">mm</span>
                   </ParamRow>
                   {outputMode !== 'object' && (
                     <>
                       <ParamRow label="Offset X" tooltip="Shift tool cavity left/right within the tray.">
-                        <input type="number" value={activeToolIdx === -1 ? toolOffsetX : (tools[activeToolIdx]?.toolOffsetX || 0)}
-                          onChange={e => activeToolIdx === -1 ? setToolOffsetX(+e.target.value) : updateTool(activeToolIdx, 'toolOffsetX', +e.target.value)}
+                        <input type="number" value={toolOffsetX}
+                          onChange={e => setToolOffsetX(+e.target.value)}
                           className="w-[4.5rem] text-right" step="1" />
                         <span className="text-xs text-[#8888A0] w-7">mm</span>
                       </ParamRow>
                       <ParamRow label="Offset Y" tooltip="Shift tool cavity forward/back within the tray.">
-                        <input type="number" value={activeToolIdx === -1 ? toolOffsetY : (tools[activeToolIdx]?.toolOffsetY || 0)}
-                          onChange={e => activeToolIdx === -1 ? setToolOffsetY(+e.target.value) : updateTool(activeToolIdx, 'toolOffsetY', +e.target.value)}
+                        <input type="number" value={toolOffsetY}
+                          onChange={e => setToolOffsetY(+e.target.value)}
                           className="w-[4.5rem] text-right" step="1" />
                         <span className="text-xs text-[#8888A0] w-7">mm</span>
                       </ParamRow>
                       <ParamRow label="Rotate" tooltip="Rotate tool cavity in degrees.">
-                        <input type="number" value={activeToolIdx === -1 ? toolRotation : (tools[activeToolIdx]?.toolRotation || 0)}
-                          onChange={e => activeToolIdx === -1 ? setToolRotation(+e.target.value) : updateTool(activeToolIdx, 'toolRotation', +e.target.value)}
+                        <input type="number" value={toolRotation}
+                          onChange={e => setToolRotation(+e.target.value)}
                           className="w-[4.5rem] text-right" step="0.5" />
                         <span className="text-xs text-[#8888A0] w-7">°</span>
                       </ParamRow>
@@ -1792,7 +1801,7 @@ export default function Editor() {
                         </h4>
                       </div>
                       <ParamRow label="Bevel" tooltip="Size of the 45-degree chamfer around the cavity opening. 0 = no bevel." tooltipPos="above">
-                        <input type="number" value={activeToolIdx === -1 ? cavityBevel : (tools[activeToolIdx]?.cavityBevel || 0)} onChange={e => { const v = Math.max(0, +e.target.value); if (activeToolIdx === -1) setCavityBevel(v); else updateTool(activeToolIdx, 'cavityBevel', v) }} className="w-[4.5rem] text-right" min="0" step="0.5" max="5" />
+                        <input type="number" value={cavityBevel} onChange={e => setCavityBevel(Math.max(0, +e.target.value))} className="w-[4.5rem] text-right" min="0" step="0.5" max="5" />
                         <span className="text-xs text-[#8888A0] w-7">mm</span>
                       </ParamRow>
                       <div className="border-t border-[#2A2A35]/50 pt-3 mt-1">
@@ -1934,7 +1943,7 @@ export default function Editor() {
                         <h4 className="text-[11px] font-semibold text-brand/80 uppercase tracking-wider mb-3">Cavity Bevel</h4>
                       </div>
                       <ParamRow label="Size" tooltip="Chamfer size on the top edge of the tool cavity.">
-                        <input type="number" value={activeToolIdx === -1 ? cavityBevel : (tools[activeToolIdx]?.cavityBevel || 0)} onChange={e => { const v = Math.max(0, +e.target.value); if (activeToolIdx === -1) setCavityBevel(v); else updateTool(activeToolIdx, 'cavityBevel', v) }} className="w-[4.5rem] text-right" min="0" step="0.5" max="5" />
+                        <input type="number" value={cavityBevel} onChange={e => setCavityBevel(Math.max(0, +e.target.value))} className="w-[4.5rem] text-right" min="0" step="0.5" max="5" />
                         <span className="text-xs text-[#8888A0] w-7">mm</span>
                       </ParamRow>
 
