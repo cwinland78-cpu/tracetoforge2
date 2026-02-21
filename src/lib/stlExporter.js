@@ -7,11 +7,12 @@ import helvetikerBold from 'three/examples/fonts/helvetiker_bold.typeface.json'
 // ─── Branding: "TracetoForge" deboss ───
 const brandFont = new Font(helvetikerBold)
 const BRAND_TEXT = 'TracetoForge'
-const BRAND_DEPTH = 0.5 // mm deboss depth
+const BRAND_HEIGHT = 0.3 // mm raised above floor
 
 /**
- * Create branding geometry to subtract from tray floor.
- * Places "TracetoForge" text in the bottom-right corner of the tray.
+ * Create branding geometry - raised text on inside floor.
+ * Places "TracetoForge" text in the bottom-right corner of the tray floor,
+ * raised slightly so it's visible when looking into the tray.
  * @param {number} trayW - tray inner width
  * @param {number} trayH - tray inner height (depth in Y direction)
  * @param {number} floorZ - Z position of the floor top surface
@@ -36,20 +37,18 @@ function createBrandGeometry(trayW, trayH, floorZ, cornerMargin = 1.5) {
     if (rawW < 0.001) return null
 
     const scale = targetW / rawW
-    const textH = rawH * scale
 
-    // Extrude the text shapes
+    // Extrude the text shapes - raised above floor
     const geo = new THREE.ExtrudeGeometry(shapes, {
-      depth: BRAND_DEPTH + 0.1, // slight extra to ensure clean cut
+      depth: BRAND_HEIGHT,
       bevelEnabled: false,
     })
 
-    // Scale, then position in bottom-right corner
-    // Text origin is at baseline-left, so offset accordingly
+    // Scale, then position in bottom-right corner, sitting on floor surface
     geo.scale(scale, scale, 1)
     const x = (trayW / 2) - targetW - cornerMargin
     const y = -(trayH / 2) + cornerMargin
-    geo.translate(x, y, floorZ - BRAND_DEPTH)
+    geo.translate(x, y, floorZ)
 
     return geo
   } catch (e) {
@@ -809,17 +808,12 @@ function createCustomInsert(points, config) {
     group.add(handleMesh)
   })
 
-  // ─── Branding deboss (viz for preview) ───
+  // ─── Branding emboss (raised text on inside floor) ───
   try {
     const brandGeo = createBrandGeometry(trayWidth, trayHeight, actualBaseDepth, 2)
     if (brandGeo) {
-      const brandMat = new THREE.MeshPhongMaterial({ color: 0x222228, side: THREE.DoubleSide })
-      const brandMesh = new THREE.Mesh(brandGeo, brandMat)
-      brandMesh.userData.vizOnly = true
-      brandMesh.userData.brandDeboss = true
+      const brandMesh = new THREE.Mesh(brandGeo, trayMat)
       group.add(brandMesh)
-      // Store brand params for export-time CSG
-      group.userData.brandGeo = brandGeo
     }
   } catch (e) { /* branding is non-critical */ }
 
@@ -1488,16 +1482,12 @@ function createGridfinityInsert(points, config) {
     addGrabHandle(nPts, idx)
   })
 
-  // ─── Branding deboss (viz for preview) ───
+  // ─── Branding emboss (raised text on inside floor) ───
   try {
     const brandGeo = createBrandGeometry(binW, binH, GF.baseHeight + floorZ, 2)
     if (brandGeo) {
-      const brandMat = new THREE.MeshPhongMaterial({ color: 0x222228, side: THREE.DoubleSide })
-      const brandMesh = new THREE.Mesh(brandGeo, brandMat)
-      brandMesh.userData.vizOnly = true
-      brandMesh.userData.brandDeboss = true
+      const brandMesh = new THREE.Mesh(brandGeo, trayMat)
       group.add(brandMesh)
-      group.userData.brandGeo = brandGeo
     }
   } catch (e) { /* branding is non-critical */ }
 
@@ -1586,21 +1576,7 @@ export function exportSTL(toolPoints, config) {
 
   if (geometries.length === 0) throw new Error('No geometry to export')
 
-  let merged = mergeGeometries(geometries)
-
-  // Apply branding deboss on merged geometry (reliable CSG on full mesh)
-  if (group.userData.brandGeo) {
-    try {
-      const ev = new Evaluator()
-      const baseBrush = new Brush(merged)
-      baseBrush.updateMatrixWorld()
-      const brandBrush = new Brush(group.userData.brandGeo)
-      brandBrush.updateMatrixWorld()
-      const result = ev.evaluate(baseBrush, brandBrush, SUBTRACTION)
-      if (result.geometry) merged = result.geometry
-    } catch (e) { /* branding subtraction failed, export without it */ }
-  }
-
+  const merged = mergeGeometries(geometries)
   return geometryToSTL(merged)
 }
 
