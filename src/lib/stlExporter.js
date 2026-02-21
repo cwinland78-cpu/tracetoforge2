@@ -450,6 +450,7 @@ function createCustomInsert(points, config) {
   // ─── Additional tools ───
   const { additionalTools = [] } = config
   const extraToolViz = [] // store viz data for additional tools
+  const extraToolHolePts = [] // raw point arrays for Clipper union
   additionalTools.forEach(at => {
     if (!at.points || at.points.length < 3) return
     const { shape: atShape, centered: atCentered } = createShapeFromPoints(at.points)
@@ -471,15 +472,46 @@ function createCustomInsert(points, config) {
     })
     const atTol = at.tolerance || 0
     const atHolePts = atTol > 0 ? offsetPolygon(atScaledPts, atTol) : atScaledPts
-    const atHolePath = new THREE.Path()
-    atHolePts.forEach((p, i) => {
-      if (i === 0) atHolePath.moveTo(p.x, p.y)
-      else atHolePath.lineTo(p.x, p.y)
-    })
-    atHolePath.closePath()
-    allHolePaths.push(atHolePath)
+    extraToolHolePts.push(atHolePts)
     extraToolViz.push({ shape: atShape, scale: atScale, rad: atRad, ox: atOx, oy: atOy, cutShape: atHolePts, cavityBevel: at.cavityBevel || 0 })
   })
+
+  // Union ALL holes (primary tool + notches + additional tools) into one clean set
+  // This prevents overlapping holes from breaking ExtrudeGeometry
+  if (extraToolHolePts.length > 0) {
+    const scale = 1000
+    const clipper = new ClipperLib.Clipper()
+    // Add existing combined holes (primary + notches) as subjects
+    combinedHoles.forEach(pts => {
+      clipper.AddPath(pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptSubject, true)
+    })
+    // Add additional tool holes as clips
+    extraToolHolePts.forEach(pts => {
+      clipper.AddPath(pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptClip, true)
+    })
+    const solution = []
+    clipper.Execute(ClipperLib.ClipType.ctUnion, solution, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero)
+    if (solution.length > 0) {
+      // Replace allHolePaths with unified result
+      allHolePaths.length = 0
+      solution.forEach(path => {
+        const pts = path.map(p => ({ x: p.X / scale, y: p.Y / scale }))
+        if (ClipperLib.Clipper.Area(path) < 0) pts.reverse()
+        const hp = new THREE.Path()
+        pts.forEach((p, i) => { if (i === 0) hp.moveTo(p.x, p.y); else hp.lineTo(p.x, p.y) })
+        hp.closePath()
+        allHolePaths.push(hp)
+      })
+    } else {
+      // Fallback: add additional tools as separate paths
+      extraToolHolePts.forEach(pts => {
+        const hp = new THREE.Path()
+        pts.forEach((p, i) => { if (i === 0) hp.moveTo(p.x, p.y); else hp.lineTo(p.x, p.y) })
+        hp.closePath()
+        allHolePaths.push(hp)
+      })
+    }
+  }
 
   // ─── Top section (with tool cavity hole) - layered for independent notch depths ───
   const { cavityBevel = 0 } = config
@@ -610,13 +642,38 @@ function createCustomInsert(points, config) {
 
       const layerHoles = buildHolePaths(openNotchPts)
       const layerShape = outerShape.clone()
-      layerHoles.forEach(pts => {
-        const hp = new THREE.Path()
-        pts.forEach((p, i) => { if (i === 0) hp.moveTo(p.x, p.y); else hp.lineTo(p.x, p.y) })
-        hp.closePath()
-        layerShape.holes.push(hp)
-      })
-      allHolePaths.forEach(hp => layerShape.holes.push(hp)) // additional tool holes
+
+      if (extraToolHolePts.length > 0) {
+        // Union layer holes with additional tool holes
+        const scale = 1000
+        const clipper = new ClipperLib.Clipper()
+        layerHoles.forEach(pts => {
+          clipper.AddPath(pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptSubject, true)
+        })
+        extraToolHolePts.forEach(pts => {
+          clipper.AddPath(pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptClip, true)
+        })
+        const solution = []
+        clipper.Execute(ClipperLib.ClipType.ctUnion, solution, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero)
+        const unifiedLayerHoles = solution.length > 0 ? solution.map(path => {
+          const pts = path.map(p => ({ x: p.X / scale, y: p.Y / scale }))
+          if (ClipperLib.Clipper.Area(path) < 0) pts.reverse()
+          return pts
+        }) : layerHoles
+        unifiedLayerHoles.forEach(pts => {
+          const hp = new THREE.Path()
+          pts.forEach((p, i) => { if (i === 0) hp.moveTo(p.x, p.y); else hp.lineTo(p.x, p.y) })
+          hp.closePath()
+          layerShape.holes.push(hp)
+        })
+      } else {
+        layerHoles.forEach(pts => {
+          const hp = new THREE.Path()
+          pts.forEach((p, i) => { if (i === 0) hp.moveTo(p.x, p.y); else hp.lineTo(p.x, p.y) })
+          hp.closePath()
+          layerShape.holes.push(hp)
+        })
+      }
 
       const layerGeo = new THREE.ExtrudeGeometry(layerShape, { depth: layerHeight, bevelEnabled: false })
       layerGeo.translate(0, 0, actualBaseDepth + layerBottom)
@@ -634,13 +691,37 @@ function createCustomInsert(points, config) {
     const wallHoles = wallNotchPts.length > 0 ? buildHolePaths(wallNotchPts) : combinedHoles
 
     const topShape = outerShape.clone()
-    wallHoles.forEach(pts => {
-      const hp = new THREE.Path()
-      pts.forEach((p, i) => { if (i === 0) hp.moveTo(p.x, p.y); else hp.lineTo(p.x, p.y) })
-      hp.closePath()
-      topShape.holes.push(hp)
-    })
-    allHolePaths.forEach(hp => topShape.holes.push(hp))
+    if (extraToolHolePts.length > 0) {
+      // Union wall holes with additional tools
+      const scale = 1000
+      const clipper = new ClipperLib.Clipper()
+      wallHoles.forEach(pts => {
+        clipper.AddPath(pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptSubject, true)
+      })
+      extraToolHolePts.forEach(pts => {
+        clipper.AddPath(pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptClip, true)
+      })
+      const solution = []
+      clipper.Execute(ClipperLib.ClipType.ctUnion, solution, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero)
+      const unifiedWallHoles = solution.length > 0 ? solution.map(path => {
+        const pts = path.map(p => ({ x: p.X / scale, y: p.Y / scale }))
+        if (ClipperLib.Clipper.Area(path) < 0) pts.reverse()
+        return pts
+      }) : wallHoles
+      unifiedWallHoles.forEach(pts => {
+        const hp = new THREE.Path()
+        pts.forEach((p, i) => { if (i === 0) hp.moveTo(p.x, p.y); else hp.lineTo(p.x, p.y) })
+        hp.closePath()
+        topShape.holes.push(hp)
+      })
+    } else {
+      wallHoles.forEach(pts => {
+        const hp = new THREE.Path()
+        pts.forEach((p, i) => { if (i === 0) hp.moveTo(p.x, p.y); else hp.lineTo(p.x, p.y) })
+        hp.closePath()
+        topShape.holes.push(hp)
+      })
+    }
     const topGeo = new THREE.ExtrudeGeometry(topShape, { depth: cavityZ, bevelEnabled: false })
     topGeo.translate(0, 0, actualBaseDepth)
     group.add(applyBevel(topGeo))
@@ -946,6 +1027,7 @@ function createGridfinityInsert(points, config) {
   const { additionalTools = [] } = config
   const extraToolCutters = []
   const extraToolViz = []
+  const extraGfHolePts = [] // raw point arrays for Clipper union
   const maxGfW = binW - 2
   const maxGfH = binH - 2
   additionalTools.forEach(at => {
@@ -965,15 +1047,38 @@ function createGridfinityInsert(points, config) {
     // Apply tolerance
     const atTol = at.tolerance || 0
     const atHolePts = atTol > 0 ? offsetPolygon(atScaledPts, atTol) : atScaledPts
+    extraGfHolePts.push(atHolePts)
     const atCutShape = new THREE.Shape()
     atHolePts.forEach((p, i) => {
       if (i === 0) atCutShape.moveTo(p.x, p.y)
       else atCutShape.lineTo(p.x, p.y)
     })
     atCutShape.closePath()
-    extraToolCutters.push({ shape: atCutShape, cavityBevel: at.cavityBevel || 0 })
+    extraToolCutters.push({ shape: atCutShape, holePts: atHolePts, cavityBevel: at.cavityBevel || 0 })
     extraToolViz.push({ shape: atShape, scale: atScale, rad: atRad, ox: atOx, oy: atOy })
   })
+
+  // Union all holes (primary+notches + additional tools) for clean wall holes
+  let gfUnifiedHoles = gfCombinedHolePts
+  if (extraGfHolePts.length > 0) {
+    const scale = 1000
+    const clipper = new ClipperLib.Clipper()
+    gfCombinedHolePts.forEach(pts => {
+      clipper.AddPath(pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptSubject, true)
+    })
+    extraGfHolePts.forEach(pts => {
+      clipper.AddPath(pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptClip, true)
+    })
+    const solution = []
+    clipper.Execute(ClipperLib.ClipType.ctUnion, solution, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero)
+    if (solution.length > 0) {
+      gfUnifiedHoles = solution.map(path => {
+        const pts = path.map(p => ({ x: p.X / scale, y: p.Y / scale }))
+        if (ClipperLib.Clipper.Area(path) < 0) pts.reverse()
+        return pts
+      })
+    }
+  }
 
   // Build tool cavity cutter shape from combined hole (tool + notches)
   const toolCutterShape = new THREE.Shape()
@@ -1039,9 +1144,8 @@ function createGridfinityInsert(points, config) {
   if (notchDepthMap.length === 0) {
     // Simple case: no independent depths, single wall section
     const wallShape = outerShape.clone()
-    wallShape.holes.push(new THREE.Path(gfMainHole.map(p => new THREE.Vector2(p.x, p.y))))
-    extraToolCutters.forEach(atEntry => {
-      wallShape.holes.push(new THREE.Path(atEntry.shape.getPoints(32)))
+    gfUnifiedHoles.forEach(pts => {
+      wallShape.holes.push(new THREE.Path(pts.map(p => new THREE.Vector2(p.x, p.y))))
     })
     const wallGeo = new THREE.ExtrudeGeometry(wallShape, { depth: cavityZ, bevelEnabled: false })
     wallGeo.translate(0, 0, GF.baseHeight + floorZ)
@@ -1154,10 +1258,31 @@ function createGridfinityInsert(points, config) {
       }
 
       const layerShape = outerShape.clone()
-      layerShape.holes.push(new THREE.Path(layerHole.map(p => new THREE.Vector2(p.x, p.y))))
-      extraToolCutters.forEach(atEntry => {
-        layerShape.holes.push(new THREE.Path(atEntry.shape.getPoints(32)))
-      })
+      // Union layer hole with extra tool holes
+      if (extraGfHolePts.length > 0) {
+        const scale = 1000
+        const clipper = new ClipperLib.Clipper()
+        clipper.AddPath(layerHole.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptSubject, true)
+        extraGfHolePts.forEach(pts => {
+          clipper.AddPath(pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptClip, true)
+        })
+        const solution = []
+        clipper.Execute(ClipperLib.ClipType.ctUnion, solution, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero)
+        if (solution.length > 0) {
+          solution.forEach(path => {
+            const pts = path.map(p => ({ x: p.X / scale, y: p.Y / scale }))
+            if (ClipperLib.Clipper.Area(path) < 0) pts.reverse()
+            layerShape.holes.push(new THREE.Path(pts.map(p => new THREE.Vector2(p.x, p.y))))
+          })
+        } else {
+          layerShape.holes.push(new THREE.Path(layerHole.map(p => new THREE.Vector2(p.x, p.y))))
+          extraToolCutters.forEach(atEntry => {
+            layerShape.holes.push(new THREE.Path(atEntry.shape.getPoints(32)))
+          })
+        }
+      } else {
+        layerShape.holes.push(new THREE.Path(layerHole.map(p => new THREE.Vector2(p.x, p.y))))
+      }
 
       const layerGeo = new THREE.ExtrudeGeometry(layerShape, { depth: layerHeight, bevelEnabled: false })
       layerGeo.translate(0, 0, GF.baseHeight + floorZ + layerBottom)
