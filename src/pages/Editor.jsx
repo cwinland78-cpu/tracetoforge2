@@ -1413,7 +1413,7 @@ export default function Editor() {
       }
       return t
     })
-    const additionalTools = allTools.slice(1).filter(t => t.contours[t.selectedContour] && t.contours[t.selectedContour].length >= 3).map(t => ({
+    const additionalTools = allTools.slice(1).filter(t => t.contours?.[t.selectedContour]?.length >= 3).map(t => ({
       points: scaleToolPoints(t.contours[t.selectedContour], t.realWidth, t.realHeight),
       toolDepth: t.toolDepth,
       tolerance: t.tolerance,
