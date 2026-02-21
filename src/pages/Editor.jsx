@@ -1460,8 +1460,39 @@ export default function Editor() {
         <aside className="w-72 border-r border-[#2A2A35]/50 bg-surface/30 overflow-y-auto flex-shrink-0">
           <div className="p-4 pb-32 space-y-5">
 
-            {/* Crop */}
-            {step >= 1 && (
+            {/* Tool selector tabs - at top of sidebar */}
+            {step >= 2 && outputMode !== 'object' && (
+              <div>
+                <h3 className="text-xs font-semibold text-[#8888A0] uppercase tracking-wider mb-2">Tools</h3>
+                <div className="flex flex-wrap gap-1">
+                  <button onClick={() => setActiveToolIdx(-1)}
+                    className={`text-[11px] px-2.5 py-1 rounded-md transition-colors ${activeToolIdx === -1 ? 'bg-brand text-white' : 'bg-[#1C1C24] text-[#8888A0] hover:text-white'}`}>
+                    Tool 1
+                  </button>
+                  {tools.map((t, i) => (
+                    <div key={i} className="flex items-center gap-0.5">
+                      <button onClick={() => setActiveToolIdx(i)}
+                        className={`text-[11px] px-2.5 py-1 rounded-l-md transition-colors ${activeToolIdx === i ? 'bg-brand text-white' : 'bg-[#1C1C24] text-[#8888A0] hover:text-white'}`}>
+                        {t.name}
+                      </button>
+                      <button onClick={() => removeTool(i)}
+                        className="text-[11px] px-1.5 py-1 rounded-r-md bg-[#1C1C24] text-[#555] hover:text-red-400 hover:bg-red-900/20 transition-colors">
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                  {tools.length < 4 && (
+                    <button onClick={addTool}
+                      className="text-[11px] px-2.5 py-1 rounded-md bg-[#1C1C24] text-brand hover:bg-brand/20 transition-colors font-bold">
+                      + Add Tool
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Crop - only for primary tool */}
+            {step >= 1 && activeToolIdx === -1 && (
               <div>
                 <h3 className="text-xs font-semibold text-[#8888A0] uppercase tracking-wider mb-3">Crop</h3>
                 {!isCropping ? (
@@ -1487,8 +1518,8 @@ export default function Editor() {
               </div>
             )}
 
-            {/* Detection */}
-            {step >= 1 && (
+            {/* Detection - only for primary tool */}
+            {step >= 1 && activeToolIdx === -1 && (
               <div>
                 <h3 className="text-xs font-semibold text-[#8888A0] uppercase tracking-wider mb-3">Detection</h3>
                 <div className="space-y-3">
@@ -1535,121 +1566,90 @@ export default function Editor() {
                 <h3 className="text-xs font-semibold text-[#8888A0] uppercase tracking-wider mb-1">Tool Dimensions</h3>
                 <p className="text-[10px] text-[#666680] mb-3 italic">* Measure your tool and enter exact dimensions</p>
 
-                {/* Tool selector tabs */}
-                {outputMode !== 'object' && (
-                  <div className="mb-3">
-                    <div className="flex flex-wrap gap-1 mb-2">
-                      <button onClick={() => setActiveToolIdx(-1)}
-                        className={`text-[11px] px-2.5 py-1 rounded-md transition-colors ${activeToolIdx === -1 ? 'bg-brand text-white' : 'bg-[#1C1C24] text-[#8888A0] hover:text-white'}`}>
-                        Tool 1
+                {/* Upload & detect for secondary tools */}
+                {outputMode !== 'object' && activeToolIdx >= 0 && tools[activeToolIdx] && (
+                  <div className="bg-[#1A1A22] rounded-lg p-3 border border-[#2A2A35]/50 mb-3 space-y-2">
+                    <p className="text-[10px] text-[#8888A0]">Upload a photo of this tool and detect its edges.</p>
+                    <input type="file" accept="image/*"
+                      onChange={e => {
+                        const file = e.target.files?.[0]
+                        if (!file) return
+                        const reader = new FileReader()
+                        reader.onload = ev => {
+                          updateTool(activeToolIdx, 'image', ev.target.result)
+                          const img = new Image()
+                          img.onload = () => {
+                            updateTool(activeToolIdx, 'imageSize', { w: img.width, h: img.height })
+                            updateTool(activeToolIdx, 'imageEl', img)
+                          }
+                          img.src = ev.target.result
+                        }
+                        reader.readAsDataURL(file)
+                      }}
+                      className="text-xs text-[#8888A0] w-full"
+                    />
+                    {tools[activeToolIdx].image && (
+                      <button onClick={() => {
+                        const t = tools[activeToolIdx]
+                        if (!t.imageEl || !window.cv) return
+                        const cv = window.cv
+                        const canvas = document.createElement('canvas')
+                        canvas.width = t.imageEl.width
+                        canvas.height = t.imageEl.height
+                        const ctx = canvas.getContext('2d')
+                        ctx.drawImage(t.imageEl, 0, 0)
+                        const src = cv.imread(canvas)
+                        const gray = new cv.Mat()
+                        cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY)
+                        const blurred = new cv.Mat()
+                        cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0)
+                        const edges = new cv.Mat()
+                        cv.Canny(blurred, edges, 30, 100)
+                        const dilated = new cv.Mat()
+                        const kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(3, 3))
+                        cv.dilate(edges, dilated, kernel)
+                        const contoursMat = new cv.MatVector()
+                        const hierarchy = new cv.Mat()
+                        cv.findContours(dilated, contoursMat, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+                        const found = []
+                        for (let i = 0; i < contoursMat.size(); i++) {
+                          const c = contoursMat.get(i)
+                          const area = cv.contourArea(c)
+                          if (area < 500) continue
+                          const epsilon = simplification * 0.002 * cv.arcLength(c, true)
+                          const approx = new cv.Mat()
+                          cv.approxPolyDP(c, approx, epsilon, true)
+                          const pts = []
+                          for (let j = 0; j < approx.rows; j++) pts.push({ x: approx.data32S[j * 2], y: approx.data32S[j * 2 + 1] })
+                          if (pts.length >= 3) found.push(pts)
+                          approx.delete()
+                        }
+                        found.sort((a, b) => {
+                          const areaA = Math.abs(a.reduce((s, p, i) => { const n = a[(i + 1) % a.length]; return s + (p.x * n.y - n.x * p.y) }, 0) / 2)
+                          const areaB = Math.abs(b.reduce((s, p, i) => { const n = b[(i + 1) % b.length]; return s + (p.x * n.y - n.x * p.y) }, 0) / 2)
+                          return areaB - areaA
+                        })
+                        updateTool(activeToolIdx, 'contours', found)
+                        updateTool(activeToolIdx, 'selectedContour', 0)
+                        src.delete(); gray.delete(); blurred.delete(); edges.delete(); dilated.delete(); kernel.delete(); contoursMat.delete(); hierarchy.delete()
+                      }}
+                      className="w-full py-1.5 rounded-md bg-brand/80 hover:bg-brand text-white text-xs font-medium transition-colors">
+                        Detect Edges
                       </button>
-                      {tools.map((t, i) => (
-                        <div key={i} className="flex items-center gap-0.5">
-                          <button onClick={() => setActiveToolIdx(i)}
-                            className={`text-[11px] px-2.5 py-1 rounded-l-md transition-colors ${activeToolIdx === i ? 'bg-brand text-white' : 'bg-[#1C1C24] text-[#8888A0] hover:text-white'}`}>
-                            {t.name}
-                          </button>
-                          <button onClick={() => removeTool(i)}
-                            className="text-[11px] px-1.5 py-1 rounded-r-md bg-[#1C1C24] text-[#555] hover:text-red-400 hover:bg-red-900/20 transition-colors">
-                            ✕
-                          </button>
-                        </div>
-                      ))}
-                      {tools.length < 4 && (
-                        <button onClick={addTool}
-                          className="text-[11px] px-2.5 py-1 rounded-md bg-[#1C1C24] text-brand hover:bg-brand/20 transition-colors font-bold">
-                          + Add Tool
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Additional tool: upload & detect */}
-                    {activeToolIdx >= 0 && tools[activeToolIdx] && (
-                      <div className="bg-[#1A1A22] rounded-lg p-3 border border-[#2A2A35]/50 mb-3 space-y-2">
-                        <p className="text-[10px] text-[#8888A0]">Upload a photo of this tool and detect its edges.</p>
-                        <input type="file" accept="image/*"
-                          onChange={e => {
-                            const file = e.target.files?.[0]
-                            if (!file) return
-                            const reader = new FileReader()
-                            reader.onload = ev => {
-                              updateTool(activeToolIdx, 'image', ev.target.result)
-                              // Auto-detect with a small canvas
-                              const img = new Image()
-                              img.onload = () => {
-                                updateTool(activeToolIdx, 'imageSize', { w: img.width, h: img.height })
-                                updateTool(activeToolIdx, 'imageEl', img)
-                              }
-                              img.src = ev.target.result
-                            }
-                            reader.readAsDataURL(file)
-                          }}
-                          className="text-xs text-[#8888A0] w-full"
-                        />
-                        {tools[activeToolIdx].image && (
-                          <button onClick={() => {
-                            const t = tools[activeToolIdx]
-                            if (!t.imageEl || !window.cv) return
-                            const cv = window.cv
-                            const canvas = document.createElement('canvas')
-                            canvas.width = t.imageEl.width
-                            canvas.height = t.imageEl.height
-                            const ctx = canvas.getContext('2d')
-                            ctx.drawImage(t.imageEl, 0, 0)
-                            const src = cv.imread(canvas)
-                            const gray = new cv.Mat()
-                            cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY)
-                            const blurred = new cv.Mat()
-                            cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0)
-                            const edges = new cv.Mat()
-                            cv.Canny(blurred, edges, 30, 100)
-                            const dilated = new cv.Mat()
-                            const kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(3, 3))
-                            cv.dilate(edges, dilated, kernel)
-                            const contoursMat = new cv.MatVector()
-                            const hierarchy = new cv.Mat()
-                            cv.findContours(dilated, contoursMat, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-                            const found = []
-                            for (let i = 0; i < contoursMat.size(); i++) {
-                              const c = contoursMat.get(i)
-                              const area = cv.contourArea(c)
-                              if (area < 500) continue
-                              const epsilon = simplification * 0.002 * cv.arcLength(c, true)
-                              const approx = new cv.Mat()
-                              cv.approxPolyDP(c, approx, epsilon, true)
-                              const pts = []
-                              for (let j = 0; j < approx.rows; j++) pts.push({ x: approx.data32S[j * 2], y: approx.data32S[j * 2 + 1] })
-                              if (pts.length >= 3) found.push(pts)
-                              approx.delete()
-                            }
-                            found.sort((a, b) => {
-                              const areaA = Math.abs(a.reduce((s, p, i) => { const n = a[(i + 1) % a.length]; return s + (p.x * n.y - n.x * p.y) }, 0) / 2)
-                              const areaB = Math.abs(b.reduce((s, p, i) => { const n = b[(i + 1) % b.length]; return s + (p.x * n.y - n.x * p.y) }, 0) / 2)
-                              return areaB - areaA
-                            })
-                            updateTool(activeToolIdx, 'contours', found)
-                            updateTool(activeToolIdx, 'selectedContour', 0)
-                            src.delete(); gray.delete(); blurred.delete(); edges.delete(); dilated.delete(); kernel.delete(); contoursMat.delete(); hierarchy.delete()
-                          }}
-                          className="w-full py-1.5 rounded-md bg-brand/80 hover:bg-brand text-white text-xs font-medium transition-colors">
-                            Detect Edges
-                          </button>
-                        )}
-                        {tools[activeToolIdx].contours.length > 0 && (
-                          <p className="text-[10px] text-green-400">&#10003; {tools[activeToolIdx].contours.length} contour(s) detected</p>
-                        )}
-                        {tools[activeToolIdx].contours.length > 1 && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] text-[#8888A0]">Contour:</span>
-                            <select value={tools[activeToolIdx].selectedContour}
-                              onChange={e => updateTool(activeToolIdx, 'selectedContour', +e.target.value)}
-                              className="text-xs bg-[#131318] border border-[#2A2A35] rounded px-1 py-0.5 text-white">
-                              {tools[activeToolIdx].contours.map((_, ci) => (
-                                <option key={ci} value={ci}>#{ci + 1}</option>
-                              ))}
-                            </select>
-                          </div>
-                        )}
+                    )}
+                    {tools[activeToolIdx].contours.length > 0 && (
+                      <p className="text-[10px] text-green-400">&#10003; {tools[activeToolIdx].contours.length} contour(s) detected</p>
+                    )}
+                    {tools[activeToolIdx].contours.length > 1 && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-[#8888A0]">Contour:</span>
+                        <select value={tools[activeToolIdx].selectedContour}
+                          onChange={e => updateTool(activeToolIdx, 'selectedContour', +e.target.value)}
+                          className="text-xs bg-[#131318] border border-[#2A2A35] rounded px-1 py-0.5 text-white">
+                          {tools[activeToolIdx].contours.map((_, ci) => (
+                            <option key={ci} value={ci}>#{ci + 1}</option>
+                          ))}
+                        </select>
                       </div>
                     )}
                   </div>
