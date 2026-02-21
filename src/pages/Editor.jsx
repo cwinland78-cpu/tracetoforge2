@@ -643,9 +643,16 @@ export default function Editor() {
   /* ── Canvas Drawing ── */
   const drawCanvas = useCallback(() => {
     const canvas = canvasRef.current
-    if (!canvas || !imageRef.current) return
+
+    // Resolve active tool's image and contours
+    const activeTool = activeToolIdx >= 0 ? tools[activeToolIdx] : null
+    const activeImg = activeTool?.imageEl || imageRef.current
+    const activeContours = activeTool ? activeTool.contours : contours
+    const activeSelectedContour = activeTool ? activeTool.selectedContour : selectedContour
+
+    if (!canvas || !activeImg) return
     const ctx = canvas.getContext('2d')
-    const img = imageRef.current
+    const img = activeImg
 
     // Calculate canvas size: expand if outer shape extends beyond image
     let canvasW = img.width
@@ -653,8 +660,8 @@ export default function Editor() {
     let imgOffsetX = 0
     let imgOffsetY = 0
 
-    if (editingOuter && outerShapePoints && outerShapePoints.length >= 3 && contours[selectedContour]) {
-      const pts = contours[selectedContour]
+    if (editingOuter && outerShapePoints && outerShapePoints.length >= 3 && activeContours[activeSelectedContour]) {
+      const pts = activeContours[activeSelectedContour]
       const bounds = pts.reduce(
         (acc, p) => ({ minX: Math.min(acc.minX, p.x), maxX: Math.max(acc.maxX, p.x), minY: Math.min(acc.minY, p.y), maxY: Math.max(acc.maxY, p.y) }),
         { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity }
@@ -705,9 +712,9 @@ export default function Editor() {
 
     ctx.drawImage(img, imgOffsetX, imgOffsetY)
 
-    contours.forEach((pts, ci) => {
+    activeContours.forEach((pts, ci) => {
       if (pts.length < 2) return
-      const isSel = ci === selectedContour
+      const isSel = ci === activeSelectedContour
 
       // Draw tolerance zone for selected contour (green band around the outline)
       if (isSel && tolerance > 0 && realWidth > 0 && pts.length >= 3) {
@@ -759,7 +766,7 @@ export default function Editor() {
     // Draw outer shape overlay when editing
     if (editingOuter && outerShapePoints && outerShapePoints.length >= 3) {
       // Convert mm outer points to pixel space for overlay
-      const pts = contours[selectedContour]
+      const pts = activeContours[activeSelectedContour]
       if (pts && pts.length >= 3) {
         const bounds = pts.reduce(
           (acc, p) => ({ minX: Math.min(acc.minX, p.x), maxX: Math.max(acc.maxX, p.x), minY: Math.min(acc.minY, p.y), maxY: Math.max(acc.maxY, p.y) }),
@@ -853,8 +860,8 @@ export default function Editor() {
     }
 
     // ─── Dimension measurement overlay ───
-    if (step >= 2 && contours[selectedContour] && realWidth > 0 && realHeight > 0) {
-      const pts = contours[selectedContour]
+    if (step >= 2 && activeContours[activeSelectedContour] && realWidth > 0 && realHeight > 0) {
+      const pts = activeContours[activeSelectedContour]
       const bounds = pts.reduce(
         (acc, p) => ({ minX: Math.min(acc.minX, p.x), maxX: Math.max(acc.maxX, p.x), minY: Math.min(acc.minY, p.y), maxY: Math.max(acc.maxY, p.y) }),
         { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity }
@@ -963,7 +970,7 @@ export default function Editor() {
     }
 
     ctx.restore()
-  }, [image, zoom, contours, selectedContour, editMode, hoveredPoint, draggingPoint, editingOuter, outerShapePoints, hoveredOuterPoint, draggingOuterPoint, realWidth, realHeight, tolerance, step, isCropping, cropRect])
+  }, [image, zoom, contours, selectedContour, editMode, hoveredPoint, draggingPoint, editingOuter, outerShapePoints, hoveredOuterPoint, draggingOuterPoint, realWidth, realHeight, tolerance, step, isCropping, cropRect, activeToolIdx, tools])
 
   useEffect(() => { drawCanvas() }, [drawCanvas])
 
