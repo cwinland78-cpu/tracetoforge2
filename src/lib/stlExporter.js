@@ -1,6 +1,62 @@
 import * as THREE from 'three'
 import { Brush, Evaluator, SUBTRACTION, INTERSECTION, ADDITION } from 'three-bvh-csg'
 import ClipperLib from 'clipper-lib'
+import { Font } from 'three/examples/jsm/loaders/FontLoader.js'
+import helvetikerBold from 'three/examples/fonts/helvetiker_bold.typeface.json'
+
+// ─── Branding: "TracetoForge" deboss ───
+const brandFont = new Font(helvetikerBold)
+const BRAND_TEXT = 'TracetoForge'
+const BRAND_DEPTH = 0.5 // mm deboss depth
+
+/**
+ * Create branding geometry to subtract from tray floor.
+ * Places "TracetoForge" text in the bottom-right corner of the tray.
+ * @param {number} trayW - tray inner width
+ * @param {number} trayH - tray inner height (depth in Y direction)
+ * @param {number} floorZ - Z position of the floor top surface
+ * @param {number} cornerMargin - margin from corner edge in mm
+ * @returns {THREE.BufferGeometry|null}
+ */
+function createBrandGeometry(trayW, trayH, floorZ, cornerMargin = 1.5) {
+  try {
+    // Target text width: ~25% of tray width, clamped
+    const targetW = Math.min(Math.max(trayW * 0.25, 8), 40)
+    // Generate shapes at size=1, then scale to fit
+    const shapes = brandFont.generateShapes(BRAND_TEXT, 1)
+    if (!shapes || shapes.length === 0) return null
+
+    // Measure bounding box at size=1
+    const tempGeo = new THREE.ShapeGeometry(shapes)
+    tempGeo.computeBoundingBox()
+    const bb = tempGeo.boundingBox
+    const rawW = bb.max.x - bb.min.x
+    const rawH = bb.max.y - bb.min.y
+    tempGeo.dispose()
+    if (rawW < 0.001) return null
+
+    const scale = targetW / rawW
+    const textH = rawH * scale
+
+    // Extrude the text shapes
+    const geo = new THREE.ExtrudeGeometry(shapes, {
+      depth: BRAND_DEPTH + 0.1, // slight extra to ensure clean cut
+      bevelEnabled: false,
+    })
+
+    // Scale, then position in bottom-right corner
+    // Text origin is at baseline-left, so offset accordingly
+    geo.scale(scale, scale, 1)
+    const x = (trayW / 2) - targetW - cornerMargin
+    const y = -(trayH / 2) + cornerMargin
+    geo.translate(x, y, floorZ - BRAND_DEPTH)
+
+    return geo
+  } catch (e) {
+    console.warn('[Brand] Failed to create branding geometry:', e)
+    return null
+  }
+}
 
 // ─── Edge Profile Helpers ───
 
@@ -762,6 +818,27 @@ function createCustomInsert(points, config) {
     group.add(handleMesh)
   })
 
+  // ─── Branding deboss ───
+  try {
+    const brandGeo = createBrandGeometry(trayWidth, trayHeight, actualBaseDepth, 2)
+    if (brandGeo) {
+      let targetMesh = null
+      group.traverse(obj => {
+        if (obj.isMesh && !obj.userData.vizOnly && !targetMesh) targetMesh = obj
+      })
+      if (targetMesh) {
+        const csgEv = new Evaluator()
+        const baseBrush = new Brush(targetMesh.geometry)
+        baseBrush.updateMatrixWorld()
+        const brandBrush = new Brush(brandGeo)
+        brandBrush.updateMatrixWorld()
+        const result = csgEv.evaluate(baseBrush, brandBrush, SUBTRACTION)
+        targetMesh.geometry.dispose()
+        targetMesh.geometry = result.geometry
+      }
+    }
+  } catch (e) { /* branding is non-critical */ }
+
   return group
 }
 
@@ -1428,6 +1505,27 @@ function createGridfinityInsert(points, config) {
     group.add(nMesh)
     addGrabHandle(nPts, idx)
   })
+
+  // ─── Branding deboss ───
+  try {
+    const brandGeo = createBrandGeometry(binW, binH, GF.baseHeight + floorZ, 2)
+    if (brandGeo) {
+      let targetMesh = null
+      group.traverse(obj => {
+        if (obj.isMesh && !obj.userData.vizOnly && !targetMesh) targetMesh = obj
+      })
+      if (targetMesh) {
+        const csgEv = new Evaluator()
+        const baseBrush = new Brush(targetMesh.geometry)
+        baseBrush.updateMatrixWorld()
+        const brandBrush = new Brush(brandGeo)
+        brandBrush.updateMatrixWorld()
+        const result = csgEv.evaluate(baseBrush, brandBrush, SUBTRACTION)
+        targetMesh.geometry.dispose()
+        targetMesh.geometry = result.geometry
+      }
+    }
+  } catch (e) { /* branding is non-critical */ }
 
   return group
 }
