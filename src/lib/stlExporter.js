@@ -809,24 +809,17 @@ function createCustomInsert(points, config) {
     group.add(handleMesh)
   })
 
-  // ─── Branding deboss ───
+  // ─── Branding deboss (viz for preview) ───
   try {
     const brandGeo = createBrandGeometry(trayWidth, trayHeight, actualBaseDepth, 2)
     if (brandGeo) {
-      let targetMesh = null
-      group.traverse(obj => {
-        if (obj.isMesh && !obj.userData.vizOnly && !targetMesh) targetMesh = obj
-      })
-      if (targetMesh) {
-        const csgEv = new Evaluator()
-        const baseBrush = new Brush(targetMesh.geometry)
-        baseBrush.updateMatrixWorld()
-        const brandBrush = new Brush(brandGeo)
-        brandBrush.updateMatrixWorld()
-        const result = csgEv.evaluate(baseBrush, brandBrush, SUBTRACTION)
-        targetMesh.geometry.dispose()
-        targetMesh.geometry = result.geometry
-      }
+      const brandMat = new THREE.MeshPhongMaterial({ color: 0x222228, side: THREE.DoubleSide })
+      const brandMesh = new THREE.Mesh(brandGeo, brandMat)
+      brandMesh.userData.vizOnly = true
+      brandMesh.userData.brandDeboss = true
+      group.add(brandMesh)
+      // Store brand params for export-time CSG
+      group.userData.brandGeo = brandGeo
     }
   } catch (e) { /* branding is non-critical */ }
 
@@ -1495,24 +1488,16 @@ function createGridfinityInsert(points, config) {
     addGrabHandle(nPts, idx)
   })
 
-  // ─── Branding deboss ───
+  // ─── Branding deboss (viz for preview) ───
   try {
     const brandGeo = createBrandGeometry(binW, binH, GF.baseHeight + floorZ, 2)
     if (brandGeo) {
-      let targetMesh = null
-      group.traverse(obj => {
-        if (obj.isMesh && !obj.userData.vizOnly && !targetMesh) targetMesh = obj
-      })
-      if (targetMesh) {
-        const csgEv = new Evaluator()
-        const baseBrush = new Brush(targetMesh.geometry)
-        baseBrush.updateMatrixWorld()
-        const brandBrush = new Brush(brandGeo)
-        brandBrush.updateMatrixWorld()
-        const result = csgEv.evaluate(baseBrush, brandBrush, SUBTRACTION)
-        targetMesh.geometry.dispose()
-        targetMesh.geometry = result.geometry
-      }
+      const brandMat = new THREE.MeshPhongMaterial({ color: 0x222228, side: THREE.DoubleSide })
+      const brandMesh = new THREE.Mesh(brandGeo, brandMat)
+      brandMesh.userData.vizOnly = true
+      brandMesh.userData.brandDeboss = true
+      group.add(brandMesh)
+      group.userData.brandGeo = brandGeo
     }
   } catch (e) { /* branding is non-critical */ }
 
@@ -1601,7 +1586,21 @@ export function exportSTL(toolPoints, config) {
 
   if (geometries.length === 0) throw new Error('No geometry to export')
 
-  const merged = mergeGeometries(geometries)
+  let merged = mergeGeometries(geometries)
+
+  // Apply branding deboss on merged geometry (reliable CSG on full mesh)
+  if (group.userData.brandGeo) {
+    try {
+      const ev = new Evaluator()
+      const baseBrush = new Brush(merged)
+      baseBrush.updateMatrixWorld()
+      const brandBrush = new Brush(group.userData.brandGeo)
+      brandBrush.updateMatrixWorld()
+      const result = ev.evaluate(baseBrush, brandBrush, SUBTRACTION)
+      if (result.geometry) merged = result.geometry
+    } catch (e) { /* branding subtraction failed, export without it */ }
+  }
+
   return geometryToSTL(merged)
 }
 
