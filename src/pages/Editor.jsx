@@ -1466,10 +1466,10 @@ export default function Editor() {
       if (outerShapeType === 'custom' && outerShapePoints && outerShapePoints.length >= 3) {
         outerPts = outerShapePoints
       }
-      return { ...base, trayWidth, trayHeight, trayDepth, wallThickness, cornerRadius, floorThickness, edgeProfile, edgeSize, cavityBevel, fingerNotches, outerShapeType, outerShapePoints: outerPts, additionalTools }
+      return { ...base, trayWidth, trayHeight, trayDepth, wallThickness, cornerRadius, floorThickness, edgeProfile, edgeSize, cavityBevel: t0.cavityBevel ?? 0, fingerNotches, outerShapeType, outerShapePoints: outerPts, additionalTools }
     }
     if (outputMode === 'gridfinity') {
-      return { ...base, gridX, gridY, gridHeight, cavityBevel, fingerNotches, additionalTools }
+      return { ...base, gridX, gridY, gridHeight, cavityBevel: t0.cavityBevel ?? 0, fingerNotches, additionalTools }
     }
     return { ...base, additionalTools }
   }
