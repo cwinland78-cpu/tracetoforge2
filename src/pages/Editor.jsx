@@ -151,9 +151,11 @@ export default function Editor() {
   const [isDirty, setIsDirty] = useState(false)
   const [showUnsavedModal, setShowUnsavedModal] = useState(false)
   const pendingNavigationRef = useRef(null)
+  const justLoadedRef = useRef(false)
 
   // Track changes - mark dirty on any meaningful state change
   useEffect(() => {
+    if (justLoadedRef.current) { justLoadedRef.current = false; return }
     if (step >= 1) setIsDirty(true)
   }, [contours, realWidth, realHeight, toolDepth, tolerance, toolOffsetX, toolOffsetY, toolRotation, cavityBevel, fingerNotches, tools, trayWidth, trayHeight, trayDepth])
 
@@ -197,12 +199,14 @@ export default function Editor() {
       if (!proj) return
       setProjectId(proj.id)
       setProjectName(proj.name)
+      justLoadedRef.current = true
       const cfg = proj.config
       if (cfg.outputMode) setOutputMode(cfg.outputMode)
       if (cfg.realWidth) setRealWidth(cfg.realWidth)
       if (cfg.realHeight) setRealHeight(cfg.realHeight)
       if (cfg.trayDepth) setTrayDepth(cfg.trayDepth)
       if (cfg.trayWidth) setTrayWidth(cfg.trayWidth)
+      if (cfg.trayHeight) setTrayHeight(cfg.trayHeight)
       if (cfg.wallThickness) setWallThickness(cfg.wallThickness)
       if (cfg.floorThickness) setFloorThickness(cfg.floorThickness)
       if (cfg.toolDepth) setToolDepth(cfg.toolDepth)
@@ -221,7 +225,19 @@ export default function Editor() {
         // Backward compat: convert old single notch to array
         setFingerNotches([{ shape: cfg.fingerNotchShape || 'circle', radius: cfg.fingerNotchRadius || 12, w: cfg.fingerNotchW || 24, h: cfg.fingerNotchH || 16, x: cfg.fingerNotchX || 0, y: cfg.fingerNotchY || 0 }])
       }
-      if (cfg.tools) setTools(cfg.tools)
+      if (cfg.tools && cfg.tools.length > 0) {
+        // Reconstruct imageEl for each tool that has an image
+        const restoredTools = cfg.tools.map(t => {
+          if (t.image) {
+            const img = new Image()
+            img.src = t.image
+            return { ...t, imageEl: img }
+          }
+          return { ...t, imageEl: null }
+        })
+        setTools(restoredTools)
+        if (cfg.activeToolIdx != null) setActiveToolIdx(cfg.activeToolIdx)
+      }
       if (cfg.step != null) setStep(cfg.step)
       if (cfg.edgeProfile) setEdgeProfile(cfg.edgeProfile)
       if (cfg.edgeSize != null) setEdgeSize(cfg.edgeSize)
@@ -249,12 +265,17 @@ export default function Editor() {
   }
 
   function buildProjectConfig() {
+    // Sync active tool state into tools array before saving
+    const currentState = saveCurrentToolState()
+    const savedTools = tools.map((t, i) =>
+      i === activeToolIdx ? { ...t, ...currentState } : t
+    )
     return {
       outputMode, realWidth, realHeight, wallThickness, floorThickness,
       toolDepth, tolerance, contours, selectedContour, cornerRadius,
       cavityBevel, toolRotation, toolOffsetX, toolOffsetY,
-      fingerNotches,
-      tools, step: step, trayWidth, trayDepth, depth, objectEdgeRadius,
+      fingerNotches, activeToolIdx,
+      tools: savedTools, step: step, trayWidth, trayHeight, trayDepth, depth, objectEdgeRadius,
       edgeProfile, edgeSize, outerShapeType, gridX, gridY,
       gridHeight, threshold, simplification, sensitivity, minContourPct,
       image: image || null,
@@ -1343,22 +1364,16 @@ export default function Editor() {
   const switchTool = useCallback((targetIdx) => {
     if (targetIdx === activeToolIdx) return
     const currentState = saveCurrentToolState()
-    // Save current tool state back into tools array
+    // Save current + restore target in one setTools call to avoid race conditions
     setTools(prev => {
       const updated = [...prev]
       if (activeToolIdx >= 0 && activeToolIdx < prev.length) {
         updated[activeToolIdx] = { ...updated[activeToolIdx], ...currentState }
       }
+      // Now restore from the target
+      const targetTool = updated[targetIdx]
+      if (targetTool) restoreToolState(targetTool)
       return updated
-    })
-    // Restore target tool state
-    setTools(prev => {
-      const targetTool = prev[targetIdx]
-      if (targetTool) {
-        // Use setTimeout to batch with setActiveToolIdx
-        setTimeout(() => restoreToolState(targetTool), 0)
-      }
-      return prev
     })
     setActiveToolIdx(targetIdx)
   }, [activeToolIdx, saveCurrentToolState, restoreToolState])
@@ -2413,11 +2428,16 @@ export default function Editor() {
               <div className="flex gap-2">
                 <button onClick={async () => {
                   await handleSaveProject()
-                  setShowUnsavedModal(false)
-                  const dest = pendingNavigationRef.current
-                  pendingNavigationRef.current = null
-                  if (dest === '/editor') window.location.href = '/editor'
-                  else if (dest) navigate(dest)
+                  // Only navigate if save succeeded (isDirty was cleared)
+                  if (!isDirty) {
+                    setShowUnsavedModal(false)
+                    const dest = pendingNavigationRef.current
+                    pendingNavigationRef.current = null
+                    if (dest === '/editor') window.location.href = '/editor'
+                    else if (dest) navigate(dest)
+                  } else {
+                    setShowUnsavedModal(false)
+                  }
                 }}
                   className="flex-1 py-2 rounded-lg bg-brand hover:bg-brand/80 text-white text-sm font-medium transition-colors">
                   Save & Continue

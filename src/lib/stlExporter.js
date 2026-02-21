@@ -345,24 +345,6 @@ function createCustomInsert(points, config) {
   })()
 
   // Full hole = tool + ALL notches (for upper wall layers where all notches are open)
-  const fullHoles = (() => {
-    const scale = 1000
-    if (allNotchPts.length === 0) return [holePts]
-    const clipper = new ClipperLib.Clipper()
-    clipper.AddPath(holePts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptSubject, true)
-    allNotchPts.forEach(nPts => {
-      clipper.AddPath(nPts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptClip, true)
-    })
-    const solution = []
-    clipper.Execute(ClipperLib.ClipType.ctUnion, solution, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero)
-    if (solution.length === 0) return [holePts]
-    return solution.map(path => {
-      const pts = path.map(p => ({ x: p.X / scale, y: p.Y / scale }))
-      if (ClipperLib.Clipper.Area(path) < 0) pts.reverse()
-      return pts
-    })
-  })()
-
   // Create hole paths from combined result
   const allHolePaths = combinedHoles.map(pts => {
     const hp = new THREE.Path()
@@ -864,7 +846,6 @@ function createGridfinityInsert(points, config) {
     gfNotchOrigIdx.push(fnIdx)
     // Any notch with custom depth (> 0) that isn't equal to cavityZ is independent
     const isIndependent = fn.depth > 0 && Math.abs(fn.depth - cavityZ) > 0.01
-    console.log('[GF Notch collect] fn.depth:', fn.depth, 'cavityZ:', cavityZ, 'isIndependent:', isIndependent)
     if (isIndependent) {
       gfIndepNotches.push({ pts, depth: fn.depth, origIdx: fnIdx })
     }
@@ -1109,7 +1090,6 @@ function createGridfinityInsert(points, config) {
       const floorBreaks = [0, ...floorCuts.map(c => c.cutStart), floorZ]
       const uniqueFloorBreaks = [...new Set(floorBreaks)].filter(h => h >= 0 && h <= floorZ).sort((a, b) => a - b)
       
-      console.log('[GF Floor Layers] breaks:', uniqueFloorBreaks, 'deeperNotches:', deeperNotches.length)
       
       for (let fi = 0; fi < uniqueFloorBreaks.length - 1; fi++) {
         const layerBot = uniqueFloorBreaks[fi]
@@ -1139,7 +1119,6 @@ function createGridfinityInsert(points, config) {
 
   // Collect shallower-than-cavity notches for layered wall approach
   const notchDepthMap = shallowerNotches.map(({ pts, depth }) => ({ pts, depth }))
-  console.log('[GF Wall] gfIndepNotches:', gfIndepNotches.length, 'shallower:', shallowerNotches.length, 'deeper:', deeperNotches.length, 'notchDepthMap:', notchDepthMap.length, 'cavityZ:', cavityZ, 'floorZ:', floorZ)
 
   if (notchDepthMap.length === 0) {
     // Simple case: no independent depths, single wall section
@@ -1210,7 +1189,6 @@ function createGridfinityInsert(points, config) {
     const sliceHeights = [0, ...breakHeights, cavityZ]
     const uniqueHeights = [...new Set(sliceHeights)].sort((a, b) => a - b)
 
-    console.log('[GF Layered Wall] uniqueHeights:', uniqueHeights, 'shallowerNotches depths:', shallowerNotches.map(n => n.depth))
 
     for (let li = 0; li < uniqueHeights.length - 1; li++) {
       const layerBottom = uniqueHeights[li]
