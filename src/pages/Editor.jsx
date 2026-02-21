@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Box, Upload, Download, ChevronLeft, Pencil, MousePointer, Eye,
-  Info, ZoomIn, ZoomOut, Save, FolderOpen, X, Camera, Sun, Contrast, Crop
+  Info, ZoomIn, ZoomOut, Save, FolderOpen, X, Camera, Sun, Contrast, Crop, FilePlus2
 } from 'lucide-react'
 import ThreePreview from '../components/ThreePreview'
 import PaywallModal from '../components/PaywallModal'
@@ -148,6 +148,23 @@ export default function Editor() {
   // OpenCV
   const [cvReady, setCvReady] = useState(false)
   const [processing, setProcessing] = useState(false)
+  const [isDirty, setIsDirty] = useState(false)
+  const [showUnsavedModal, setShowUnsavedModal] = useState(false)
+  const pendingNavigationRef = useRef(null)
+
+  // Track changes - mark dirty on any meaningful state change
+  useEffect(() => {
+    if (step >= 1) setIsDirty(true)
+  }, [contours, realWidth, realHeight, toolDepth, tolerance, toolOffsetX, toolOffsetY, toolRotation, cavityBevel, fingerNotches, tools, trayWidth, trayHeight, trayDepth])
+
+  // Warn on browser refresh/close
+  useEffect(() => {
+    const handler = (e) => {
+      if (isDirty) { e.preventDefault(); e.returnValue = '' }
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [isDirty])
 
   // Initialize RevenueCat with user ID when available
   useEffect(() => { initPurchases(user?.id || null) }, [user])
@@ -286,7 +303,7 @@ export default function Editor() {
         if (thumbnail) updates.thumbnail = thumbnail
         const result = await updateProject(projectId, updates)
         console.log('[Save] Update result:', result)
-        setSaveMsg('Saved!')
+        setSaveMsg('Saved!'); setIsDirty(false)
       } else {
         let name = projectName
         if (name === 'Untitled Project') {
@@ -299,7 +316,7 @@ export default function Editor() {
         console.log('[Save] Create result:', proj)
         setProjectId(proj.id)
         window.history.replaceState(null, '', `/editor?project=${proj.id}`)
-        setSaveMsg('Saved!')
+        setSaveMsg('Saved!'); setIsDirty(false)
       }
       setTimeout(() => setSaveMsg(''), 4000)
     } catch (err) {
@@ -1524,7 +1541,10 @@ export default function Editor() {
       {/* ── Header ── */}
       <header className="flex items-center justify-between px-4 py-3 border-b border-[#2A2A35]/50 bg-surface/50 backdrop-blur-sm flex-shrink-0">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate('/')} className="flex items-center gap-1 text-sm text-[#8888A0] hover:text-white transition-colors">
+          <button onClick={() => {
+            if (isDirty) { pendingNavigationRef.current = '/'; setShowUnsavedModal(true) }
+            else navigate('/')
+          }} className="flex items-center gap-1 text-sm text-[#8888A0] hover:text-white transition-colors">
             <ChevronLeft size={16} /> Back
           </button>
           <div className="w-px h-5 bg-[#2A2A35]" />
@@ -1555,8 +1575,18 @@ export default function Editor() {
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-[#2A2A35] hover:bg-[#3A3A45] text-[#C8C8D0] rounded-lg transition-colors">
                 <Save size={13} /> {saving ? 'Saving...' : 'Save'}
               </button>
+              <button onClick={() => {
+                if (isDirty) { pendingNavigationRef.current = '/editor'; setShowUnsavedModal(true) }
+                else { window.location.href = '/editor' }
+              }}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-[#2A2A35] hover:bg-[#3A3A45] text-[#C8C8D0] rounded-lg transition-colors">
+                <FilePlus2 size={13} /> New
+              </button>
               {saveMsg && <span className={`text-xs ${saveMsg.includes('failed') ? 'text-red-400 font-bold' : 'text-green-400'}`}>{saveMsg}</span>}
-              <button onClick={() => navigate('/dashboard')}
+              <button onClick={() => {
+                if (isDirty) { pendingNavigationRef.current = '/dashboard'; setShowUnsavedModal(true) }
+                else navigate('/dashboard')
+              }}
                 className="flex items-center gap-1 px-2 py-1.5 text-xs text-[#8888A0] hover:text-white transition-colors">
                 <FolderOpen size={13} /> Projects
               </button>
@@ -2370,6 +2400,48 @@ export default function Editor() {
           )}
         </main>
       </div>
+
+      {/* Unsaved changes modal */}
+      {showUnsavedModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="bg-zinc-900 border border-zinc-700 rounded-2xl max-w-sm w-full mx-4 overflow-hidden shadow-2xl">
+            <div className="bg-gradient-to-r from-orange-600 to-orange-500 px-6 py-4">
+              <h2 className="text-lg font-bold text-white">Unsaved Changes</h2>
+            </div>
+            <div className="px-6 py-5 space-y-4">
+              <p className="text-zinc-300 text-sm">You have unsaved changes. What would you like to do?</p>
+              <div className="flex gap-2">
+                <button onClick={async () => {
+                  await handleSaveProject()
+                  setShowUnsavedModal(false)
+                  const dest = pendingNavigationRef.current
+                  pendingNavigationRef.current = null
+                  if (dest === '/editor') window.location.href = '/editor'
+                  else if (dest) navigate(dest)
+                }}
+                  className="flex-1 py-2 rounded-lg bg-brand hover:bg-brand/80 text-white text-sm font-medium transition-colors">
+                  Save & Continue
+                </button>
+                <button onClick={() => {
+                  setShowUnsavedModal(false)
+                  setIsDirty(false)
+                  const dest = pendingNavigationRef.current
+                  pendingNavigationRef.current = null
+                  if (dest === '/editor') window.location.href = '/editor'
+                  else if (dest) navigate(dest)
+                }}
+                  className="flex-1 py-2 rounded-lg bg-red-600/20 hover:bg-red-600/30 text-red-400 text-sm font-medium border border-red-500/30 transition-colors">
+                  Discard
+                </button>
+                <button onClick={() => { setShowUnsavedModal(false); pendingNavigationRef.current = null }}
+                  className="flex-1 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm font-medium transition-colors">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
