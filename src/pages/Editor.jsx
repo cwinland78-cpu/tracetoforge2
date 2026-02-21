@@ -109,7 +109,7 @@ export default function Editor() {
 
   // Multi-tool support
   const [tools, setTools] = useState([]) // additional tools: [{name, contours, selectedContour, realWidth, realHeight, toolDepth, tolerance, toolOffsetX, toolOffsetY, toolRotation}]
-  const [activeToolIdx, setActiveToolIdx] = useState(-1) // -1 = primary tool, 0+ = additional tools
+  const [activeToolIdx, setActiveToolIdx] = useState(0) // 0 = primary tool, 1+ = additional tools
 
   // Custom tray
   const [trayWidth, setTrayWidth] = useState(200)
@@ -313,9 +313,13 @@ export default function Editor() {
   // Export with disclaimer
   async function handleConfirmExport() {
     setShowDisclaimer(false)
-    const pts = contours[selectedContour]
+    // Always use tool 0 as primary
+    const tool0 = activeToolIdx === 0
+      ? { contours, selectedContour, realWidth, realHeight }
+      : tools[0]
+    const pts = tool0?.contours?.[tool0?.selectedContour ?? 0]
     if (!pts || pts.length < 3) return
-    const scaledPts = scalePoints(pts)
+    const scaledPts = scaleToolPoints(pts, tool0.realWidth ?? realWidth, tool0.realHeight ?? realHeight)
     const config = buildConfig()
 
     // Ensure at least one format is selected
@@ -1325,17 +1329,14 @@ export default function Editor() {
     // Save current tool state back into tools array
     setTools(prev => {
       const updated = [...prev]
-      if (activeToolIdx === -1) {
-        // Save to tool 0 (primary)
-        updated[0] = { ...updated[0], ...currentState, name: updated[0]?.name || 'Tool 1' }
-      } else if (activeToolIdx >= 0 && activeToolIdx < prev.length) {
+      if (activeToolIdx >= 0 && activeToolIdx < prev.length) {
         updated[activeToolIdx] = { ...updated[activeToolIdx], ...currentState }
       }
       return updated
     })
     // Restore target tool state
     setTools(prev => {
-      const targetTool = targetIdx === -1 ? prev[0] : prev[targetIdx]
+      const targetTool = prev[targetIdx]
       if (targetTool) {
         // Use setTimeout to batch with setActiveToolIdx
         setTimeout(() => restoreToolState(targetTool), 0)
@@ -1375,7 +1376,7 @@ export default function Editor() {
   const removeTool = (idx) => {
     if (activeToolIdx === idx) {
       // Switch to tool 1 first, then remove
-      switchTool(-1)
+      switchTool(0)
     }
     setTools(prev => prev.filter((_, i) => i !== idx))
     if (activeToolIdx > idx) setActiveToolIdx(activeToolIdx - 1)
@@ -1400,14 +1401,14 @@ export default function Editor() {
 
   const buildConfig = () => {
     // Tool 0's values for the primary cavity
-    const t0 = (activeToolIdx === -1 || activeToolIdx === 0)
+    const t0 = activeToolIdx === 0
       ? { toolDepth, tolerance, realWidth, toolOffsetX, toolOffsetY, toolRotation, cavityBevel }
       : (tools[0] || { toolDepth, tolerance, realWidth, toolOffsetX, toolOffsetY, toolRotation, cavityBevel })
     const base = { mode: outputMode, depth: outputMode === 'object' ? depth : t0.toolDepth, tolerance: t0.tolerance, realWidth: t0.realWidth, toolDepth: t0.toolDepth, toolOffsetX: t0.toolOffsetX, toolOffsetY: t0.toolOffsetY, toolRotation: t0.toolRotation, objectEdgeRadius }
 
     // Build additional tools array from all tools except tool 0
     const allTools = tools.map((t, i) => {
-      if ((activeToolIdx === -1 && i === 0) || i === activeToolIdx) {
+      if (i === activeToolIdx) {
         return { contours, selectedContour, realWidth, realHeight, toolDepth, tolerance, toolOffsetX, toolOffsetY, toolRotation, cavityBevel }
       }
       return t
@@ -1459,7 +1460,11 @@ export default function Editor() {
 
   /* ── Export ── */
   const handleExport = () => {
-    const pts = contours[selectedContour]
+    // Check that tool 0 (primary) has valid contours
+    const tool0 = activeToolIdx === 0
+      ? { contours, selectedContour }
+      : tools[0]
+    const pts = tool0?.contours?.[tool0?.selectedContour ?? 0]
     if (!pts || pts.length < 3) return
     if (credits <= 0) {
       if (!isAuthenticated) { navigate('/login'); return }
@@ -1472,24 +1477,14 @@ export default function Editor() {
   /* ── Preview points ── */
   const getPreviewPoints = () => {
     // Always use tool 0 (primary tool) as the base cavity for 3D preview
-    const tool0 = (activeToolIdx === -1 || activeToolIdx === 0)
+    const tool0 = activeToolIdx === 0
       ? { contours, selectedContour, realWidth, realHeight }
       : tools[0]
     if (!tool0) return null
     const pts = tool0.contours?.[tool0.selectedContour ?? 0]
     if (!pts || pts.length < 3) return null
-    // Scale using tool 0's dimensions
-    const bounds = pts.reduce(
-      (acc, p) => ({ minX: Math.min(acc.minX, p.x), maxX: Math.max(acc.maxX, p.x), minY: Math.min(acc.minY, p.y), maxY: Math.max(acc.maxY, p.y) }),
-      { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity }
-    )
-    const pw = bounds.maxX - bounds.minX, ph = bounds.maxY - bounds.minY
-    if (pw === 0 || ph === 0) return pts
     const w = tool0.realWidth ?? realWidth, h = tool0.realHeight ?? realHeight
-    return pts.map(p => ({
-      x: (p.x - bounds.minX) * (w / pw) - w / 2,
-      y: -((p.y - bounds.minY) * (h / ph) - h / 2),
-    }))
+    return scaleToolPoints(pts, w, h)
   }
 
   /* ═══════════════════ RENDER ═══════════════════ */
@@ -1558,27 +1553,25 @@ export default function Editor() {
           <div className="p-4 pb-32 space-y-5">
 
             {/* Tool selector tabs - at top of sidebar */}
-            {step >= 2 && outputMode !== 'object' && (
+            {step >= 2 && outputMode !== 'object' && tools.length > 0 && (
               <div>
                 <h3 className="text-xs font-semibold text-[#8888A0] uppercase tracking-wider mb-2">Tools</h3>
                 <div className="flex flex-wrap gap-1">
-                  <button onClick={() => switchTool(-1)}
-                    className={`text-[11px] px-2.5 py-1 rounded-md transition-colors ${activeToolIdx === -1 ? 'bg-brand text-white' : 'bg-[#1C1C24] text-[#8888A0] hover:text-white'}`}>
-                    Tool 1
-                  </button>
                   {tools.map((t, i) => (
                     <div key={i} className="flex items-center gap-0.5">
                       <button onClick={() => switchTool(i)}
-                        className={`text-[11px] px-2.5 py-1 rounded-l-md transition-colors ${activeToolIdx === i ? 'bg-brand text-white' : 'bg-[#1C1C24] text-[#8888A0] hover:text-white'}`}>
+                        className={`text-[11px] px-2.5 py-1 ${i > 0 ? 'rounded-l-md' : 'rounded-md'} transition-colors ${activeToolIdx === i ? 'bg-brand text-white' : 'bg-[#1C1C24] text-[#8888A0] hover:text-white'}`}>
                         {t.name}
                       </button>
-                      <button onClick={() => removeTool(i)}
-                        className="text-[11px] px-1.5 py-1 rounded-r-md bg-[#1C1C24] text-[#555] hover:text-red-400 hover:bg-red-900/20 transition-colors">
-                        ✕
-                      </button>
+                      {i > 0 && (
+                        <button onClick={() => removeTool(i)}
+                          className="text-[11px] px-1.5 py-1 rounded-r-md bg-[#1C1C24] text-[#555] hover:text-red-400 hover:bg-red-900/20 transition-colors">
+                          ✕
+                        </button>
+                      )}
                     </div>
                   ))}
-                  {tools.length < 4 && (
+                  {tools.length < 5 && (
                     <button onClick={addTool}
                       className="text-[11px] px-2.5 py-1 rounded-md bg-[#1C1C24] text-brand hover:bg-brand/20 transition-colors font-bold">
                       + Add Tool
@@ -2315,11 +2308,14 @@ export default function Editor() {
                 <ChevronLeft size={14} /> Back to Editor
               </button>
               <ThreePreview contourPoints={getPreviewPoints()} config={buildConfig()}
-                onToolDrag={(toolIdx, dx, dy) => {
-                  if (toolIdx === -1) {
+                onToolDrag={(meshToolIdx, dx, dy) => {
+                  // meshToolIdx: -1 = primary cavity (tool 0), 0+ = additional tools (tool 1+)
+                  const toolIdx = meshToolIdx === -1 ? 0 : meshToolIdx + 1
+                  if (toolIdx === activeToolIdx) {
+                    // Active tool - update top-level state directly
                     setToolOffsetX(x => Math.round(x + dx))
                     setToolOffsetY(y => Math.round(y + dy))
-                  } else if (toolIdx >= 0 && tools[toolIdx]) {
+                  } else if (tools[toolIdx]) {
                     updateTool(toolIdx, 'toolOffsetX', Math.round((tools[toolIdx].toolOffsetX || 0) + dx))
                     updateTool(toolIdx, 'toolOffsetY', Math.round((tools[toolIdx].toolOffsetY || 0) + dy))
                   }
