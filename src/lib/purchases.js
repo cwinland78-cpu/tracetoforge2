@@ -52,17 +52,11 @@ export async function purchasePackage(pkg, userId) {
     const purchases = await initPurchases(userId);
     if (!purchases) throw new Error('RevenueCat not initialized');
     const result = await purchases.purchase({ rcPackage: pkg });
+    // Credits are added server-side via RevenueCat webhook - no client-side addition needed
     const productId = pkg.rcBillingProduct?.identifier || pkg.identifier || '';
     let creditsToAdd = 0;
     if (productId.includes('20')) creditsToAdd = 20;
     else if (productId.includes('5')) creditsToAdd = 5;
-    // Grant credits client-side since webhook is not yet set up
-    if (creditsToAdd > 0 && userId) {
-      await addCredits(creditsToAdd, userId, 'purchase', { product_id: productId });
-    } else if (creditsToAdd > 0) {
-      const current = (parseInt(localStorage.getItem(CREDITS_KEY) || '0', 10) || 0) + creditsToAdd;
-      localStorage.setItem(CREDITS_KEY, String(current));
-    }
     return { success: true, credits: creditsToAdd, result };
   } catch (err) {
     if (err.errorCode === 1) return { success: false, cancelled: true };
