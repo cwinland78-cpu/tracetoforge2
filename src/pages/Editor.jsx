@@ -788,11 +788,11 @@ export default function Editor() {
           const hov = hoveredPoint === pi
           const drag = draggingPoint === pi
           ctx.beginPath()
-          ctx.arc(p.x + imgOffsetX, p.y + imgOffsetY, drag ? 8 : hov ? 7 : 5, 0, Math.PI * 2)
+          ctx.arc(p.x + imgOffsetX, p.y + imgOffsetY, drag ? 5 : hov ? 4 : 3, 0, Math.PI * 2)
           ctx.fillStyle = drag ? '#FF8534' : hov ? '#E8650A' : '#E8650Acc'
           ctx.fill()
           ctx.strokeStyle = '#fff'
-          ctx.lineWidth = 2
+          ctx.lineWidth = 1.5
           ctx.stroke()
         })
       }
@@ -870,11 +870,11 @@ export default function Editor() {
           const hov = hoveredOuterPoint === pi
           const drag = draggingOuterPoint === pi
           ctx.beginPath()
-          ctx.arc(px, py, drag ? 8 : hov ? 7 : 5, 0, Math.PI * 2)
+          ctx.arc(px, py, drag ? 5 : hov ? 4 : 3, 0, Math.PI * 2)
           ctx.fillStyle = drag ? '#66AAFF' : hov ? '#4488FF' : '#4488FFcc'
           ctx.fill()
           ctx.strokeStyle = '#fff'
-          ctx.lineWidth = 2
+          ctx.lineWidth = 1.5
           ctx.stroke()
 
           // Show mm coordinates on hover or drag
