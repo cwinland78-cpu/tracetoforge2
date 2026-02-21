@@ -117,12 +117,18 @@ export default function ThreePreview({ contourPoints, config, onToolDrag, onNotc
     maxDimRef.current = maxDim
     centerRef.current.copy(center)
 
-    // Grid on the floor for alignment reference
+    // Grid on the tray top surface for tool alignment
     const gridSize = Math.ceil(maxDim * 1.5 / 10) * 10
     const gridDivisions = Math.round(gridSize / 10)
-    const grid = new THREE.GridHelper(gridSize, gridDivisions, 0x444455, 0x222233)
+    const grid = new THREE.GridHelper(gridSize, gridDivisions, 0xE8650A33, 0x44445522)
     grid.rotation.x = Math.PI / 2  // rotate to XY plane (Z-up)
-    grid.position.set(center.x, center.y, box.min.z - 0.5)
+    grid.position.set(center.x, center.y, box.max.z + 0.2)
+    grid.material.transparent = true
+    grid.material.opacity = 0.3
+    grid.material.depthWrite = false
+    if (Array.isArray(grid.material)) {
+      grid.material.forEach(m => { m.transparent = true; m.opacity = 0.3; m.depthWrite = false })
+    }
     scene.add(grid)
 
     if (prevControls) prevControls.dispose()
