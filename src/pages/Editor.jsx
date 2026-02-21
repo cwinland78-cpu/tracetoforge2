@@ -1373,6 +1373,37 @@ export default function Editor() {
     }
   }
 
+  const cloneTool = (idx) => {
+    // Save current state first if cloning the active tool
+    const toolData = idx === activeToolIdx
+      ? saveCurrentToolState()
+      : tools[idx]
+    if (!toolData) return
+    const cloned = {
+      ...JSON.parse(JSON.stringify({
+        contours: toolData.contours,
+        selectedContour: toolData.selectedContour,
+        realWidth: toolData.realWidth,
+        realHeight: toolData.realHeight,
+        toolDepth: toolData.toolDepth,
+        tolerance: toolData.tolerance,
+        toolOffsetX: toolData.toolOffsetX,
+        toolOffsetY: toolData.toolOffsetY,
+        toolRotation: toolData.toolRotation,
+        cavityBevel: toolData.cavityBevel,
+        sensitivity: toolData.sensitivity,
+        simplification: toolData.simplification,
+        minContourPct: toolData.minContourPct,
+        step: toolData.step,
+        imageSize: toolData.imageSize,
+      })),
+      image: toolData.image,
+      imageEl: toolData.imageEl,
+      name: `Tool ${tools.length + 1}`,
+    }
+    setTools(prev => [...prev, cloned])
+  }
+
   const removeTool = (idx) => {
     if (activeToolIdx === idx) {
       // Switch to tool 1 first, then remove
@@ -1560,7 +1591,7 @@ export default function Editor() {
                   {tools.map((t, i) => (
                     <div key={i} className="flex items-center gap-0.5">
                       <button onClick={() => switchTool(i)}
-                        className={`text-[11px] px-2.5 py-1 ${i > 0 ? 'rounded-l-md' : 'rounded-md'} transition-colors ${activeToolIdx === i ? 'bg-brand text-white' : 'bg-[#1C1C24] text-[#8888A0] hover:text-white'}`}>
+                        className={`text-[11px] px-2.5 py-1 ${tools.length > 1 ? 'rounded-l-md' : 'rounded-md'} transition-colors ${activeToolIdx === i ? 'bg-brand text-white' : 'bg-[#1C1C24] text-[#8888A0] hover:text-white'}`}>
                         {t.name}
                       </button>
                       {i > 0 && (
@@ -1572,10 +1603,18 @@ export default function Editor() {
                     </div>
                   ))}
                   {tools.length < 5 && (
-                    <button onClick={addTool}
-                      className="text-[11px] px-2.5 py-1 rounded-md bg-[#1C1C24] text-brand hover:bg-brand/20 transition-colors font-bold">
-                      + Add Tool
-                    </button>
+                    <>
+                      <button onClick={addTool}
+                        className="text-[11px] px-2.5 py-1 rounded-md bg-[#1C1C24] text-brand hover:bg-brand/20 transition-colors font-bold">
+                        + New
+                      </button>
+                      {contours.length > 0 && (
+                        <button onClick={() => cloneTool(activeToolIdx)}
+                          className="text-[11px] px-2.5 py-1 rounded-md bg-[#1C1C24] text-green-400 hover:bg-green-900/20 transition-colors font-bold">
+                          ⧉ Clone
+                        </button>
+                      )}
+                    </>
                   )}
                 </div>
               </div>

@@ -1333,7 +1333,14 @@ function createGridfinityInsert(points, config) {
   }
 
   // ─── Tool cavity visualization (orange, clipped to bin bounds) ───
-  const cavityGeo = new THREE.ExtrudeGeometry(toolCutterShape, {
+  // Use raw scaled tool points (without tolerance) for viz so tolerance gap is visible
+  const toolVizShape = new THREE.Shape()
+  scaledToolPts.forEach((p, i) => {
+    if (i === 0) toolVizShape.moveTo(p.x, p.y)
+    else toolVizShape.lineTo(p.x, p.y)
+  })
+  toolVizShape.closePath()
+  const cavityGeo = new THREE.ExtrudeGeometry(toolVizShape, {
     depth: cavityZ + 0.5,
     bevelEnabled: false,
   })
