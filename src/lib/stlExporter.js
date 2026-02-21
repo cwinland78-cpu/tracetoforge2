@@ -19,15 +19,18 @@ const BRAND_HEIGHT = 0.3 // mm raised above floor
  * @param {number} cornerMargin - margin from corner edge in mm
  * @returns {THREE.BufferGeometry|null}
  */
-function createBrandGeometry(trayW, trayH, floorZ, cornerMargin = 1.5) {
+function createBrandGeometry(toolPts, floorZ, cornerMargin = 1) {
   try {
-    // Target text width: ~25% of tray width, clamped
-    const targetW = Math.min(Math.max(trayW * 0.25, 8), 40)
-    // Generate shapes at size=1, then scale to fit
+    if (!toolPts || toolPts.length < 3) return null
+    const bounds = getShapeBounds(toolPts)
+    const cavW = bounds.width
+    const cavH = bounds.height
+    if (cavW < 10 || cavH < 5) return null
+
+    const targetW = Math.min(Math.max(cavW * 0.4, 6), 35)
     const shapes = brandFont.generateShapes(BRAND_TEXT, 1)
     if (!shapes || shapes.length === 0) return null
 
-    // Measure bounding box at size=1
     const tempGeo = new THREE.ShapeGeometry(shapes)
     tempGeo.computeBoundingBox()
     const bb = tempGeo.boundingBox
@@ -37,17 +40,19 @@ function createBrandGeometry(trayW, trayH, floorZ, cornerMargin = 1.5) {
     if (rawW < 0.001) return null
 
     const scale = targetW / rawW
+    const textH = rawH * scale
+    if (textH > cavH * 0.3) return null
 
-    // Extrude the text shapes - raised above floor
     const geo = new THREE.ExtrudeGeometry(shapes, {
       depth: BRAND_HEIGHT,
       bevelEnabled: false,
     })
-
-    // Scale, then position in bottom-right corner, sitting on floor surface
     geo.scale(scale, scale, 1)
-    const x = (trayW / 2) - targetW - cornerMargin
-    const y = -(trayH / 2) + cornerMargin
+
+    // Center horizontally in cavity, place at bottom with margin
+    const cavCx = (bounds.minX + bounds.maxX) / 2
+    const x = cavCx - targetW / 2
+    const y = bounds.minY + cornerMargin
     geo.translate(x, y, floorZ)
 
     return geo
@@ -810,7 +815,7 @@ function createCustomInsert(points, config) {
 
   // ─── Branding emboss (raised text on inside floor) ───
   try {
-    const brandGeo = createBrandGeometry(trayWidth, trayHeight, actualBaseDepth, 2)
+    const brandGeo = createBrandGeometry(scaledToolPts, actualBaseDepth)
     if (brandGeo) {
       const brandMat = new THREE.MeshPhongMaterial({ color: 0x6a6a7a, side: THREE.DoubleSide })
       const brandMesh = new THREE.Mesh(brandGeo, brandMat)
@@ -1485,7 +1490,7 @@ function createGridfinityInsert(points, config) {
 
   // ─── Branding emboss (raised text on inside floor) ───
   try {
-    const brandGeo = createBrandGeometry(binW, binH, GF.baseHeight + floorZ, 2)
+    const brandGeo = createBrandGeometry(scaledToolPts, GF.baseHeight + floorZ)
     if (brandGeo) {
       const brandMat = new THREE.MeshPhongMaterial({ color: 0x6a6a7a, side: THREE.DoubleSide })
       const brandMesh = new THREE.Mesh(brandGeo, brandMat)
