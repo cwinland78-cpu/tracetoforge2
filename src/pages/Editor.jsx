@@ -1587,6 +1587,17 @@ export default function Editor() {
           <div className="w-px h-5 bg-[#2A2A35]" />
           <div className="flex items-center gap-2">
             <img src="/logo-nav.png" alt="TracetoForge" className="h-6 object-contain" />
+            {isAuthenticated && (
+              <>
+                <span className="text-[#555] text-sm">/</span>
+                <input
+                  value={projectName}
+                  onChange={e => { setProjectName(e.target.value); setIsDirty(true) }}
+                  className="bg-transparent text-sm text-[#C8C8D0] border-b border-transparent hover:border-[#444] focus:border-brand focus:outline-none px-1 py-0.5 max-w-[200px]"
+                  spellCheck={false}
+                />
+              </>
+            )}
           </div>
         </div>
         {/* Steps */}
