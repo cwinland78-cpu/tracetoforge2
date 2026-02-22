@@ -1386,15 +1386,18 @@ export default function Editor() {
   const switchTool = useCallback((targetIdx) => {
     if (targetIdx === activeToolIdx) return
     const currentState = saveCurrentToolState()
-    // Save current + restore target in one setTools call to avoid race conditions
+    // Save current tool state, then restore target AFTER setTools completes
     setTools(prev => {
       const updated = [...prev]
       if (activeToolIdx >= 0 && activeToolIdx < prev.length) {
         updated[activeToolIdx] = { ...updated[activeToolIdx], ...currentState }
       }
-      // Now restore from the target
+      // Restore target state outside the updater via setTimeout to avoid race
       const targetTool = updated[targetIdx]
-      if (targetTool) restoreToolState(targetTool)
+      if (targetTool) {
+        // Use queueMicrotask to restore after this state update commits
+        queueMicrotask(() => restoreToolState(targetTool))
+      }
       return updated
     })
     setActiveToolIdx(targetIdx)
@@ -1475,14 +1478,17 @@ export default function Editor() {
           img.src = nextTool.image
         }
       }
-      setTools(prev => prev.slice(1)) // Remove index 0, everything shifts down
+      setTools(prev => prev.slice(1).map((t, i) => ({ ...t, name: `Tool ${i + 1}` })))
       setActiveToolIdx(0)
     } else {
       if (activeToolIdx === idx) {
         // Switch to tool 0 first, then remove
         switchTool(0)
       }
-      setTools(prev => prev.filter((_, i) => i !== idx))
+      setTools(prev => {
+        const filtered = prev.filter((_, i) => i !== idx)
+        return filtered.map((t, i) => ({ ...t, name: `Tool ${i + 1}` }))
+      })
       if (activeToolIdx > idx) setActiveToolIdx(activeToolIdx - 1)
     }
   }
@@ -1691,14 +1697,14 @@ export default function Editor() {
                 <h3 className="text-xs font-semibold text-[#8888A0] uppercase tracking-wider mb-2">Tools</h3>
                 <div className="flex flex-wrap gap-1">
                   {tools.map((t, i) => (
-                    <div key={i} className="flex items-center gap-0.5">
+                    <div key={i} className={`flex items-center gap-0.5 ${activeToolIdx === i ? 'ring-2 ring-brand ring-offset-1 ring-offset-[#12121A] rounded-md' : ''}`}>
                       <button onClick={() => switchTool(i)}
-                        className={`text-[11px] px-2.5 py-1 ${tools.length > 1 ? 'rounded-l-md' : 'rounded-md'} transition-colors ${activeToolIdx === i ? 'bg-brand text-white' : 'bg-[#1C1C24] text-[#8888A0] hover:text-white'}`}>
-                        {t.name}
+                        className={`text-[11px] px-2.5 py-1.5 ${tools.length > 1 ? 'rounded-l-md' : 'rounded-md'} transition-colors font-medium ${activeToolIdx === i ? 'bg-brand text-white shadow-lg shadow-brand/30' : 'bg-[#1C1C24] text-[#8888A0] hover:text-white hover:bg-[#2A2A35]'}`}>
+                        {activeToolIdx === i ? '▸ ' : ''}{t.name}
                       </button>
                       {tools.length > 1 && (
                         <button onClick={() => removeTool(i)}
-                          className="text-[11px] px-1.5 py-1 rounded-r-md bg-[#1C1C24] text-[#555] hover:text-red-400 hover:bg-red-900/20 transition-colors">
+                          className={`text-[11px] px-1.5 py-1.5 rounded-r-md transition-colors ${activeToolIdx === i ? 'bg-brand/80 text-white/60 hover:text-white hover:bg-red-600' : 'bg-[#1C1C24] text-[#555] hover:text-red-400 hover:bg-red-900/20'}`}>
                           ✕
                         </button>
                       )}
