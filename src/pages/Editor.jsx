@@ -401,8 +401,8 @@ export default function Editor() {
         setCredits(prev => Math.max(0, prev - 1))
       }
 
-      const timestamp = Date.now()
-      const baseName = `tracetoforge-${outputMode}-${timestamp}`
+      const safeName = (projectName || 'tracetoforge').replace(/[^a-zA-Z0-9_\- ]/g, '').trim().replace(/\s+/g, '-')
+      const baseName = `${safeName}-${outputMode}`
 
       // Always generate STL buffer (needed for STL and 3MF)
       const stlBuffer = exportSTL(scaledPts, config)
