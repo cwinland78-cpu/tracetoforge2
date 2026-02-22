@@ -61,7 +61,7 @@ const MODES = [
 
 const PAIN_POINTS = [
   { problem: 'Spent 4 hours learning Fusion 360 just to make one tray', solution: 'TracetoForge does it in under 2 minutes' },
-  { problem: 'Hand-cutting foam with a knife looks terrible', solution: 'Get precision 3D-printed inserts from a photo' },
+  { problem: 'Hand-cutting foam with a knife looks terrible', solution: 'Get precision inserts from a photo. Print, laser cut, or machine them.' },
   { problem: 'Downloaded a generic bin that doesn\'t fit my tools', solution: 'Every insert is custom-shaped to YOUR exact tools' },
   { problem: 'Paid $40+ for a single pre-made Packout insert', solution: 'Print unlimited custom inserts for pennies in filament' },
 ]
@@ -261,18 +261,18 @@ export default function Landing() {
           {/* Eyebrow */}
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand/8 text-brand text-xs font-semibold mb-8 border border-brand/15 font-mono tracking-wide uppercase">
             <Cpu size={13} />
-            Photo to 3D-Printable Insert in Under 5 Minutes
+            Photo to Custom Insert in Under 5 Minutes
           </div>
 
           <h1 className="text-4xl sm:text-5xl md:text-7xl font-display font-black tracking-tight leading-[1.05] mb-6">
             The Fastest Way to<br />
             Turn Any Tool Into a<br />
-            <span className="text-brand">Custom 3D-Printed Insert.</span>
+            <span className="text-brand">Custom-Fit Insert.</span>
           </h1>
 
           <p className="text-base sm:text-lg text-[#9999AD] max-w-2xl mx-auto mb-4 leading-relaxed">
             Auto-trace any tool. Export STL, 3MF, SVG, or DXF. Gridfinity compatible. 
-            Zero CAD skills required. Just your phone and your printer.
+            Zero CAD skills required. 3D print, laser cut, or CNC machine.
           </p>
 
           <p className="text-sm text-[#666680] font-mono mb-10">
@@ -647,12 +647,12 @@ export default function Landing() {
             <div className="p-5 rounded-xl bg-surface border border-surface-lighter/40 card-hover text-center">
               <Wrench size={18} className="text-brand mx-auto mb-2" />
               <h3 className="font-display font-bold text-xs mb-1">Laser Cutters</h3>
-              <p className="text-[10px] text-[#666680] font-mono">Cut foam or acrylic inserts</p>
+              <p className="text-[10px] text-[#666680] font-mono">xTool, Glowforge, K40, CO2</p>
             </div>
             <div className="p-5 rounded-xl bg-surface border border-surface-lighter/40 card-hover text-center">
               <Box size={18} className="text-brand mx-auto mb-2" />
               <h3 className="font-display font-bold text-xs mb-1">CNC Routers</h3>
-              <p className="text-[10px] text-[#666680] font-mono">Mill wood or plastic trays</p>
+              <p className="text-[10px] text-[#666680] font-mono">Shapeoko, X-Carve, Onefinity</p>
             </div>
           </div>
         </div>
@@ -675,8 +675,8 @@ export default function Landing() {
             {[
               { ext: 'STL', title: '3D Printing', desc: 'The universal 3D print format. Works with every slicer and every printer.', color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/30' },
               { ext: '3MF', title: 'Modern 3D Print', desc: 'The next-gen format preferred by Bambu Lab, PrusaSlicer, and OrcaSlicer.', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
-              { ext: 'SVG', title: 'Laser / Vector', desc: 'Scalable vector for laser cutting foam inserts, vinyl cutters, and design tools.', color: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/30' },
-              { ext: 'DXF', title: 'CAD / CNC', desc: 'Industry standard for AutoCAD, Fusion 360, CNC routers, and machining.', color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/30' },
+              { ext: 'SVG', title: 'Laser / Vinyl', desc: 'Vector outlines ready for laser cutters, vinyl cutters, and Cricut. Cut foam, felt, or acrylic inserts.', color: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/30' },
+              { ext: 'DXF', title: 'CAD / CNC', desc: 'Industry standard for CNC routers, AutoCAD, and Fusion 360. Mill wood, HDPE, or aluminum trays.', color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/30' },
             ].map(({ ext, title, desc, color, bg, border }, i) => (
               <div key={i} className={`p-6 rounded-xl bg-surface border ${border} card-hover text-center`}>
                 <div className={`inline-flex items-center justify-center w-14 h-14 rounded-xl ${bg} mb-4`}>
@@ -718,8 +718,8 @@ export default function Landing() {
             <span className="text-brand">Start forging.</span>
           </h2>
           <p className="text-[#8888A0] mb-8 max-w-md mx-auto">
-            From photo to print-ready files in under two minutes. 
-            STL, 3MF, SVG, and DXF. No sign-up required.
+            From photo to ready-to-make files in under two minutes. 
+            3D print, laser cut, or CNC machine. No sign-up required.
           </p>
           <button
             onClick={() => navigate('/editor')}
