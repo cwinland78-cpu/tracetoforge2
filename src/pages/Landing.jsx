@@ -726,7 +726,7 @@ export default function Landing() {
             ))}
           </div>
           <p className="text-xs text-[#555568] mt-6 max-w-lg mx-auto">
-            Works as a foam organizer alternative. Replace kaizen foam with precision 3D printed, laser cut, or CNC machined inserts for your tool drawer, tool chest, workbench, or garage storage setup.
+            Works as a foam organizer alternative. Replace kaizen foam with precision 3D printed, laser cut, or CNC machined inserts for your tool drawer, tool chest, workbench, or garage storage setup. Use as socket holders, drawer dividers, or custom shadow boards.
           </p>
         </div>
       </section>
