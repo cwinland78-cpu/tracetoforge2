@@ -765,13 +765,15 @@ function createCustomInsert(points, config) {
   cavityGeo.rotateZ(rad)
   cavityGeo.translate(toolOffsetX, toolOffsetY, actualBaseDepth - 0.25)
 
-  const cavityMat = new THREE.MeshPhongMaterial({
-    color: 0xe8650a,
-    transparent: true,
-    opacity: 0.4,
-    side: THREE.DoubleSide,
+  const activeIdx = config.activeToolIdx ?? 0
+  const activeCavityMat = new THREE.MeshPhongMaterial({
+    color: 0xffaa00, transparent: true, opacity: 0.6, side: THREE.DoubleSide,
+    emissive: 0xff6600, emissiveIntensity: 0.3,
   })
-  const cavMesh1 = new THREE.Mesh(cavityGeo, cavityMat)
+  const inactiveCavityMat = new THREE.MeshPhongMaterial({
+    color: 0xe8650a, transparent: true, opacity: 0.25, side: THREE.DoubleSide,
+  })
+  const cavMesh1 = new THREE.Mesh(cavityGeo, activeIdx === 0 ? activeCavityMat : inactiveCavityMat)
   cavMesh1.userData.vizOnly = true
   cavMesh1.userData.toolIndex = -1
   group.add(cavMesh1)
@@ -782,7 +784,8 @@ function createCustomInsert(points, config) {
     evGeo.scale(ev.scale, ev.scale, 1)
     evGeo.rotateZ(ev.rad)
     evGeo.translate(ev.ox, ev.oy, actualBaseDepth - 0.25)
-    const evMesh = new THREE.Mesh(evGeo, cavityMat)
+    const isActive = (evIdx + 1) === activeIdx
+    const evMesh = new THREE.Mesh(evGeo, isActive ? activeCavityMat : inactiveCavityMat)
     evMesh.userData.vizOnly = true
     evMesh.userData.toolIndex = evIdx
     group.add(evMesh)
@@ -1383,9 +1386,15 @@ function createGridfinityInsert(points, config) {
   })
   cavityGeo.translate(0, 0, GF.baseHeight + floorZ - 0.25)
 
-  const cavityMat = new THREE.MeshPhongMaterial({
-    color: 0xe8650a, transparent: true, opacity: 0.4, side: THREE.DoubleSide,
+  const activeIdx = config.activeToolIdx ?? 0
+  const activeCavityMat = new THREE.MeshPhongMaterial({
+    color: 0xffaa00, transparent: true, opacity: 0.6, side: THREE.DoubleSide,
+    emissive: 0xff6600, emissiveIntensity: 0.3,
   })
+  const inactiveCavityMat = new THREE.MeshPhongMaterial({
+    color: 0xe8650a, transparent: true, opacity: 0.25, side: THREE.DoubleSide,
+  })
+  const primaryMat = activeIdx === 0 ? activeCavityMat : inactiveCavityMat
 
   // Clip cavity viz to bin boundary using CSG INTERSECTION
   try {
@@ -1397,12 +1406,12 @@ function createGridfinityInsert(points, config) {
     clipBrush.updateMatrixWorld()
     const ev = new Evaluator()
     const clipped = ev.evaluate(cavBrush, clipBrush, INTERSECTION)
-    clipped.material = cavityMat
+    clipped.material = primaryMat
     clipped.userData.vizOnly = true
     clipped.userData.toolIndex = -1
     group.add(clipped)
   } catch (e) {
-    const cavMesh2 = new THREE.Mesh(cavityGeo, cavityMat)
+    const cavMesh2 = new THREE.Mesh(cavityGeo, primaryMat)
     cavMesh2.userData.vizOnly = true
     cavMesh2.userData.toolIndex = -1
     group.add(cavMesh2)
@@ -1410,6 +1419,8 @@ function createGridfinityInsert(points, config) {
 
   // Additional tool visualizations for gridfinity
   extraToolViz.forEach((ev, evIdx) => {
+    const isActive = (evIdx + 1) === activeIdx
+    const evMat = isActive ? activeCavityMat : inactiveCavityMat
     const evGeo = new THREE.ExtrudeGeometry(ev.shape, { depth: cavityZ + 0.5, bevelEnabled: false })
     evGeo.scale(ev.scale, ev.scale, 1)
     evGeo.rotateZ(ev.rad)
@@ -1423,12 +1434,12 @@ function createGridfinityInsert(points, config) {
       clipBrush.updateMatrixWorld()
       const evaluator = new Evaluator()
       const clipped = evaluator.evaluate(evBrush, clipBrush, INTERSECTION)
-      clipped.material = cavityMat
+      clipped.material = evMat
       clipped.userData.vizOnly = true
       clipped.userData.toolIndex = evIdx
       group.add(clipped)
     } catch (e2) {
-      const evMesh = new THREE.Mesh(evGeo, cavityMat)
+      const evMesh = new THREE.Mesh(evGeo, evMat)
       evMesh.userData.vizOnly = true
       evMesh.userData.toolIndex = evIdx
       group.add(evMesh)
