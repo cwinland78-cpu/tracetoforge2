@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Box, Upload, Download, ChevronLeft, Pencil, MousePointer, Eye,
-  Info, ZoomIn, ZoomOut, Save, FolderOpen, X, Camera, Sun, Contrast, Crop, FilePlus2
+  Info, ZoomIn, ZoomOut, Save, FolderOpen, X, Camera, Sun, Contrast, Crop, FilePlus2, Copy
 } from 'lucide-react'
 import ThreePreview from '../components/ThreePreview'
 import PaywallModal from '../components/PaywallModal'
@@ -348,7 +348,27 @@ export default function Editor() {
     setSaving(false)
   }
 
-  // Export with disclaimer
+  async function handleSaveAsProject() {
+    if (!isAuthenticated || !user?.id) { navigate('/login'); return }
+    const input = prompt('Save as new project name:', projectName + ' (copy)')
+    if (!input) return
+    setSaving(true)
+    setSaveMsg('')
+    try {
+      const cfg = buildProjectConfig()
+      const thumbnail = captureThumbnail()
+      const proj = await createProject(user.id, input, cfg, thumbnail)
+      setProjectId(proj.id)
+      setProjectName(input)
+      window.history.replaceState(null, '', `/editor?project=${proj.id}`)
+      setSaveMsg('Saved as new!'); setIsDirty(false)
+      setTimeout(() => setSaveMsg(''), 4000)
+    } catch (err) {
+      setSaveMsg(`Save failed: ${err?.message || 'Unknown error'}`)
+      setTimeout(() => setSaveMsg(''), 8000)
+    }
+    setSaving(false)
+  }
   async function handleConfirmExport() {
     setShowDisclaimer(false)
     // Always use tool 0 as primary
@@ -1591,6 +1611,10 @@ export default function Editor() {
               <button onClick={handleSaveProject} disabled={saving}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-[#2A2A35] hover:bg-[#3A3A45] text-[#C8C8D0] rounded-lg transition-colors">
                 <Save size={13} /> {saving ? 'Saving...' : 'Save'}
+              </button>
+              <button onClick={handleSaveAsProject} disabled={saving}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-[#2A2A35] hover:bg-[#3A3A45] text-[#C8C8D0] rounded-lg transition-colors">
+                <Copy size={13} /> Save As
               </button>
               <button onClick={() => {
                 if (isDirty) { pendingNavigationRef.current = '/editor'; setShowUnsavedModal(true) }
