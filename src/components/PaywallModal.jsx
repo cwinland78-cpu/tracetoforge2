@@ -51,6 +51,19 @@ export default function PaywallModal({ isOpen, onClose, onCreditsChanged, userId
     try {
       const result = await purchasePackage(pkg, userId);
       if (result.success) {
+        // Google Ads conversion tracking
+        const product = pkg.rcBillingProduct;
+        const price = product?.currentPrice?.amountMicros
+          ? product.currentPrice.amountMicros / 1000000
+          : (product?.identifier?.includes('20') ? 34.99 : 9.99);
+        if (typeof gtag === 'function') {
+          gtag('event', 'conversion', {
+            'send_to': 'AW-17969979491/ntR9CK31mv0bEOPA4PhC',
+            'value': price,
+            'currency': 'USD',
+            'transaction_id': result.transactionId || ''
+          });
+        }
         const credits = await getCredits(userId || null);
         onCreditsChanged?.(credits);
         onClose();
