@@ -206,7 +206,8 @@ export default function ThreePreview({ contourPoints, config, onToolDrag, onNotc
       {showLegend && (
         <div className="absolute top-4 right-4 bg-[#131318]/90 border border-[#2A2A35] rounded-lg px-3 py-2 text-xs space-y-1.5">
           <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-sm" style={{ background: '#888899' }} /><span className="text-[#8888A0]">Tray</span></div>
-          <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-sm" style={{ background: '#E8650A' }} /><span className="text-[#8888A0]">Tool Cavity</span></div>
+          <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-sm" style={{ background: '#FFAA00', boxShadow: '0 0 4px #FF6600' }} /><span className="text-[#8888A0]">Active Tool</span></div>
+          <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-sm" style={{ background: '#665533', opacity: 0.5 }} /><span className="text-[#8888A0]">Other Tools</span></div>
         </div>
       )}
       <div className="absolute bottom-4 left-4 flex items-center gap-1.5">

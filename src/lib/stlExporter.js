@@ -767,12 +767,19 @@ function createCustomInsert(points, config) {
 
   const activeIdx = config.activeToolIdx ?? 0
   const activeCavityMat = new THREE.MeshPhongMaterial({
-    color: 0xffaa00, transparent: true, opacity: 0.6, side: THREE.DoubleSide,
-    emissive: 0xff6600, emissiveIntensity: 0.3,
+    color: 0xffaa00, transparent: true, opacity: 0.7, side: THREE.DoubleSide,
+    emissive: 0xff6600, emissiveIntensity: 0.5,
   })
   const inactiveCavityMat = new THREE.MeshPhongMaterial({
-    color: 0xe8650a, transparent: true, opacity: 0.25, side: THREE.DoubleSide,
+    color: 0x665533, transparent: true, opacity: 0.15, side: THREE.DoubleSide,
   })
+
+
+
+
+
+
+
   const cavMesh1 = new THREE.Mesh(cavityGeo, activeIdx === 0 ? activeCavityMat : inactiveCavityMat)
   cavMesh1.userData.vizOnly = true
   cavMesh1.userData.toolIndex = -1
@@ -1388,11 +1395,11 @@ function createGridfinityInsert(points, config) {
 
   const activeIdx = config.activeToolIdx ?? 0
   const activeCavityMat = new THREE.MeshPhongMaterial({
-    color: 0xffaa00, transparent: true, opacity: 0.6, side: THREE.DoubleSide,
-    emissive: 0xff6600, emissiveIntensity: 0.3,
+    color: 0xffaa00, transparent: true, opacity: 0.7, side: THREE.DoubleSide,
+    emissive: 0xff6600, emissiveIntensity: 0.5,
   })
   const inactiveCavityMat = new THREE.MeshPhongMaterial({
-    color: 0xe8650a, transparent: true, opacity: 0.25, side: THREE.DoubleSide,
+    color: 0x665533, transparent: true, opacity: 0.15, side: THREE.DoubleSide,
   })
   const primaryMat = activeIdx === 0 ? activeCavityMat : inactiveCavityMat
 
