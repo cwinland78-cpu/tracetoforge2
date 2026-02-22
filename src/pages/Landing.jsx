@@ -276,7 +276,7 @@ export default function Landing() {
           </p>
 
           <p className="text-sm text-[#666680] font-mono mb-10">
-            Works with <span className="text-[#AAABB8]">Milwaukee Packout</span> &bull; <span className="text-[#AAABB8]">DeWalt ToughSystem</span> &bull; <span className="text-[#AAABB8]">Gridfinity</span> &bull; <span className="text-[#AAABB8]">10+ systems</span>
+            Works with <span className="text-[#AAABB8]">Milwaukee Packout</span> &bull; <span className="text-[#AAABB8]">DeWalt ToughSystem</span> &bull; <span className="text-[#AAABB8]">Gridfinity</span> &bull; <span className="text-[#AAABB8]">Kobalt</span> &bull; <span className="text-[#AAABB8]">any toolbox</span>
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -617,8 +617,8 @@ export default function Landing() {
             ))}
           </div>
 
-          {/* Tier 3 - Specialty Systems */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-10">
+          {/* Tier 3 - More Systems */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
             {[
               { name: 'Klein ModBox', note: 'Electrician favorite' },
               { name: 'Bosch L-Boxx', note: 'New Contractor system' },
@@ -628,6 +628,17 @@ export default function Landing() {
               <div key={i} className="p-4 rounded-xl bg-surface/50 border border-surface-lighter/20 card-hover">
                 <h3 className="font-display font-bold text-xs text-[#AAABB8] mb-1">{name}</h3>
                 <p className="text-[10px] text-[#555568] font-mono">{note}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Tier 4 - Also Works With */}
+          <div className="grid grid-cols-3 md:grid-cols-6 gap-2 mb-10">
+            {[
+              'Kobalt', 'Husky', 'Craftsman', 'Stanley FatMax', 'Harbor Freight', 'Snap-on',
+            ].map((name, i) => (
+              <div key={i} className="px-3 py-2.5 rounded-lg bg-surface/30 border border-surface-lighter/15 text-center">
+                <span className="text-[10px] text-[#777788] font-mono">{name}</span>
               </div>
             ))}
           </div>
@@ -687,6 +698,36 @@ export default function Landing() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      <div className="glow-line" />
+
+      {/* What You Can Organize - SEO keyword section */}
+      <section className="px-6 py-16">
+        <div className="max-w-4xl mx-auto text-center">
+          <span className="font-mono text-xs text-brand tracking-widest uppercase mb-3 block">Organize Everything</span>
+          <h2 className="text-2xl sm:text-3xl font-display font-extrabold tracking-tight mb-4">
+            Custom Inserts for Any Tool
+          </h2>
+          <p className="text-[#8888A0] max-w-lg mx-auto mb-8">
+            Whether it's a tool chest, drawer, tray, or modular organizer, TracetoForge creates custom tool storage that fits like a shadow board.
+          </p>
+          <div className="flex flex-wrap justify-center gap-2 max-w-3xl mx-auto">
+            {[
+              'Pliers', 'Screwdrivers', 'Socket Sets', 'Ratchets', 'Wrenches',
+              'Utility Knives', 'Hex Keys', 'Allen Wrenches', 'Wire Strippers',
+              'Multimeters', 'Drill Bits', 'Tape Measures', 'Chisels', 'Files',
+              'Flashlights', 'Levels', 'Clamps', 'Hammers',
+            ].map((tool, i) => (
+              <span key={i} className="px-3 py-1.5 rounded-full bg-surface border border-surface-lighter/30 text-[11px] text-[#8888A0] font-mono">
+                {tool}
+              </span>
+            ))}
+          </div>
+          <p className="text-xs text-[#555568] mt-6 max-w-lg mx-auto">
+            Works as a foam organizer alternative. Replace kaizen foam with precision 3D printed, laser cut, or CNC machined inserts for your tool drawer, tool chest, workbench, or garage storage setup.
+          </p>
         </div>
       </section>
 
