@@ -1459,12 +1459,32 @@ export default function Editor() {
   }
 
   const removeTool = (idx) => {
-    if (activeToolIdx === idx) {
-      // Switch to tool 1 first, then remove
-      switchTool(0)
+    if (tools.length <= 1) return // Can't remove the only tool
+
+    if (idx === 0) {
+      // Removing the primary tool: promote tool 1 to primary
+      const nextTool = tools[1]
+      if (nextTool) {
+        // Restore tool 1's state as top-level (making it the new primary)
+        restoreToolState(nextTool)
+        if (nextTool.image) {
+          setImage(nextTool.image)
+          if (nextTool.imageSize) setImageSize(nextTool.imageSize)
+          const img = new Image()
+          img.onload = () => { imageRef.current = img }
+          img.src = nextTool.image
+        }
+      }
+      setTools(prev => prev.slice(1)) // Remove index 0, everything shifts down
+      setActiveToolIdx(0)
+    } else {
+      if (activeToolIdx === idx) {
+        // Switch to tool 0 first, then remove
+        switchTool(0)
+      }
+      setTools(prev => prev.filter((_, i) => i !== idx))
+      if (activeToolIdx > idx) setActiveToolIdx(activeToolIdx - 1)
     }
-    setTools(prev => prev.filter((_, i) => i !== idx))
-    if (activeToolIdx > idx) setActiveToolIdx(activeToolIdx - 1)
   }
 
   const updateTool = (idx, key, val) => {
@@ -1676,7 +1696,7 @@ export default function Editor() {
                         className={`text-[11px] px-2.5 py-1 ${tools.length > 1 ? 'rounded-l-md' : 'rounded-md'} transition-colors ${activeToolIdx === i ? 'bg-brand text-white' : 'bg-[#1C1C24] text-[#8888A0] hover:text-white'}`}>
                         {t.name}
                       </button>
-                      {i > 0 && (
+                      {tools.length > 1 && (
                         <button onClick={() => removeTool(i)}
                           className="text-[11px] px-1.5 py-1 rounded-r-md bg-[#1C1C24] text-[#555] hover:text-red-400 hover:bg-red-900/20 transition-colors">
                           ✕
