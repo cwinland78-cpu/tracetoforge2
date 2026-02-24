@@ -1219,9 +1219,12 @@ function createGridfinityInsert(points, config) {
   const notchDepthMap = shallowerNotches.map(({ pts, depth }) => ({ pts, depth }))
 
   if (notchDepthMap.length === 0 && shallowerGfTools.length === 0) {
-    // Simple case: no independent depths, single wall section
-    // Include deeper extra tools as full-depth holes + same-depth tools (already in gfUnifiedHoles)
-    const fullDepthGfPts = [...deeperGfTools.map(et => et.pts)]
+    // Simple case: no shallower independent depths, single wall section
+    // Include deeper notches + deeper extra tools as full-depth holes
+    const fullDepthGfPts = [
+      ...deeperNotches.map(n => n.pts),
+      ...deeperGfTools.map(et => et.pts)
+    ]
     const wallShape = outerShape.clone()
     if (fullDepthGfPts.length > 0) {
       // Union gfUnifiedHoles with deeper extra tools
@@ -1312,6 +1315,8 @@ function createGridfinityInsert(points, config) {
       // Determine which notches are open at this layer
       // A notch is open if layerBottom >= (cavityZ - notchDepth), i.e. notchDepth >= (cavityZ - layerBottom)
       const openNotchPts = []
+      // Deeper notches are always open in the wall (they extend through wall into floor)
+      deeperNotches.forEach(n => openNotchPts.push(n.pts))
       shallowerNotches.forEach(n => {
         const opensAt = cavityZ - n.depth
         if (layerBottom >= opensAt - 0.001) {
