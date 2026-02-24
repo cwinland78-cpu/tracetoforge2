@@ -1298,87 +1298,120 @@ function createGridfinityInsert(points, config) {
     }
     group.add(wallMesh)
   } else {
-    // Layered wall approach for independent notch/tool depths
-    // Each shallower notch/tool opens at a different height from the cavity floor
-    // A notch/tool with depth D opens at height (cavityZ - D) from cavity bottom
+    // Fill-plug approach for independent notch/tool depths
+    // Build a single full-depth wall with ALL holes (including independent ones),
+    // then add solid fill plugs for shallower items to raise their floor.
+    // This avoids layered wall sections with coincident faces that cause non-manifold errors.
     
-    // Build break heights where holes change
-    const notchBreaks = shallowerNotches.map(n => cavityZ - n.depth)
-    const toolBreaks = shallowerGfTools.map(et => cavityZ - et.depth)
-    const sliceHeights = [0, ...notchBreaks, ...toolBreaks, cavityZ]
-    const uniqueHeights = [...new Set(sliceHeights)].sort((a, b) => a - b)
-
-
-    for (let li = 0; li < uniqueHeights.length - 1; li++) {
-      const layerBottom = uniqueHeights[li]
-      const layerTop = uniqueHeights[li + 1]
-      const layerHeight = layerTop - layerBottom
-      if (layerHeight < 0.01) continue
-
-
-      // Determine which independent notches/tools are open at this layer
-      const openIndepPts = []
-      deeperNotches.forEach(n => openIndepPts.push(n.pts))
-      shallowerNotches.forEach(n => {
-        const opensAt = cavityZ - n.depth
-        if (layerBottom >= opensAt - 0.001) openIndepPts.push(n.pts)
+    // Build the full-depth wall with all holes (unified + all independent + all extra tools)
+    const allIndepPts = [
+      ...shallowerNotches.map(n => n.pts),
+      ...deeperNotches.map(n => n.pts),
+      ...shallowerGfTools.map(et => et.pts),
+      ...deeperGfTools.map(et => et.pts),
+      ...sameDepthGfTools.map(et => et.pts),
+    ]
+    
+    let fullWallHoles = gfUnifiedHoles
+    if (allIndepPts.length > 0) {
+      const scale = 1000
+      const clipper = new ClipperLib.Clipper()
+      gfUnifiedHoles.forEach(pts => {
+        clipper.AddPath(pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptSubject, true)
       })
-      deeperGfTools.forEach(et => openIndepPts.push(et.pts))
-      shallowerGfTools.forEach(et => {
-        const opensAt = cavityZ - et.depth
-        if (layerBottom >= opensAt - 0.001) openIndepPts.push(et.pts)
+      allIndepPts.forEach(pts => {
+        clipper.AddPath(pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptClip, true)
       })
-
-      // Start with gfUnifiedHoles (already computed, working correctly)
-      // Then union in any independent items that are open at this layer
-      const layerShape = outerShape.clone()
-      if (openIndepPts.length > 0) {
-        const scale = 1000
-        const clipper = new ClipperLib.Clipper()
-        gfUnifiedHoles.forEach(pts => {
-          clipper.AddPath(pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptSubject, true)
-        })
-        openIndepPts.forEach(pts => {
-          clipper.AddPath(pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptClip, true)
-        })
-        const solution = []
-        clipper.Execute(ClipperLib.ClipType.ctUnion, solution, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero)
-        if (solution.length > 0) {
-          solution.forEach(path => {
-            const pts = path.map(p => ({ x: p.X / scale, y: p.Y / scale }))
-            if (ClipperLib.Clipper.Area(path) < 0) pts.reverse()
-            layerShape.holes.push(new THREE.Path(pts.map(p => new THREE.Vector2(p.x, p.y))))
-          })
-        } else {
-          gfUnifiedHoles.forEach(pts => {
-            layerShape.holes.push(new THREE.Path(pts.map(p => new THREE.Vector2(p.x, p.y))))
-          })
-        }
-      } else {
-        // No independent items open - just use gfUnifiedHoles directly
-        gfUnifiedHoles.forEach(pts => {
-          layerShape.holes.push(new THREE.Path(pts.map(p => new THREE.Vector2(p.x, p.y))))
+      const solution = []
+      clipper.Execute(ClipperLib.ClipType.ctUnion, solution, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero)
+      if (solution.length > 0) {
+        fullWallHoles = solution.map(path => {
+          const pts = path.map(p => ({ x: p.X / scale, y: p.Y / scale }))
+          if (ClipperLib.Clipper.Area(path) < 0) pts.reverse()
+          return pts
         })
       }
-
-
-      const ov = 0.01 // tiny overlap to prevent coincident faces between layers
-      const layerGeo = new THREE.ExtrudeGeometry(layerShape, { depth: layerHeight + (li < uniqueHeights.length - 2 ? ov : 0), bevelEnabled: false })
-      layerGeo.translate(0, 0, GF.baseHeight + floorZ + layerBottom)
-      group.add(new THREE.Mesh(layerGeo, li === uniqueHeights.length - 2 ? trayMat2 : trayMat))
     }
-
-    // Apply bevel to the top surface if needed (on the topmost layer)
-    const maxBevelLayered = Math.max(cb, ...extraToolCutters.map(e => e.cavityBevel || 0))
-    if (maxBevelLayered > 0.1) {
+    
+    const wallShape = outerShape.clone()
+    fullWallHoles.forEach(pts => {
+      wallShape.holes.push(new THREE.Path(pts.map(p => new THREE.Vector2(p.x, p.y))))
+    })
+    const wallGeo = new THREE.ExtrudeGeometry(wallShape, { depth: cavityZ, bevelEnabled: false })
+    wallGeo.translate(0, 0, GF.baseHeight + floorZ)
+    
+    // Apply bevel
+    const maxBevelFP = Math.max(cb, ...extraToolCutters.map(e => e.cavityBevel || 0))
+    const hasBevelFP = maxBevelFP > 0.1
+    if (hasBevelFP) {
       try {
-        gfUnifiedHoles.forEach(holePts => {
+        const csgEval = new Evaluator()
+        let currentBrush = new Brush(wallGeo)
+        currentBrush.updateMatrixWorld()
+        let result = null
+        fullWallHoles.forEach(holePts => {
           const bevelShape = new THREE.Shape()
           holePts.forEach((p, i) => { if (i === 0) bevelShape.moveTo(p.x, p.y); else bevelShape.lineTo(p.x, p.y) })
           bevelShape.closePath()
           const bevelGeo = new THREE.ExtrudeGeometry(bevelShape, {
             depth: 0.01, bevelEnabled: true,
-            bevelThickness: maxBevelLayered, bevelSize: maxBevelLayered, bevelSegments: 1, bevelOffset: 0,
+            bevelThickness: maxBevelFP, bevelSize: maxBevelFP, bevelSegments: 1, bevelOffset: 0,
+          })
+          bevelGeo.translate(0, 0, topSurface)
+          const bevelBrush = new Brush(bevelGeo)
+          bevelBrush.updateMatrixWorld()
+          const prevBrush = result ? new Brush(result.geometry) : currentBrush
+          prevBrush.updateMatrixWorld()
+          result = csgEval.evaluate(prevBrush, bevelBrush, SUBTRACTION)
+        })
+        if (result) {
+          if (result.geometry) result.geometry.computeVertexNormals()
+          group.add(new THREE.Mesh(result.geometry, trayMat2))
+        } else {
+          group.add(new THREE.Mesh(wallGeo, trayMat2))
+        }
+      } catch (e) {
+        group.add(new THREE.Mesh(wallGeo, trayMat2))
+      }
+    } else {
+      group.add(new THREE.Mesh(wallGeo, trayMat2))
+    }
+    
+    // Add fill plugs for shallower items (solid blocks that raise the notch floor)
+    const fillPlugMat = new THREE.MeshPhongMaterial({
+      color: 0x888899, transparent: true, opacity: 0.92, side: THREE.DoubleSide,
+    })
+    shallowerNotches.forEach(n => {
+      const plugHeight = cavityZ - n.depth
+      if (plugHeight < 0.01) return
+      const plugShape = new THREE.Shape()
+      n.pts.forEach((p, i) => { if (i === 0) plugShape.moveTo(p.x, p.y); else plugShape.lineTo(p.x, p.y) })
+      plugShape.closePath()
+      const plugGeo = new THREE.ExtrudeGeometry(plugShape, { depth: plugHeight, bevelEnabled: false })
+      plugGeo.translate(0, 0, GF.baseHeight + floorZ)
+      group.add(new THREE.Mesh(plugGeo, fillPlugMat))
+    })
+    shallowerGfTools.forEach(et => {
+      const plugHeight = cavityZ - et.depth
+      if (plugHeight < 0.01) return
+      const plugShape = new THREE.Shape()
+      et.pts.forEach((p, i) => { if (i === 0) plugShape.moveTo(p.x, p.y); else plugShape.lineTo(p.x, p.y) })
+      plugShape.closePath()
+      const plugGeo = new THREE.ExtrudeGeometry(plugShape, { depth: plugHeight, bevelEnabled: false })
+      plugGeo.translate(0, 0, GF.baseHeight + floorZ)
+      group.add(new THREE.Mesh(plugGeo, fillPlugMat))
+    })
+
+    // Bevel visualization for non-CSG path
+    if (hasBevelFP) {
+      try {
+        fullWallHoles.forEach(holePts => {
+          const bevelShape = new THREE.Shape()
+          holePts.forEach((p, i) => { if (i === 0) bevelShape.moveTo(p.x, p.y); else bevelShape.lineTo(p.x, p.y) })
+          bevelShape.closePath()
+          const bevelGeo = new THREE.ExtrudeGeometry(bevelShape, {
+            depth: 0.01, bevelEnabled: true,
+            bevelThickness: maxBevelFP, bevelSize: maxBevelFP, bevelSegments: 1, bevelOffset: 0,
           })
           bevelGeo.translate(0, 0, topSurface)
           const bevelMat = new THREE.MeshPhongMaterial({ color: 0x4a4a5a, side: THREE.DoubleSide })
