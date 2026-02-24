@@ -483,9 +483,10 @@ function createCustomInsert(points, config) {
     capShape.closePath()
     group.add(new THREE.Mesh(new THREE.ShapeGeometry(capShape), trayMat))
   } else {
-    // Skip flat base here if deeper notches will build layered base later
+    // Skip flat base here if deeper notches/tools will build layered base later
     const hasDeeperNotches = indepNotches.some(n => n.depth > cavityZ)
-    if (!hasDeeperNotches) {
+    const hasDeeperTools = (config.additionalTools || []).some(at => (at.toolDepth || cavityZ) > cavityZ)
+    if (!hasDeeperNotches && !hasDeeperTools) {
       const baseGeo = new THREE.ExtrudeGeometry(outerShape, { depth: actualBaseDepth, bevelEnabled: false })
       group.add(new THREE.Mesh(baseGeo, trayMat))
     }
@@ -516,22 +517,27 @@ function createCustomInsert(points, config) {
     })
     const atTol = at.tolerance || 0
     const atHolePts = atTol > 0 ? offsetPolygon(atScaledPts, atTol) : atScaledPts
-    extraToolHolePts.push(atHolePts)
-    extraToolViz.push({ shape: atShape, scale: atScale, rad: atRad, ox: atOx, oy: atOy, cutShape: atHolePts, cavityBevel: at.cavityBevel || 0 })
+    const atDepth = at.toolDepth || cavityZ // default to primary cavity depth
+    extraToolHolePts.push({ pts: atHolePts, depth: atDepth })
+    extraToolViz.push({ shape: atShape, scale: atScale, rad: atRad, ox: atOx, oy: atOy, cutShape: atHolePts, cavityBevel: at.cavityBevel || 0, depth: atDepth })
   })
 
-  // Union ALL holes (primary tool + notches + additional tools) into one clean set
+  // Split additional tools into same-depth (union with primary) and different-depth (layered)
+  const sameDepthExtraTools = extraToolHolePts.filter(et => Math.abs(et.depth - cavityZ) < 0.01)
+  const diffDepthExtraTools = extraToolHolePts.filter(et => Math.abs(et.depth - cavityZ) >= 0.01)
+
+  // Union ALL holes (primary tool + notches + same-depth additional tools) into one clean set
   // This prevents overlapping holes from breaking ExtrudeGeometry
-  if (extraToolHolePts.length > 0) {
+  if (sameDepthExtraTools.length > 0) {
     const scale = 1000
     const clipper = new ClipperLib.Clipper()
     // Add existing combined holes (primary + notches) as subjects
     combinedHoles.forEach(pts => {
       clipper.AddPath(pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptSubject, true)
     })
-    // Add additional tool holes as clips
-    extraToolHolePts.forEach(pts => {
-      clipper.AddPath(pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptClip, true)
+    // Add same-depth additional tool holes as clips
+    sameDepthExtraTools.forEach(et => {
+      clipper.AddPath(et.pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptClip, true)
     })
     const solution = []
     clipper.Execute(ClipperLib.ClipType.ctUnion, solution, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero)
@@ -550,9 +556,9 @@ function createCustomInsert(points, config) {
       })
     } else {
       // Fallback: add additional tools as separate paths
-      extraToolHolePts.forEach(pts => {
+      sameDepthExtraTools.forEach(et => {
         const hp = new THREE.Path()
-        pts.forEach((p, i) => { if (i === 0) hp.moveTo(p.x, p.y); else hp.lineTo(p.x, p.y) })
+        et.pts.forEach((p, i) => { if (i === 0) hp.moveTo(p.x, p.y); else hp.lineTo(p.x, p.y) })
         hp.closePath()
         allHolePaths.push(hp)
       })
@@ -568,6 +574,10 @@ function createCustomInsert(points, config) {
   // Split independent notches by relation to cavity depth
   const shallowerIndep = indepNotches.filter(n => n.depth < cavityZ)
   const deeperIndep = indepNotches.filter(n => n.depth > cavityZ)
+
+  // Split different-depth additional tools into shallower and deeper
+  const shallowerExtraTools = diffDepthExtraTools.filter(et => et.depth < cavityZ)
+  const deeperExtraTools = diffDepthExtraTools.filter(et => et.depth > cavityZ)
 
   // Helper: apply bevel CSG to a wall geometry
   const applyBevel = (wallGeo) => {
@@ -624,13 +634,19 @@ function createCustomInsert(points, config) {
     })
   }
 
-  // For deeper notches in custom tray: cut into the base (only for flat base, not edge-profiled)
+  // For deeper notches/tools in custom tray: cut into the base (only for flat base, not edge-profiled)
   const hasEdgeProfile = edgeProfile && edgeProfile !== 'none' && edgeSize > 0
-  if (deeperIndep.length > 0 && actualBaseDepth > 0.01 && !hasEdgeProfile) {
-    const baseCuts = deeperIndep.map(n => {
-      const extraDepth = Math.min(n.depth - cavityZ, actualBaseDepth)
-      return { pts: n.pts, cutStart: actualBaseDepth - extraDepth }
-    })
+  if ((deeperIndep.length > 0 || deeperExtraTools.length > 0) && actualBaseDepth > 0.01 && !hasEdgeProfile) {
+    const baseCuts = [
+      ...deeperIndep.map(n => {
+        const extraDepth = Math.min(n.depth - cavityZ, actualBaseDepth)
+        return { pts: n.pts, cutStart: actualBaseDepth - extraDepth }
+      }),
+      ...deeperExtraTools.map(et => {
+        const extraDepth = Math.min(et.depth - cavityZ, actualBaseDepth)
+        return { pts: et.pts, cutStart: actualBaseDepth - extraDepth }
+      })
+    ]
     const baseBreaks = [0, ...baseCuts.map(c => c.cutStart), actualBaseDepth]
     const uniqueBaseBreaks = [...new Set(baseBreaks)].filter(h => h >= 0 && h <= actualBaseDepth).sort((a, b) => a - b)
 
@@ -652,9 +668,10 @@ function createCustomInsert(points, config) {
   }
 
   // Build wall layers
-  if (shallowerIndep.length > 0) {
-    const breakHeights = shallowerIndep.map(n => cavityZ - n.depth)
-    const sliceHeights = [0, ...breakHeights, cavityZ]
+  if (shallowerIndep.length > 0 || shallowerExtraTools.length > 0) {
+    const notchBreaks = shallowerIndep.map(n => cavityZ - n.depth)
+    const toolBreaks = shallowerExtraTools.map(et => cavityZ - et.depth)
+    const sliceHeights = [0, ...notchBreaks, ...toolBreaks, cavityZ]
     const uniqueHeights = [...new Set(sliceHeights)].sort((a, b) => a - b)
 
     for (let li = 0; li < uniqueHeights.length - 1; li++) {
@@ -676,14 +693,25 @@ function createCustomInsert(points, config) {
       const layerHoles = buildHolePaths(openNotchPts)
       const layerShape = outerShape.clone()
 
-      if (extraToolHolePts.length > 0) {
-        // Union layer holes with additional tool holes
+      // Collect extra tool holes that are open at this layer
+      // Same-depth tools are already in the unified holes via allHolePaths
+      // Different-depth tools open at (cavityZ - toolDepth)
+      const openExtraToolPts = []
+      sameDepthExtraTools.forEach(et => openExtraToolPts.push(et.pts)) // always open
+      deeperExtraTools.forEach(et => openExtraToolPts.push(et.pts)) // always open in wall
+      shallowerExtraTools.forEach(et => {
+        const opensAt = cavityZ - et.depth
+        if (layerBottom >= opensAt - 0.001) openExtraToolPts.push(et.pts)
+      })
+
+      if (openExtraToolPts.length > 0) {
+        // Union layer holes with open additional tool holes
         const scale = 1000
         const clipper = new ClipperLib.Clipper()
         layerHoles.forEach(pts => {
           clipper.AddPath(pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptSubject, true)
         })
-        extraToolHolePts.forEach(pts => {
+        openExtraToolPts.forEach(pts => {
           clipper.AddPath(pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptClip, true)
         })
         const solution = []
@@ -718,20 +746,26 @@ function createCustomInsert(points, config) {
       }
     }
   } else {
-    // No shallower independent notches - single wall section
+    // No shallower independent notches or extra tools - single wall section
     const wallNotchPts = [...defaultNotchPts]
     deeperIndep.forEach(n => wallNotchPts.push(n.pts))
     const wallHoles = wallNotchPts.length > 0 ? buildHolePaths(wallNotchPts) : combinedHoles
 
+    // Collect all extra tool holes that should be full-depth in the wall
+    const fullDepthExtraPts = [
+      ...sameDepthExtraTools.map(et => et.pts),
+      ...deeperExtraTools.map(et => et.pts)
+    ]
+
     const topShape = outerShape.clone()
-    if (extraToolHolePts.length > 0) {
-      // Union wall holes with additional tools
+    if (fullDepthExtraPts.length > 0) {
+      // Union wall holes with full-depth additional tools
       const scale = 1000
       const clipper = new ClipperLib.Clipper()
       wallHoles.forEach(pts => {
         clipper.AddPath(pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptSubject, true)
       })
-      extraToolHolePts.forEach(pts => {
+      fullDepthExtraPts.forEach(pts => {
         clipper.AddPath(pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptClip, true)
       })
       const solution = []
@@ -787,10 +821,11 @@ function createCustomInsert(points, config) {
 
   // Additional tool visualizations
   extraToolViz.forEach((ev, evIdx) => {
-    const evGeo = new THREE.ExtrudeGeometry(ev.shape, { depth: cavityZ + 0.5, bevelEnabled: false })
+    const evDepth = ev.depth || cavityZ
+    const evGeo = new THREE.ExtrudeGeometry(ev.shape, { depth: evDepth + 0.5, bevelEnabled: false })
     evGeo.scale(ev.scale, ev.scale, 1)
     evGeo.rotateZ(ev.rad)
-    evGeo.translate(ev.ox, ev.oy, actualBaseDepth - 0.25)
+    evGeo.translate(ev.ox, ev.oy, actualBaseDepth + cavityZ - evDepth - 0.25)
     const isActive = (evIdx + 1) === activeIdx
     const evMesh = new THREE.Mesh(evGeo, isActive ? activeCavityMat : inactiveCavityMat)
     evMesh.userData.vizOnly = true
@@ -1099,27 +1134,33 @@ function createGridfinityInsert(points, config) {
     // Apply tolerance
     const atTol = at.tolerance || 0
     const atHolePts = atTol > 0 ? offsetPolygon(atScaledPts, atTol) : atScaledPts
-    extraGfHolePts.push(atHolePts)
+    const atDepth = at.toolDepth || cavityZ
+    extraGfHolePts.push({ pts: atHolePts, depth: atDepth })
     const atCutShape = new THREE.Shape()
     atHolePts.forEach((p, i) => {
       if (i === 0) atCutShape.moveTo(p.x, p.y)
       else atCutShape.lineTo(p.x, p.y)
     })
     atCutShape.closePath()
-    extraToolCutters.push({ shape: atCutShape, holePts: atHolePts, cavityBevel: at.cavityBevel || 0 })
-    extraToolViz.push({ shape: atShape, scale: atScale, rad: atRad, ox: atOx, oy: atOy })
+    extraToolCutters.push({ shape: atCutShape, holePts: atHolePts, cavityBevel: at.cavityBevel || 0, depth: atDepth })
+    extraToolViz.push({ shape: atShape, scale: atScale, rad: atRad, ox: atOx, oy: atOy, depth: atDepth })
   })
 
-  // Union all holes (primary+notches + additional tools) for clean wall holes
+  // Split extra tools by depth relative to primary cavityZ
+  const sameDepthGfTools = extraGfHolePts.filter(et => Math.abs(et.depth - cavityZ) < 0.01)
+  const shallowerGfTools = extraGfHolePts.filter(et => et.depth < cavityZ - 0.01)
+  const deeperGfTools = extraGfHolePts.filter(et => et.depth > cavityZ + 0.01)
+
+  // Union all holes (primary+notches + same-depth additional tools) for clean wall holes
   let gfUnifiedHoles = gfCombinedHolePts
-  if (extraGfHolePts.length > 0) {
+  if (sameDepthGfTools.length > 0) {
     const scale = 1000
     const clipper = new ClipperLib.Clipper()
     gfCombinedHolePts.forEach(pts => {
       clipper.AddPath(pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptSubject, true)
     })
-    extraGfHolePts.forEach(pts => {
-      clipper.AddPath(pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptClip, true)
+    sameDepthGfTools.forEach(et => {
+      clipper.AddPath(et.pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptClip, true)
     })
     const solution = []
     clipper.Execute(ClipperLib.ClipType.ctUnion, solution, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero)
@@ -1146,16 +1187,22 @@ function createGridfinityInsert(points, config) {
   const shallowerNotches = gfIndepNotches.filter(n => n.depth > 0 && n.depth < cavityZ) // notches shallower than tool cavity
 
   if (floorZ > 0.01) {
-    if (deeperNotches.length > 0) {
-      // Layered floor approach: split floor into horizontal slices at each notch depth boundary
-      // Each deeper notch cuts (depth - cavityZ) into the floor from the top
+    if (deeperNotches.length > 0 || deeperGfTools.length > 0) {
+      // Layered floor approach: split floor into horizontal slices at each notch/tool depth boundary
+      // Each deeper notch/tool cuts (depth - cavityZ) into the floor from the top
       // Floor layers go from bottom (GF.baseHeight) to top (GF.baseHeight + floorZ)
-      // A notch with extraDepth cuts from (floorZ - extraDepth) to floorZ within the floor
+      // A notch/tool with extraDepth cuts from (floorZ - extraDepth) to floorZ within the floor
       
-      const floorCuts = deeperNotches.map(n => {
-        const extraDepth = Math.min(n.depth - cavityZ, floorZ) // clamp to floor thickness
-        return { pts: n.pts, cutStart: floorZ - extraDepth } // height within floor where cut begins
-      })
+      const floorCuts = [
+        ...deeperNotches.map(n => {
+          const extraDepth = Math.min(n.depth - cavityZ, floorZ) // clamp to floor thickness
+          return { pts: n.pts, cutStart: floorZ - extraDepth } // height within floor where cut begins
+        }),
+        ...deeperGfTools.map(et => {
+          const extraDepth = Math.min(et.depth - cavityZ, floorZ)
+          return { pts: et.pts, cutStart: floorZ - extraDepth }
+        })
+      ]
       
       // Get unique break heights within the floor
       const floorBreaks = [0, ...floorCuts.map(c => c.cutStart), floorZ]
@@ -1191,12 +1238,36 @@ function createGridfinityInsert(points, config) {
   // Collect shallower-than-cavity notches for layered wall approach
   const notchDepthMap = shallowerNotches.map(({ pts, depth }) => ({ pts, depth }))
 
-  if (notchDepthMap.length === 0) {
+  if (notchDepthMap.length === 0 && shallowerGfTools.length === 0) {
     // Simple case: no independent depths, single wall section
+    // Include deeper extra tools as full-depth holes + same-depth tools (already in gfUnifiedHoles)
+    const fullDepthGfPts = [...deeperGfTools.map(et => et.pts)]
     const wallShape = outerShape.clone()
-    gfUnifiedHoles.forEach(pts => {
-      wallShape.holes.push(new THREE.Path(pts.map(p => new THREE.Vector2(p.x, p.y))))
-    })
+    if (fullDepthGfPts.length > 0) {
+      // Union gfUnifiedHoles with deeper extra tools
+      const scale = 1000
+      const clipper = new ClipperLib.Clipper()
+      gfUnifiedHoles.forEach(pts => {
+        clipper.AddPath(pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptSubject, true)
+      })
+      fullDepthGfPts.forEach(pts => {
+        clipper.AddPath(pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptClip, true)
+      })
+      const solution = []
+      clipper.Execute(ClipperLib.ClipType.ctUnion, solution, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero)
+      const wallHoles = solution.length > 0 ? solution.map(path => {
+        const pts = path.map(p => ({ x: p.X / scale, y: p.Y / scale }))
+        if (ClipperLib.Clipper.Area(path) < 0) pts.reverse()
+        return pts
+      }) : gfUnifiedHoles
+      wallHoles.forEach(pts => {
+        wallShape.holes.push(new THREE.Path(pts.map(p => new THREE.Vector2(p.x, p.y))))
+      })
+    } else {
+      gfUnifiedHoles.forEach(pts => {
+        wallShape.holes.push(new THREE.Path(pts.map(p => new THREE.Vector2(p.x, p.y))))
+      })
+    }
     const wallGeo = new THREE.ExtrudeGeometry(wallShape, { depth: cavityZ, bevelEnabled: false })
     wallGeo.translate(0, 0, GF.baseHeight + floorZ)
 
@@ -1241,13 +1312,14 @@ function createGridfinityInsert(points, config) {
     }
     group.add(wallMesh)
   } else {
-    // Layered wall approach for independent notch depths
-    // Each shallower notch opens at a different height from the cavity floor
-    // A notch with depth D opens at height (cavityZ - D) from cavity bottom
+    // Layered wall approach for independent notch/tool depths
+    // Each shallower notch/tool opens at a different height from the cavity floor
+    // A notch/tool with depth D opens at height (cavityZ - D) from cavity bottom
     
-    // Build break heights where notch holes change
-    const breakHeights = shallowerNotches.map(n => cavityZ - n.depth)
-    const sliceHeights = [0, ...breakHeights, cavityZ]
+    // Build break heights where holes change
+    const notchBreaks = shallowerNotches.map(n => cavityZ - n.depth)
+    const toolBreaks = shallowerGfTools.map(et => cavityZ - et.depth)
+    const sliceHeights = [0, ...notchBreaks, ...toolBreaks, cavityZ]
     const uniqueHeights = [...new Set(sliceHeights)].sort((a, b) => a - b)
 
 
@@ -1297,12 +1369,20 @@ function createGridfinityInsert(points, config) {
       }
 
       const layerShape = outerShape.clone()
-      // Union layer hole with extra tool holes
-      if (extraGfHolePts.length > 0) {
+      // Collect extra tool holes that are open at this layer height
+      const openGfExtraToolPts = []
+      sameDepthGfTools.forEach(et => openGfExtraToolPts.push(et.pts)) // always open
+      deeperGfTools.forEach(et => openGfExtraToolPts.push(et.pts)) // always open in wall
+      shallowerGfTools.forEach(et => {
+        const opensAt = cavityZ - et.depth
+        if (layerBottom >= opensAt - 0.001) openGfExtraToolPts.push(et.pts)
+      })
+
+      if (openGfExtraToolPts.length > 0) {
         const scale = 1000
         const clipper = new ClipperLib.Clipper()
         clipper.AddPath(layerHole.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptSubject, true)
-        extraGfHolePts.forEach(pts => {
+        openGfExtraToolPts.forEach(pts => {
           clipper.AddPath(pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptClip, true)
         })
         const solution = []
@@ -1428,13 +1508,14 @@ function createGridfinityInsert(points, config) {
   extraToolViz.forEach((ev, evIdx) => {
     const isActive = (evIdx + 1) === activeIdx
     const evMat = isActive ? activeCavityMat : inactiveCavityMat
-    const evGeo = new THREE.ExtrudeGeometry(ev.shape, { depth: cavityZ + 0.5, bevelEnabled: false })
+    const evDepth = ev.depth || cavityZ
+    const evGeo = new THREE.ExtrudeGeometry(ev.shape, { depth: evDepth + 0.5, bevelEnabled: false })
     evGeo.scale(ev.scale, ev.scale, 1)
     evGeo.rotateZ(ev.rad)
-    evGeo.translate(ev.ox, ev.oy, GF.baseHeight + floorZ - 0.25)
+    evGeo.translate(ev.ox, ev.oy, GF.baseHeight + floorZ + cavityZ - evDepth - 0.25)
     try {
-      const clipGeo = new THREE.ExtrudeGeometry(outerShape, { depth: cavityZ + 1, bevelEnabled: false })
-      clipGeo.translate(0, 0, GF.baseHeight + floorZ - 0.5)
+      const clipGeo = new THREE.ExtrudeGeometry(outerShape, { depth: evDepth + 1, bevelEnabled: false })
+      clipGeo.translate(0, 0, GF.baseHeight + floorZ + cavityZ - evDepth - 0.5)
       const evBrush = new Brush(evGeo)
       evBrush.updateMatrixWorld()
       const clipBrush = new Brush(clipGeo)
