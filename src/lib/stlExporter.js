@@ -661,7 +661,8 @@ function createCustomInsert(points, config) {
           baseLayerShape.holes.push(new THREE.Path(c.pts.map(p => new THREE.Vector2(p.x, p.y))))
         }
       })
-      const baseLayerGeo = new THREE.ExtrudeGeometry(baseLayerShape, { depth: layH, bevelEnabled: false })
+      const baseOv = (bi < uniqueBaseBreaks.length - 2) ? 0.01 : 0
+      const baseLayerGeo = new THREE.ExtrudeGeometry(baseLayerShape, { depth: layH + baseOv, bevelEnabled: false })
       baseLayerGeo.translate(0, 0, layBot)
       group.add(new THREE.Mesh(baseLayerGeo, trayMat))
     }
@@ -736,7 +737,8 @@ function createCustomInsert(points, config) {
         })
       }
 
-      const layerGeo = new THREE.ExtrudeGeometry(layerShape, { depth: layerHeight, bevelEnabled: false })
+      const ov = 0.01
+      const layerGeo = new THREE.ExtrudeGeometry(layerShape, { depth: layerHeight + (isTopLayer ? 0 : ov), bevelEnabled: false })
       layerGeo.translate(0, 0, actualBaseDepth + layerBottom)
 
       if (isTopLayer) {
@@ -1204,7 +1206,8 @@ function createGridfinityInsert(points, config) {
           }
         })
         
-        const floorGeo = new THREE.ExtrudeGeometry(floorShape, { depth: layerH, bevelEnabled: false })
+        const floorOv = (fi < uniqueFloorBreaks.length - 2) ? 0.01 : 0
+        const floorGeo = new THREE.ExtrudeGeometry(floorShape, { depth: layerH + floorOv, bevelEnabled: false })
         floorGeo.translate(0, 0, GF.baseHeight + layerBot)
         group.add(new THREE.Mesh(floorGeo, trayMat))
       }
@@ -1359,7 +1362,8 @@ function createGridfinityInsert(points, config) {
       }
 
 
-      const layerGeo = new THREE.ExtrudeGeometry(layerShape, { depth: layerHeight, bevelEnabled: false })
+      const ov = 0.01 // tiny overlap to prevent coincident faces between layers
+      const layerGeo = new THREE.ExtrudeGeometry(layerShape, { depth: layerHeight + (li < uniqueHeights.length - 2 ? ov : 0), bevelEnabled: false })
       layerGeo.translate(0, 0, GF.baseHeight + floorZ + layerBottom)
       group.add(new THREE.Mesh(layerGeo, li === uniqueHeights.length - 2 ? trayMat2 : trayMat))
     }
