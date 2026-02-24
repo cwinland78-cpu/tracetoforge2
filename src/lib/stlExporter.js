@@ -1298,34 +1298,32 @@ function createGridfinityInsert(points, config) {
     }
     group.add(wallMesh)
   } else {
-    // Fill-plug approach for independent notch/tool depths
-    // Build a single full-depth wall with ALL holes (including independent ones),
-    // then add solid fill plugs for shallower items to raise their floor.
-    // This avoids layered wall sections with coincident faces that cause non-manifold errors.
+    // CSG approach for independent notch/tool depths
+    // Build a solid wall with only the primary holes (tool + default notches),
+    // then CSG-subtract each independent notch/tool at its own depth.
+    // This produces a single clean manifold mesh.
     
-    // Build the full-depth wall with all holes (unified + all independent + all extra tools)
-    const allIndepPts = [
-      ...shallowerNotches.map(n => n.pts),
+    // Start with a solid wall using gfUnifiedHoles (tool + default notches + same-depth extra tools)
+    // Also include deeper notches/tools as full-depth holes (they go all the way through)
+    const alwaysOpenPts = [
       ...deeperNotches.map(n => n.pts),
-      ...shallowerGfTools.map(et => et.pts),
       ...deeperGfTools.map(et => et.pts),
-      ...sameDepthGfTools.map(et => et.pts),
     ]
     
-    let fullWallHoles = gfUnifiedHoles
-    if (allIndepPts.length > 0) {
+    let baseWallHoles = gfUnifiedHoles
+    if (alwaysOpenPts.length > 0) {
       const scale = 1000
       const clipper = new ClipperLib.Clipper()
       gfUnifiedHoles.forEach(pts => {
         clipper.AddPath(pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptSubject, true)
       })
-      allIndepPts.forEach(pts => {
+      alwaysOpenPts.forEach(pts => {
         clipper.AddPath(pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptClip, true)
       })
       const solution = []
       clipper.Execute(ClipperLib.ClipType.ctUnion, solution, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero)
       if (solution.length > 0) {
-        fullWallHoles = solution.map(path => {
+        baseWallHoles = solution.map(path => {
           const pts = path.map(p => ({ x: p.X / scale, y: p.Y / scale }))
           if (ClipperLib.Clipper.Area(path) < 0) pts.reverse()
           return pts
@@ -1334,93 +1332,70 @@ function createGridfinityInsert(points, config) {
     }
     
     const wallShape = outerShape.clone()
-    fullWallHoles.forEach(pts => {
+    baseWallHoles.forEach(pts => {
       wallShape.holes.push(new THREE.Path(pts.map(p => new THREE.Vector2(p.x, p.y))))
     })
     const wallGeo = new THREE.ExtrudeGeometry(wallShape, { depth: cavityZ, bevelEnabled: false })
     wallGeo.translate(0, 0, GF.baseHeight + floorZ)
     
-    // Apply bevel
-    const maxBevelFP = Math.max(cb, ...extraToolCutters.map(e => e.cavityBevel || 0))
-    const hasBevelFP = maxBevelFP > 0.1
-    if (hasBevelFP) {
+    // CSG-subtract each shallower notch/tool at its individual depth from the top
+    const csgItems = [
+      ...shallowerNotches.map(n => ({ pts: n.pts, depth: n.depth })),
+      ...shallowerGfTools.map(et => ({ pts: et.pts, depth: et.depth })),
+    ]
+    
+    let wallBrush = new Brush(wallGeo)
+    wallBrush.updateMatrixWorld()
+    const csgEval = new Evaluator()
+    
+    for (const item of csgItems) {
       try {
-        const csgEval = new Evaluator()
-        let currentBrush = new Brush(wallGeo)
-        currentBrush.updateMatrixWorld()
-        let result = null
-        fullWallHoles.forEach(holePts => {
+        const cutShape = new THREE.Shape()
+        item.pts.forEach((p, i) => { if (i === 0) cutShape.moveTo(p.x, p.y); else cutShape.lineTo(p.x, p.y) })
+        cutShape.closePath()
+        // Cut from the top down to item.depth
+        const cutGeo = new THREE.ExtrudeGeometry(cutShape, { depth: item.depth + 0.1, bevelEnabled: false })
+        cutGeo.translate(0, 0, topSurface - item.depth - 0.05)
+        const cutBrush = new Brush(cutGeo)
+        cutBrush.updateMatrixWorld()
+        const result = csgEval.evaluate(wallBrush, cutBrush, SUBTRACTION)
+        if (result && result.geometry) {
+          wallBrush = new Brush(result.geometry)
+          wallBrush.updateMatrixWorld()
+        }
+      } catch (e) {
+        console.warn('[GF CSG] Failed to subtract notch/tool:', e)
+      }
+    }
+    
+    // Apply cavity bevel if needed
+    const maxBevelCSG = Math.max(cb, ...extraToolCutters.map(e => e.cavityBevel || 0))
+    if (maxBevelCSG > 0.1) {
+      try {
+        baseWallHoles.forEach(holePts => {
           const bevelShape = new THREE.Shape()
           holePts.forEach((p, i) => { if (i === 0) bevelShape.moveTo(p.x, p.y); else bevelShape.lineTo(p.x, p.y) })
           bevelShape.closePath()
           const bevelGeo = new THREE.ExtrudeGeometry(bevelShape, {
             depth: 0.01, bevelEnabled: true,
-            bevelThickness: maxBevelFP, bevelSize: maxBevelFP, bevelSegments: 1, bevelOffset: 0,
+            bevelThickness: maxBevelCSG, bevelSize: maxBevelCSG, bevelSegments: 1, bevelOffset: 0,
           })
           bevelGeo.translate(0, 0, topSurface)
           const bevelBrush = new Brush(bevelGeo)
           bevelBrush.updateMatrixWorld()
-          const prevBrush = result ? new Brush(result.geometry) : currentBrush
-          prevBrush.updateMatrixWorld()
-          result = csgEval.evaluate(prevBrush, bevelBrush, SUBTRACTION)
+          const result = csgEval.evaluate(wallBrush, bevelBrush, SUBTRACTION)
+          if (result && result.geometry) {
+            wallBrush = new Brush(result.geometry)
+            wallBrush.updateMatrixWorld()
+          }
         })
-        if (result) {
-          if (result.geometry) result.geometry.computeVertexNormals()
-          group.add(new THREE.Mesh(result.geometry, trayMat2))
-        } else {
-          group.add(new THREE.Mesh(wallGeo, trayMat2))
-        }
-      } catch (e) {
-        group.add(new THREE.Mesh(wallGeo, trayMat2))
-      }
-    } else {
-      group.add(new THREE.Mesh(wallGeo, trayMat2))
+      } catch (e) { /* bevel non-critical */ }
     }
     
-    // Add fill plugs for shallower items (solid blocks that raise the notch floor)
-    const fillPlugMat = new THREE.MeshPhongMaterial({
-      color: 0x888899, transparent: true, opacity: 0.92, side: THREE.DoubleSide,
-    })
-    shallowerNotches.forEach(n => {
-      const plugHeight = cavityZ - n.depth
-      if (plugHeight < 0.01) return
-      const plugShape = new THREE.Shape()
-      n.pts.forEach((p, i) => { if (i === 0) plugShape.moveTo(p.x, p.y); else plugShape.lineTo(p.x, p.y) })
-      plugShape.closePath()
-      const plugGeo = new THREE.ExtrudeGeometry(plugShape, { depth: plugHeight, bevelEnabled: false })
-      plugGeo.translate(0, 0, GF.baseHeight + floorZ)
-      group.add(new THREE.Mesh(plugGeo, fillPlugMat))
-    })
-    shallowerGfTools.forEach(et => {
-      const plugHeight = cavityZ - et.depth
-      if (plugHeight < 0.01) return
-      const plugShape = new THREE.Shape()
-      et.pts.forEach((p, i) => { if (i === 0) plugShape.moveTo(p.x, p.y); else plugShape.lineTo(p.x, p.y) })
-      plugShape.closePath()
-      const plugGeo = new THREE.ExtrudeGeometry(plugShape, { depth: plugHeight, bevelEnabled: false })
-      plugGeo.translate(0, 0, GF.baseHeight + floorZ)
-      group.add(new THREE.Mesh(plugGeo, fillPlugMat))
-    })
-
-    // Bevel visualization for non-CSG path
-    if (hasBevelFP) {
-      try {
-        fullWallHoles.forEach(holePts => {
-          const bevelShape = new THREE.Shape()
-          holePts.forEach((p, i) => { if (i === 0) bevelShape.moveTo(p.x, p.y); else bevelShape.lineTo(p.x, p.y) })
-          bevelShape.closePath()
-          const bevelGeo = new THREE.ExtrudeGeometry(bevelShape, {
-            depth: 0.01, bevelEnabled: true,
-            bevelThickness: maxBevelFP, bevelSize: maxBevelFP, bevelSegments: 1, bevelOffset: 0,
-          })
-          bevelGeo.translate(0, 0, topSurface)
-          const bevelMat = new THREE.MeshPhongMaterial({ color: 0x4a4a5a, side: THREE.DoubleSide })
-          const bevelMesh = new THREE.Mesh(bevelGeo, bevelMat)
-          bevelMesh.userData.vizOnly = true
-          group.add(bevelMesh)
-        })
-      } catch (e) { /* bevel viz only */ }
-    }
+    // Final wall mesh
+    const finalGeo = wallBrush.geometry || wallGeo
+    finalGeo.computeVertexNormals()
+    group.add(new THREE.Mesh(finalGeo, trayMat2))
   }
 
   // ─── Stacking lip - perimeter ring on top of walls ───
