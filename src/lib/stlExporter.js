@@ -1312,55 +1312,30 @@ function createGridfinityInsert(points, config) {
       const layerHeight = layerTop - layerBottom
       if (layerHeight < 0.01) continue
 
-      // Determine which notches are open at this layer
-      // A notch is open if layerBottom >= (cavityZ - notchDepth), i.e. notchDepth >= (cavityZ - layerBottom)
-      const openNotchPts = []
-      // Deeper notches are always open in the wall (they extend through wall into floor)
-      deeperNotches.forEach(n => openNotchPts.push(n.pts))
+
+      // Determine which independent notches/tools are open at this layer
+      const openIndepPts = []
+      deeperNotches.forEach(n => openIndepPts.push(n.pts))
       shallowerNotches.forEach(n => {
         const opensAt = cavityZ - n.depth
-        if (layerBottom >= opensAt - 0.001) {
-          openNotchPts.push(n.pts)
-        }
+        if (layerBottom >= opensAt - 0.001) openIndepPts.push(n.pts)
       })
-      // Also include default-depth notches (depth=0 or depth==cavityZ) which are always open
-      // Build the hole for this layer: tool + default notches + open custom notches
-      const layerNotchPts = [...gfDefaultNotchPts, ...openNotchPts]
-      let layerHole
-      if (layerNotchPts.length === 0) {
-        layerHole = holePts
-      } else {
-        const scale = 1000
-        const clipper = new ClipperLib.Clipper()
-        clipper.AddPath(holePts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptSubject, true)
-        layerNotchPts.forEach(nPts => {
-          clipper.AddPath(nPts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptClip, true)
-        })
-        const solution = []
-        clipper.Execute(ClipperLib.ClipType.ctUnion, solution, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero)
-        if (solution.length > 0) {
-          layerHole = solution[0].map(p => ({ x: p.X / scale, y: p.Y / scale }))
-          if (ClipperLib.Clipper.Area(solution[0]) < 0) layerHole.reverse()
-        } else {
-          layerHole = holePts
-        }
-      }
-
-      const layerShape = outerShape.clone()
-      // Collect extra tool holes that are open at this layer height
-      const openGfExtraToolPts = []
-      sameDepthGfTools.forEach(et => openGfExtraToolPts.push(et.pts)) // always open
-      deeperGfTools.forEach(et => openGfExtraToolPts.push(et.pts)) // always open in wall
+      deeperGfTools.forEach(et => openIndepPts.push(et.pts))
       shallowerGfTools.forEach(et => {
         const opensAt = cavityZ - et.depth
-        if (layerBottom >= opensAt - 0.001) openGfExtraToolPts.push(et.pts)
+        if (layerBottom >= opensAt - 0.001) openIndepPts.push(et.pts)
       })
 
-      if (openGfExtraToolPts.length > 0) {
+      // Start with gfUnifiedHoles (already computed, working correctly)
+      // Then union in any independent items that are open at this layer
+      const layerShape = outerShape.clone()
+      if (openIndepPts.length > 0) {
         const scale = 1000
         const clipper = new ClipperLib.Clipper()
-        clipper.AddPath(layerHole.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptSubject, true)
-        openGfExtraToolPts.forEach(pts => {
+        gfUnifiedHoles.forEach(pts => {
+          clipper.AddPath(pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptSubject, true)
+        })
+        openIndepPts.forEach(pts => {
           clipper.AddPath(pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptClip, true)
         })
         const solution = []
@@ -1372,14 +1347,17 @@ function createGridfinityInsert(points, config) {
             layerShape.holes.push(new THREE.Path(pts.map(p => new THREE.Vector2(p.x, p.y))))
           })
         } else {
-          layerShape.holes.push(new THREE.Path(layerHole.map(p => new THREE.Vector2(p.x, p.y))))
-          extraToolCutters.forEach(atEntry => {
-            layerShape.holes.push(new THREE.Path(atEntry.shape.getPoints(32)))
+          gfUnifiedHoles.forEach(pts => {
+            layerShape.holes.push(new THREE.Path(pts.map(p => new THREE.Vector2(p.x, p.y))))
           })
         }
       } else {
-        layerShape.holes.push(new THREE.Path(layerHole.map(p => new THREE.Vector2(p.x, p.y))))
+        // No independent items open - just use gfUnifiedHoles directly
+        gfUnifiedHoles.forEach(pts => {
+          layerShape.holes.push(new THREE.Path(pts.map(p => new THREE.Vector2(p.x, p.y))))
+        })
       }
+
 
       const layerGeo = new THREE.ExtrudeGeometry(layerShape, { depth: layerHeight, bevelEnabled: false })
       layerGeo.translate(0, 0, GF.baseHeight + floorZ + layerBottom)
