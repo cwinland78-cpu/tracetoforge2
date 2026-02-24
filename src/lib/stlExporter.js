@@ -919,7 +919,6 @@ function createGridfinityInsert(points, config) {
 
   // ─── Finger notches for Gridfinity ───
   const { fingerNotches: gfNotches = [] } = config
-  const gfAllNotchPts = []       // same-depth notches (union with tool hole)
   const gfIndepNotches = []      // independent-depth notches (CSG subtract separately)
 
   function buildNotchPts(fn) {
@@ -944,26 +943,32 @@ function createGridfinityInsert(points, config) {
     return pts
   }
 
-  let gfNotchOrigIdx = [] // maps gfAllNotchPts index -> original fingerNotches index
+  const gfAllNotchPtsForViz = []   // ALL notch points (for visualization only)
+  const gfDefaultNotchPts = []     // default-depth notches only (for union with tool hole)
+  let gfNotchOrigIdx = [] // maps gfAllNotchPtsForViz index -> original fingerNotches index
   gfNotches.forEach((fn, fnIdx) => {
     const pts = buildNotchPts(fn)
     if (pts.length < 3) return
-    gfAllNotchPts.push(pts)
+    gfAllNotchPtsForViz.push(pts)
     gfNotchOrigIdx.push(fnIdx)
     // Any notch with custom depth (> 0) that isn't equal to cavityZ is independent
     const isIndependent = fn.depth > 0 && Math.abs(fn.depth - cavityZ) > 0.01
     if (isIndependent) {
       gfIndepNotches.push({ pts, depth: fn.depth, origIdx: fnIdx })
+    } else {
+      gfDefaultNotchPts.push(pts)
     }
   })
 
-  // Union tool hole + notches for Gridfinity
+  // Union tool hole + DEFAULT-depth notches for Gridfinity
+  // Independent-depth notches are handled separately via layered walls
   const gfCombinedHolePts = (() => {
-    if (gfAllNotchPts.length === 0) return [holePts]
+    if (gfDefaultNotchPts.length === 0 && gfIndepNotches.length === 0) return [holePts]
+    if (gfDefaultNotchPts.length === 0) return [holePts] // only independent notches, tool-only base
     const scale = 1000
     const clipper = new ClipperLib.Clipper()
     clipper.AddPath(holePts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptSubject, true)
-    gfAllNotchPts.forEach(nPts => {
+    gfDefaultNotchPts.forEach(nPts => {
       clipper.AddPath(nPts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptClip, true)
     })
     const solution = []
@@ -978,34 +983,9 @@ function createGridfinityInsert(points, config) {
   })()
 
   const toolHolePath = new THREE.Path()
-  // Use first combined path for the hole (tool + ALL notches)
+  // gfMainHole = tool + default-depth notches (independent ones handled via layered walls)
   const gfMainHole = gfCombinedHolePts[0] || holePts
 
-  // Also build tool-only hole (excluding custom-depth notches) for lower wall layers
-  const gfToolOnlyHole = (() => {
-    // Get default-depth notch pts only
-    const defaultNotchPts = gfAllNotchPts.filter((_, i) => {
-      // gfAllNotchPts has all notches in order. We need to figure out which are default.
-      // gfIndepNotches has custom ones. Compare pts references.
-      const isCustom = gfIndepNotches.some(indep => indep.pts === gfAllNotchPts[i] || 
-        (indep.pts.length === gfAllNotchPts[i].length && indep.pts[0].x === gfAllNotchPts[i][0].x && indep.pts[0].y === gfAllNotchPts[i][0].y))
-      return !isCustom
-    })
-    if (defaultNotchPts.length === 0 && gfIndepNotches.length > 0) return holePts // tool only, no default notches
-    if (defaultNotchPts.length === 0) return gfMainHole // no custom notches at all
-    const scale = 1000
-    const clipper = new ClipperLib.Clipper()
-    clipper.AddPath(holePts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptSubject, true)
-    defaultNotchPts.forEach(nPts => {
-      clipper.AddPath(nPts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptClip, true)
-    })
-    const solution = []
-    clipper.Execute(ClipperLib.ClipType.ctUnion, solution, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero)
-    if (solution.length === 0) return holePts
-    const pts = solution[0].map(p => ({ x: p.X / scale, y: p.Y / scale }))
-    if (ClipperLib.Clipper.Area(solution[0]) < 0) pts.reverse()
-    return pts
-  })()
   gfMainHole.forEach((p, i) => {
     if (i === 0) toolHolePath.moveTo(p.x, p.y)
     else toolHolePath.lineTo(p.x, p.y)
@@ -1339,15 +1319,8 @@ function createGridfinityInsert(points, config) {
         }
       })
       // Also include default-depth notches (depth=0 or depth==cavityZ) which are always open
-      const defaultNotchPts = gfAllNotchPts.filter((_, i) => {
-        const isCustom = gfIndepNotches.some(indep => 
-          indep.pts === gfAllNotchPts[i] || 
-          (indep.pts.length === gfAllNotchPts[i].length && indep.pts[0].x === gfAllNotchPts[i][0].x && indep.pts[0].y === gfAllNotchPts[i][0].y))
-        return !isCustom
-      })
-
       // Build the hole for this layer: tool + default notches + open custom notches
-      const layerNotchPts = [...defaultNotchPts, ...openNotchPts]
+      const layerNotchPts = [...gfDefaultNotchPts, ...openNotchPts]
       let layerHole
       if (layerNotchPts.length === 0) {
         layerHole = holePts
@@ -1551,20 +1524,16 @@ function createGridfinityInsert(points, config) {
     group.add(handleMesh)
   }
 
-  // Default-depth notches only (skip ones that have independent depths)
-  gfAllNotchPts.forEach((nPts, ni) => {
-    // Check if this notch is in gfIndepNotches (has custom depth)
-    const isCustom = gfIndepNotches.some(indep => 
-      indep.pts === nPts || 
-      (indep.pts.length === nPts.length && indep.pts[0].x === nPts[0].x && indep.pts[0].y === nPts[0].y))
-    if (isCustom) return // skip - will be drawn by the indep loop below
-
+  // Default-depth notches visualization
+  gfDefaultNotchPts.forEach((nPts, ni) => {
     const nShape = new THREE.Shape()
     nPts.forEach((p, i) => { if (i === 0) nShape.moveTo(p.x, p.y); else nShape.lineTo(p.x, p.y) })
     nShape.closePath()
     const nGeo = new THREE.ExtrudeGeometry(nShape, { depth: cavityZ + 0.5, bevelEnabled: false })
     nGeo.translate(0, 0, GF.baseHeight + floorZ - 0.25)
-    const origIdx = gfNotchOrigIdx[ni] !== undefined ? gfNotchOrigIdx[ni] : ni
+    // Find the original notch index by matching pts in gfAllNotchPtsForViz
+    const vizIdx = gfAllNotchPtsForViz.findIndex(vp => vp === nPts || (vp.length === nPts.length && vp[0].x === nPts[0].x && vp[0].y === nPts[0].y))
+    const origIdx = vizIdx >= 0 && gfNotchOrigIdx[vizIdx] !== undefined ? gfNotchOrigIdx[vizIdx] : ni
     const nMesh = new THREE.Mesh(nGeo, gfNotchMat)
     nMesh.userData.vizOnly = true
     nMesh.userData.notchIndex = origIdx
