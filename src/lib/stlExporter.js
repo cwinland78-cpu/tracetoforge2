@@ -986,16 +986,6 @@ function createGridfinityInsert(points, config) {
     })
   })()
 
-  const toolHolePath = new THREE.Path()
-  // gfMainHole = tool + default-depth notches (independent ones handled via layered walls)
-  const gfMainHole = gfCombinedHolePts[0] || holePts
-
-  gfMainHole.forEach((p, i) => {
-    if (i === 0) toolHolePath.moveTo(p.x, p.y)
-    else toolHolePath.lineTo(p.x, p.y)
-  })
-  toolHolePath.closePath()
-
   const trayMat = new THREE.MeshPhongMaterial({
     color: 0x888899, transparent: true, opacity: 0.92, side: THREE.DoubleSide,
   })
@@ -1157,15 +1147,7 @@ function createGridfinityInsert(points, config) {
     }
   }
 
-  // Build tool cavity cutter shape from combined hole (tool + notches)
-  const toolCutterShape = new THREE.Shape()
-  gfMainHole.forEach((p, i) => {
-    if (i === 0) toolCutterShape.moveTo(p.x, p.y)
-    else toolCutterShape.lineTo(p.x, p.y)
-  })
-  toolCutterShape.closePath()
-
-  // ─── Floor + Layered walls for independent notch depths ───
+  // ─── Floor + walls for independent notch depths ───
   // Floor slab - may need notch cutouts if any notch is deeper than cavity
   const deeperNotches = gfIndepNotches.filter(n => n.depth > cavityZ) // notches deeper than tool cavity
   const shallowerNotches = gfIndepNotches.filter(n => n.depth > 0 && n.depth < cavityZ) // notches shallower than tool cavity
@@ -1220,86 +1202,9 @@ function createGridfinityInsert(points, config) {
     }
   }
 
-  // Collect shallower-than-cavity notches for layered wall approach
-  const notchDepthMap = shallowerNotches.map(({ pts, depth }) => ({ pts, depth }))
-
-  if (notchDepthMap.length === 0 && shallowerGfTools.length === 0) {
-    // Simple case: no shallower independent depths, single wall section
-    // Include deeper notches + deeper extra tools as full-depth holes
-    const fullDepthGfPts = [
-      ...deeperNotches.map(n => n.pts),
-      ...deeperGfTools.map(et => et.pts)
-    ]
-    const wallShape = outerShape.clone()
-    if (fullDepthGfPts.length > 0) {
-      // Union gfUnifiedHoles with deeper extra tools
-      const scale = 1000
-      const clipper = new ClipperLib.Clipper()
-      gfUnifiedHoles.forEach(pts => {
-        clipper.AddPath(pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptSubject, true)
-      })
-      fullDepthGfPts.forEach(pts => {
-        clipper.AddPath(pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptClip, true)
-      })
-      const solution = []
-      clipper.Execute(ClipperLib.ClipType.ctUnion, solution, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero)
-      const wallHoles = solution.length > 0 ? solution.map(path => {
-        const pts = path.map(p => ({ x: p.X / scale, y: p.Y / scale }))
-        if (ClipperLib.Clipper.Area(path) < 0) pts.reverse()
-        return pts
-      }) : gfUnifiedHoles
-      wallHoles.forEach(pts => {
-        wallShape.holes.push(new THREE.Path(pts.map(p => new THREE.Vector2(p.x, p.y))))
-      })
-    } else {
-      gfUnifiedHoles.forEach(pts => {
-        wallShape.holes.push(new THREE.Path(pts.map(p => new THREE.Vector2(p.x, p.y))))
-      })
-    }
-    const wallGeo = new THREE.ExtrudeGeometry(wallShape, { depth: cavityZ, bevelEnabled: false })
-    wallGeo.translate(0, 0, GF.baseHeight + floorZ)
-
-    // Apply bevel if needed
-    let wallMesh
-    const maxBevel = Math.max(cb, ...extraToolCutters.map(e => e.cavityBevel || 0))
-    const hasBevel = maxBevel > 0.1
-    if (hasBevel) {
-      try {
-        const csgEval = new Evaluator()
-        let currentBrush = new Brush(wallGeo)
-        currentBrush.updateMatrixWorld()
-        let result = null
-
-        // Apply bevel to each unified hole (covers all tools + notches)
-        gfUnifiedHoles.forEach(holePts => {
-          const bevelShape = new THREE.Shape()
-          holePts.forEach((p, i) => { if (i === 0) bevelShape.moveTo(p.x, p.y); else bevelShape.lineTo(p.x, p.y) })
-          bevelShape.closePath()
-          const bevelGeo = new THREE.ExtrudeGeometry(bevelShape, {
-            depth: 0.01, bevelEnabled: true,
-            bevelThickness: maxBevel, bevelSize: maxBevel, bevelSegments: 1, bevelOffset: 0,
-          })
-          bevelGeo.translate(0, 0, topSurface)
-          const bevelBrush = new Brush(bevelGeo)
-          bevelBrush.updateMatrixWorld()
-          const prevBrush = result ? new Brush(result.geometry) : currentBrush
-          prevBrush.updateMatrixWorld()
-          result = csgEval.evaluate(prevBrush, bevelBrush, SUBTRACTION)
-        })
-        if (result) {
-          if (result.geometry) result.geometry.computeVertexNormals()
-          wallMesh = new THREE.Mesh(result.geometry, trayMat2)
-        } else {
-          wallMesh = new THREE.Mesh(wallGeo, trayMat2)
-        }
-      } catch (e) {
-        wallMesh = new THREE.Mesh(wallGeo, trayMat2)
-      }
-    } else {
-      wallMesh = new THREE.Mesh(wallGeo, trayMat2)
-    }
-    group.add(wallMesh)
-  } else {
+  // Unified wall generation using CSG approach for all cases.
+  // This handles same-depth, different-depth, and overlapping notch/tool scenarios correctly.
+  {
     // CSG approach for independent notch/tool depths
     // Build a solid wall with only the primary holes (tool + default notches),
     // then CSG-subtract each independent notch/tool at its own depth.
