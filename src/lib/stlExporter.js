@@ -235,6 +235,7 @@ function createCustomInsert(points, config) {
 
   const group = new THREE.Group()
   const cavityZ = toolDepth || (trayDepth - floorThickness)
+  console.log('[CustomInsert] trayDepth:', trayDepth, 'toolDepth:', toolDepth, 'cavityZ:', cavityZ, 'floorThickness:', floorThickness, 'baseDepth:', trayDepth - cavityZ, 'trayWidth:', trayWidth, 'trayHeight:', trayHeight)
 
   // Rotation helper
   const rad = (toolRotation * Math.PI) / 180
