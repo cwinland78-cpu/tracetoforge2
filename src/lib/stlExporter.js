@@ -362,80 +362,31 @@ function createCustomInsert(points, config) {
     bodyGeo.translate(0, 0, es)
     group.add(new THREE.Mesh(bodyGeo, trayMat))
 
-    // Build chamfer/fillet skirt by offsetting each vertex along its inward normal.
-    // This keeps vertex count and order identical across all rings, so triangle
-    // strips connect correctly for any shape (rectangle, oval, custom/odd).
-    const outerPts = outerShape.getPoints(256)
+    // Chamfer/fillet skirt at bottom: full-size outline at z=es, inset outline at z=0
+    const pts = outerShape.getPoints(256)
+    const hw = trayWidth / 2, hh = trayHeight / 2
+    const scaleX = (hw - es) / hw
+    const scaleY = (hh - es) / hh
     const segs = edgeProfile === 'fillet' ? 8 : 1
-    const n = outerPts.length
 
-    // Compute inward normal at each vertex (average of adjacent edge normals)
-    const normals = []
-    for (let i = 0; i < n; i++) {
-      const prev = outerPts[(i - 1 + n) % n]
-      const curr = outerPts[i]
-      const next = outerPts[(i + 1) % n]
-      // Edge normals (inward = rotate edge direction 90 degrees clockwise for CCW polygon)
-      const e1x = curr.x - prev.x, e1y = curr.y - prev.y
-      const e2x = next.x - curr.x, e2y = next.y - curr.y
-      // Inward normals (perpendicular, pointing inward)
-      const n1x = e1y, n1y = -e1x
-      const n2x = e2y, n2y = -e2x
-      const len1 = Math.sqrt(n1x * n1x + n1y * n1y) || 1
-      const len2 = Math.sqrt(n2x * n2x + n2y * n2y) || 1
-      // Average and normalize
-      let nx = n1x / len1 + n2x / len2
-      let ny = n1y / len1 + n2y / len2
-      const len = Math.sqrt(nx * nx + ny * ny) || 1
-      nx /= len; ny /= len
-
-      // Miter correction: scale by 1/cos(half-angle) so the offset distance
-      // is uniform (es mm) rather than the projected distance
-      const dot = (n1x / len1) * nx + (n1y / len1) * ny
-      const miter = dot > 0.15 ? 1 / dot : 1 / 0.15 // clamp to avoid spikes at sharp corners
-      normals.push({ x: nx * miter, y: ny * miter })
-    }
-
-    // Check winding: if normals point outward instead of inward, flip them
-    // Test: offset the first point and see if it's closer to center
-    const cx = outerPts.reduce((s, p) => s + p.x, 0) / n
-    const cy = outerPts.reduce((s, p) => s + p.y, 0) / n
-    const testPt = outerPts[0]
-    const testOff = { x: testPt.x + normals[0].x, y: testPt.y + normals[0].y }
-    const distOrig = (testPt.x - cx) ** 2 + (testPt.y - cy) ** 2
-    const distOff = (testOff.x - cx) ** 2 + (testOff.y - cy) ** 2
-    if (distOff > distOrig) {
-      // Normals point outward, flip them
-      normals.forEach(nm => { nm.x = -nm.x; nm.y = -nm.y })
-    }
-
-    // Generate rings: each ring offsets vertices inward by a profile-dependent amount
     const skirtVerts = []
     for (let s = 0; s < segs; s++) {
       const t0 = s / segs, t1 = (s + 1) / segs
-      let inset0, z0, inset1, z1
+      let sx0, sy0, z0, sx1, sy1, z1
       if (edgeProfile === 'chamfer') {
-        inset0 = es * (1 - t0); z0 = es * t0
-        inset1 = es * (1 - t1); z1 = es * t1
+        sx0 = 1 - (1 - scaleX) * (1 - t0); sy0 = 1 - (1 - scaleY) * (1 - t0); z0 = es * t0
+        sx1 = 1 - (1 - scaleX) * (1 - t1); sy1 = 1 - (1 - scaleY) * (1 - t1); z1 = es * t1
       } else {
         const a0 = (t0 * Math.PI) / 2, a1 = (t1 * Math.PI) / 2
-        inset0 = es * Math.cos(a0); z0 = es * Math.sin(a0)
-        inset1 = es * Math.cos(a1); z1 = es * Math.sin(a1)
+        sx0 = 1 - (1 - scaleX) * Math.cos(a0); sy0 = 1 - (1 - scaleY) * Math.cos(a0); z0 = es * Math.sin(a0)
+        sx1 = 1 - (1 - scaleX) * Math.cos(a1); sy1 = 1 - (1 - scaleY) * Math.cos(a1); z1 = es * Math.sin(a1)
       }
-
-      for (let i = 0; i < n; i++) {
-        const j = (i + 1) % n
-        // Ring at t0
-        const ax0 = outerPts[i].x + normals[i].x * inset0
-        const ay0 = outerPts[i].y + normals[i].y * inset0
-        const bx0 = outerPts[j].x + normals[j].x * inset0
-        const by0 = outerPts[j].y + normals[j].y * inset0
-        // Ring at t1
-        const ax1 = outerPts[i].x + normals[i].x * inset1
-        const ay1 = outerPts[i].y + normals[i].y * inset1
-        const bx1 = outerPts[j].x + normals[j].x * inset1
-        const by1 = outerPts[j].y + normals[j].y * inset1
-
+      for (let i = 0; i < pts.length; i++) {
+        const j = (i + 1) % pts.length
+        const ax0 = pts[i].x * sx0, ay0 = pts[i].y * sy0
+        const ax1 = pts[i].x * sx1, ay1 = pts[i].y * sy1
+        const bx0 = pts[j].x * sx0, by0 = pts[j].y * sy0
+        const bx1 = pts[j].x * sx1, by1 = pts[j].y * sy1
         skirtVerts.push(ax0,ay0,z0, bx0,by0,z0, bx1,by1,z1)
         skirtVerts.push(ax0,ay0,z0, bx1,by1,z1, ax1,ay1,z1)
       }
@@ -445,12 +396,10 @@ function createCustomInsert(points, config) {
     skirtGeo.computeVertexNormals()
     group.add(new THREE.Mesh(skirtGeo, trayMat))
 
-    // Bottom cap at z=0 (most inset ring)
-    const bottomInset = edgeProfile === 'chamfer' ? 0 : es * Math.cos(Math.PI / 2)  // = 0 for both
+    // Bottom cap at z=0 (the inset face)
     const capShape = new THREE.Shape()
-    outerPts.forEach((p, i) => {
-      const x = p.x + normals[i].x * es
-      const y = p.y + normals[i].y * es
+    pts.forEach((p, i) => {
+      const x = p.x * scaleX, y = p.y * scaleY
       i === 0 ? capShape.moveTo(x, y) : capShape.lineTo(x, y)
     })
     capShape.closePath()

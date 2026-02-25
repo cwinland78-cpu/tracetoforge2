@@ -253,6 +253,7 @@ export default function Editor() {
       if (cfg.edgeProfile) setEdgeProfile(cfg.edgeProfile)
       if (cfg.edgeSize != null) setEdgeSize(cfg.edgeSize)
       if (cfg.outerShapeType) setOuterShapeType(cfg.outerShapeType)
+      if (cfg.outerShapePoints) setOuterShapePoints(cfg.outerShapePoints)
       if (cfg.gridX) setGridX(cfg.gridX)
       if (cfg.gridY) setGridY(cfg.gridY)
       if (cfg.gridHeight) setGridHeight(cfg.gridHeight)
@@ -276,7 +277,7 @@ export default function Editor() {
       cavityBevel, toolRotation, toolOffsetX, toolOffsetY,
       fingerNotches, activeToolIdx,
       tools: savedTools, step: step, trayWidth, trayHeight, trayDepth, depth, objectEdgeRadius,
-      edgeProfile, edgeSize, outerShapeType, gridX, gridY,
+      edgeProfile, edgeSize, outerShapeType, outerShapePoints, gridX, gridY,
       gridHeight, threshold, simplification, sensitivity, minContourPct,
       image: image || null,
       imageSize: imageSize || null,
