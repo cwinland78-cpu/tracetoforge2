@@ -1949,7 +1949,7 @@ export default function Editor() {
                             <div className={`text-xs font-bold ${activeTemplate === 'packout-compact' ? 'text-red-400' : 'text-[#C8C8D0]'}`}>
                               Milwaukee Packout
                             </div>
-                            <div className="text-[10px] text-[#666680]">48-22-8435 Compact Organizer • 203×293×82mm</div>
+                            <div className="text-[10px] text-[#666680]">48-22-8435 Compact Organizer • {Math.round(packoutCompact.cavity_width)}×{Math.round(packoutCompact.cavity_depth)}×{Math.round(packoutCompact.height)}mm</div>
                           </div>
                           {activeTemplate === 'packout-compact' && (
                             <span className="text-red-400 text-sm flex-shrink-0">✓</span>
@@ -1981,7 +1981,7 @@ export default function Editor() {
                             <div className={`text-xs font-bold ${activeTemplate === 'packout-slim' ? 'text-red-400' : 'text-[#C8C8D0]'}`}>
                               Milwaukee Packout
                             </div>
-                            <div className="text-[10px] text-[#666680]">48-22-8436 Low Profile Slim • 206×300×34mm</div>
+                            <div className="text-[10px] text-[#666680]">48-22-8436 Low Profile Slim • {Math.round(packoutSlim.cavity_width)}×{Math.round(packoutSlim.cavity_depth)}×{Math.round(packoutSlim.height)}mm</div>
                           </div>
                           {activeTemplate === 'packout-slim' && (
                             <span className="text-red-400 text-sm flex-shrink-0">✓</span>
@@ -2013,7 +2013,7 @@ export default function Editor() {
                             <div className={`text-xs font-bold ${activeTemplate === 'packout-shockwave' ? 'text-red-400' : 'text-[#C8C8D0]'}`}>
                               Milwaukee Packout
                             </div>
-                            <div className="text-[10px] text-[#666680]">48-32-9921 Shockwave Insert Tray • 80×184×25mm</div>
+                            <div className="text-[10px] text-[#666680]">48-32-9921 Shockwave Insert Tray • {Math.round(packoutShockwave.cavity_width)}×{Math.round(packoutShockwave.cavity_depth)}×{Math.round(packoutShockwave.height)}mm</div>
                           </div>
                           {activeTemplate === 'packout-shockwave' && (
                             <span className="text-red-400 text-sm flex-shrink-0">✓</span>
