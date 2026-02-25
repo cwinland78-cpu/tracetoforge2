@@ -188,6 +188,14 @@ export default function ComparisonPost() {
         Whichever system you choose, the process starts the same way: photograph your tools
         and generate a custom insert. <Link to="/editor">Start here</Link>.
       </p>
+
+      <h2>Related Guides</h2>
+      <ul>
+        <li><Link to="/blog/custom-milwaukee-packout-inserts-3d-print">Custom Milwaukee Packout Inserts</Link> - Step-by-step guide to photo-based Packout inserts</li>
+        <li><Link to="/blog/gridfinity-insert-from-photo">Gridfinity Inserts from a Photo</Link> - Generate custom Gridfinity bins from a smartphone photo</li>
+        <li><Link to="/blog/tool-organizer-photo-to-stl">Photo-to-STL: How It Works</Link> - The technology behind turning photos into printable files</li>
+        <li><Link to="/blog/best-3d-printed-tool-organizer-ideas">Best 3D Printed Tool Organizer Ideas</Link> - Creative ideas for your workshop</li>
+      </ul>
     </BlogPost>
   )
 }

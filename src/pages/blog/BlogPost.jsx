@@ -11,6 +11,13 @@ export default function BlogPost({ title, description, canonical, date, readTime
         description={description}
         canonical={canonical}
         type="article"
+        image="https://tracetoforge.com/og-image.png"
+        article={{
+          headline: title,
+          datePublished: date,
+          dateModified: date,
+          keywords: tags ? tags.join(', ') : undefined
+        }}
       />
       <div className="min-h-screen bg-[#0D0D12] text-white">
         <header className="border-b border-[#2A2A35]/50 bg-surface/80 backdrop-blur-sm sticky top-0 z-50">

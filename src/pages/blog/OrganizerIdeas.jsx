@@ -107,6 +107,14 @@ export default function OrganizerIdeas() {
         Start with one drawer. The satisfaction of opening a perfectly organized drawer will motivate
         you to keep going until every tool in your shop has a home.
       </p>
+
+      <h2>Related Guides</h2>
+      <ul>
+        <li><Link to="/blog/custom-milwaukee-packout-inserts-3d-print">Custom Milwaukee Packout Inserts</Link> - Photo-to-insert workflow for Packout cases</li>
+        <li><Link to="/blog/gridfinity-insert-from-photo">Gridfinity Inserts from a Photo</Link> - Custom Gridfinity bins from a smartphone photo</li>
+        <li><Link to="/blog/tool-organizer-photo-to-stl">Photo-to-STL: How It Works</Link> - The technology behind photo-based insert generation</li>
+        <li><Link to="/blog/gridfinity-vs-packout-vs-custom-tray">Gridfinity vs Packout vs Custom Trays</Link> - Compare the major insert systems</li>
+      </ul>
     </BlogPost>
   )
 }

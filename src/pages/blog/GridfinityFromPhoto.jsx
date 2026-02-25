@@ -147,6 +147,14 @@ export default function GridfinityFromPhoto() {
         The print itself depends on bin size, but a typical 2x3 Gridfinity insert prints in 1 to 3 hours.
         Once you have one bin dialed in, you will want to do every drawer in your shop.
       </p>
+
+      <h2>Related Guides</h2>
+      <ul>
+        <li><Link to="/blog/custom-milwaukee-packout-inserts-3d-print">Custom Milwaukee Packout Inserts</Link> - Use the same photo-to-insert workflow for Packout cases</li>
+        <li><Link to="/blog/gridfinity-vs-packout-vs-custom-tray">Gridfinity vs Packout vs Custom Trays</Link> - Deciding which system to use and when</li>
+        <li><Link to="/blog/tool-organizer-photo-to-stl">Photo-to-STL: How It Works</Link> - Technical breakdown of photo-based insert generation</li>
+        <li><Link to="/blog/best-3d-printed-tool-organizer-ideas">Best 3D Printed Tool Organizer Ideas</Link> - More inspiration for workshop organization</li>
+      </ul>
     </BlogPost>
   )
 }

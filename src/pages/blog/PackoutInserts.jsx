@@ -137,6 +137,14 @@ export default function PackoutInserts() {
         With photo-to-insert tools and a 3D printer, anyone can create professional-quality custom inserts
         in minutes. Your tools stay organized, protected, and instantly visible.
       </p>
+
+      <h2>Related Guides</h2>
+      <ul>
+        <li><Link to="/blog/gridfinity-insert-from-photo">Create Gridfinity Inserts from a Photo</Link> - Same photo-to-insert process for the Gridfinity ecosystem</li>
+        <li><Link to="/blog/gridfinity-vs-packout-vs-custom-tray">Gridfinity vs Packout vs Custom Trays</Link> - Which system fits your workflow best</li>
+        <li><Link to="/blog/tool-organizer-photo-to-stl">How Photo-to-STL Tool Organizers Work</Link> - The technology behind turning a photo into a printable file</li>
+        <li><Link to="/blog/best-3d-printed-tool-organizer-ideas">Best 3D Printed Tool Organizer Ideas</Link> - Inspiration for your next workshop project</li>
+      </ul>
     </BlogPost>
   )
 }

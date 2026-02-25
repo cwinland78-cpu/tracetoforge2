@@ -171,6 +171,14 @@ export default function PhotoToSTL() {
       <p>
         <Link to="/editor">Try it yourself</Link> with 3 free exports. No credit card required.
       </p>
+
+      <h2>Related Guides</h2>
+      <ul>
+        <li><Link to="/blog/custom-milwaukee-packout-inserts-3d-print">Custom Milwaukee Packout Inserts</Link> - Apply photo-to-STL specifically to Packout cases</li>
+        <li><Link to="/blog/gridfinity-insert-from-photo">Gridfinity Inserts from a Photo</Link> - Same workflow for the Gridfinity ecosystem</li>
+        <li><Link to="/blog/gridfinity-vs-packout-vs-custom-tray">Gridfinity vs Packout vs Custom Trays</Link> - Choosing the right insert system</li>
+        <li><Link to="/blog/best-3d-printed-tool-organizer-ideas">Best 3D Printed Tool Organizer Ideas</Link> - Inspiration beyond basic inserts</li>
+      </ul>
     </BlogPost>
   )
 }
