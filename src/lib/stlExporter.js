@@ -1307,19 +1307,22 @@ function createGridfinityInsert(points, config) {
     
     // Start with a solid wall using gfUnifiedHoles (tool + default notches + same-depth extra tools)
     // Also include deeper notches/tools as full-depth holes (they go all the way through)
-    const alwaysOpenPts = [
+    // Include ALL independent notch/tool holes in the wall (they all need a hole through the wall)
+    const allIndepPts = [
       ...deeperNotches.map(n => n.pts),
       ...deeperGfTools.map(et => et.pts),
+      ...shallowerNotches.map(n => n.pts),
+      ...shallowerGfTools.map(et => et.pts),
     ]
     
     let baseWallHoles = gfUnifiedHoles
-    if (alwaysOpenPts.length > 0) {
+    if (allIndepPts.length > 0) {
       const scale = 1000
       const clipper = new ClipperLib.Clipper()
       gfUnifiedHoles.forEach(pts => {
         clipper.AddPath(pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptSubject, true)
       })
-      alwaysOpenPts.forEach(pts => {
+      allIndepPts.forEach(pts => {
         clipper.AddPath(pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptClip, true)
       })
       const solution = []
