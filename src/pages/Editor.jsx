@@ -1947,7 +1947,7 @@ export default function Editor() {
                             <div className={`text-xs font-bold ${activeTemplate === 'packout-compact' ? 'text-red-400' : 'text-[#C8C8D0]'}`}>
                               Milwaukee Packout
                             </div>
-                            <div className="text-[10px] text-[#666680]">Compact Organizer • 203×293×82mm</div>
+                            <div className="text-[10px] text-[#666680]">48-22-8435 Compact Organizer • 203×293×82mm</div>
                           </div>
                           {activeTemplate === 'packout-compact' && (
                             <span className="text-red-400 text-sm flex-shrink-0">✓</span>
