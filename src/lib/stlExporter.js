@@ -923,7 +923,6 @@ function createGridfinityInsert(points, config) {
 
   // ─── Finger notches for Gridfinity ───
   const { fingerNotches: gfNotches = [] } = config
-  const gfIndepNotches = []      // independent-depth notches (CSG subtract separately)
 
   function buildNotchPts(fn) {
     let pts = []
@@ -947,44 +946,17 @@ function createGridfinityInsert(points, config) {
     return pts
   }
 
-  const gfAllNotchPtsForViz = []   // ALL notch points (for visualization only)
-  const gfDefaultNotchPts = []     // default-depth notches only (for union with tool hole)
-  let gfNotchOrigIdx = [] // maps gfAllNotchPtsForViz index -> original fingerNotches index
+  // Build ALL notch point arrays with their depths
+  const allNotchData = [] // { pts, depth, origIdx } for each notch
+  const gfAllNotchPtsForViz = [] // for grab handle raycasting
+  let gfNotchOrigIdx = []
   gfNotches.forEach((fn, fnIdx) => {
     const pts = buildNotchPts(fn)
     if (pts.length < 3) return
     gfAllNotchPtsForViz.push(pts)
     gfNotchOrigIdx.push(fnIdx)
-    // Any notch with custom depth (> 0) that isn't equal to cavityZ is independent
-    const isIndependent = fn.depth > 0 && Math.abs(fn.depth - cavityZ) > 0.01
-    if (isIndependent) {
-      gfIndepNotches.push({ pts, depth: fn.depth, origIdx: fnIdx })
-    } else {
-      gfDefaultNotchPts.push(pts)
-    }
+    allNotchData.push({ pts, depth: fn.depth || 0, origIdx: fnIdx })
   })
-
-  // Union tool hole + DEFAULT-depth notches for Gridfinity
-  // Independent-depth notches are handled separately via layered walls
-  const gfCombinedHolePts = (() => {
-    if (gfDefaultNotchPts.length === 0 && gfIndepNotches.length === 0) return [holePts]
-    if (gfDefaultNotchPts.length === 0) return [holePts] // only independent notches, tool-only base
-    const scale = 1000
-    const clipper = new ClipperLib.Clipper()
-    clipper.AddPath(holePts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptSubject, true)
-    gfDefaultNotchPts.forEach(nPts => {
-      clipper.AddPath(nPts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptClip, true)
-    })
-    const solution = []
-    clipper.Execute(ClipperLib.ClipType.ctUnion, solution, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero)
-    if (solution.length === 0) return [holePts]
-    // Ensure consistent winding (positive area = CCW)
-    return solution.map(path => {
-      const pts = path.map(p => ({ x: p.X / scale, y: p.Y / scale }))
-      if (ClipperLib.Clipper.Area(path) < 0) pts.reverse()
-      return pts
-    })
-  })()
 
   const trayMat = new THREE.MeshPhongMaterial({
     color: 0x888899, transparent: true, opacity: 0.92, side: THREE.DoubleSide,
@@ -1077,21 +1049,27 @@ function createGridfinityInsert(points, config) {
     }
   }
 
-  // ─── Walls with tool hole (cavity bevel support via CSG) ───
+  // ─── Walls: unified independent-per-item CSG approach ───
+  // Each tool and each notch is its own independent cavity, subtracted from a solid wall.
+  // This treats every item identically to how tool 1 works (the proven geometry).
   const cb = config.cavityBevel || 0
   const topSurface = GF.baseHeight + wallHeight
 
-  // Floor + walls combined as single extrusion, then subtract tool cavity from top
-  // This eliminates non-manifold edges at the floor/wall boundary
-
-  // ─── Additional tools for gridfinity ───
+  // ─── Build the list of ALL cavity items (tools + notches) ───
+  // Each item: { pts, depth (clamped), holePts (with tolerance) }
   const { additionalTools = [] } = config
-  const extraToolCutters = []
   const extraToolViz = []
-  const extraGfHolePts = [] // raw point arrays for Clipper union
   const maxGfW = binW - 2
   const maxGfH = binH - 2
-  additionalTools.forEach(at => {
+
+  // All cavity items that will be CSG-subtracted from the solid wall
+  const allCavityItems = []
+
+  // Tool 0 (primary)
+  allCavityItems.push({ pts: holePts, depth: cavityZ, bevel: cb, label: 'tool0' })
+
+  // Additional tools
+  additionalTools.forEach((at, atIdx) => {
     if (!at.points || at.points.length < 3) return
     const { shape: atShape, centered: atCentered } = createShapeFromPoints(at.points)
     const atBounds = getShapeBounds(at.points)
@@ -1105,75 +1083,37 @@ function createGridfinityInsert(points, config) {
       const sx = p.x * atScale, sy = p.y * atScale
       return { x: sx * atCos - sy * atSin + atOx, y: sx * atSin + sy * atCos + atOy }
     })
-    // Apply tolerance
     const atTol = at.tolerance || 0
     const atHolePts = atTol > 0 ? offsetPolygon(atScaledPts, atTol) : atScaledPts
-    const atDepth = at.toolDepth || cavityZ
-    extraGfHolePts.push({ pts: atHolePts, depth: atDepth })
-    const atCutShape = new THREE.Shape()
-    atHolePts.forEach((p, i) => {
-      if (i === 0) atCutShape.moveTo(p.x, p.y)
-      else atCutShape.lineTo(p.x, p.y)
-    })
-    atCutShape.closePath()
-    extraToolCutters.push({ shape: atCutShape, holePts: atHolePts, cavityBevel: at.cavityBevel || 0, depth: atDepth })
+    const atDepth = Math.max(0, Math.min(at.toolDepth || cavityZ, maxCavity))
+    allCavityItems.push({ pts: atHolePts, depth: atDepth, bevel: at.cavityBevel || 0, label: `tool${atIdx + 1}` })
     extraToolViz.push({ shape: atShape, scale: atScale, rad: atRad, ox: atOx, oy: atOy, depth: atDepth })
   })
 
-  // Split extra tools by depth relative to primary cavityZ
-  const sameDepthGfTools = extraGfHolePts.filter(et => Math.abs(et.depth - cavityZ) < 0.01)
-  const shallowerGfTools = extraGfHolePts.filter(et => et.depth < cavityZ - 0.01)
-  const deeperGfTools = extraGfHolePts.filter(et => et.depth > cavityZ + 0.01)
+  // Finger notches (each is its own cavity item)
+  allNotchData.forEach(nd => {
+    // depth=0 means use the primary tool's cavity depth
+    const notchDepth = nd.depth > 0 ? Math.min(nd.depth, maxCavity) : cavityZ
+    allCavityItems.push({ pts: nd.pts, depth: notchDepth, bevel: 0, label: `notch${nd.origIdx}` })
+  })
 
-  // Union all holes (primary+notches + same-depth additional tools) for clean wall holes
-  let gfUnifiedHoles = gfCombinedHolePts
-  if (sameDepthGfTools.length > 0) {
-    const scale = 1000
-    const clipper = new ClipperLib.Clipper()
-    gfCombinedHolePts.forEach(pts => {
-      clipper.AddPath(pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptSubject, true)
-    })
-    sameDepthGfTools.forEach(et => {
-      clipper.AddPath(et.pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptClip, true)
-    })
-    const solution = []
-    clipper.Execute(ClipperLib.ClipType.ctUnion, solution, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero)
-    if (solution.length > 0) {
-      gfUnifiedHoles = solution.map(path => {
-        const pts = path.map(p => ({ x: p.X / scale, y: p.Y / scale }))
-        if (ClipperLib.Clipper.Area(path) < 0) pts.reverse()
-        return pts
+  // ─── Floor generation ───
+  // Floor sits between base top (GF.baseHeight) and cavity bottom
+  // Use the DEEPEST cavity to determine minimum floor
+  const deepestCavity = Math.max(...allCavityItems.map(c => c.depth))
+  const globalFloorZ = wallHeight - deepestCavity
+  
+  if (globalFloorZ > 0.01) {
+    // Check if any item cuts deeper than the primary cavity (into the floor)
+    const floorCutItems = allCavityItems.filter(c => c.depth > cavityZ)
+    if (floorCutItems.length > 0) {
+      // Layered floor: some items cut deeper than the primary floor level
+      const floorCuts = floorCutItems.map(c => {
+        const extraDepth = Math.min(c.depth - cavityZ, floorZ)
+        return { pts: c.pts, cutStart: floorZ - extraDepth }
       })
-    }
-  }
-
-  // ─── Floor + walls for independent notch depths ───
-  // Floor slab - may need notch cutouts if any notch is deeper than cavity
-  const deeperNotches = gfIndepNotches.filter(n => n.depth > cavityZ) // notches deeper than tool cavity
-  const shallowerNotches = gfIndepNotches.filter(n => n.depth > 0 && n.depth < cavityZ) // notches shallower than tool cavity
-
-  if (floorZ > 0.01) {
-    if (deeperNotches.length > 0 || deeperGfTools.length > 0) {
-      // Layered floor approach: split floor into horizontal slices at each notch/tool depth boundary
-      // Each deeper notch/tool cuts (depth - cavityZ) into the floor from the top
-      // Floor layers go from bottom (GF.baseHeight) to top (GF.baseHeight + floorZ)
-      // A notch/tool with extraDepth cuts from (floorZ - extraDepth) to floorZ within the floor
-      
-      const floorCuts = [
-        ...deeperNotches.map(n => {
-          const extraDepth = Math.min(n.depth - cavityZ, floorZ) // clamp to floor thickness
-          return { pts: n.pts, cutStart: floorZ - extraDepth } // height within floor where cut begins
-        }),
-        ...deeperGfTools.map(et => {
-          const extraDepth = Math.min(et.depth - cavityZ, floorZ)
-          return { pts: et.pts, cutStart: floorZ - extraDepth }
-        })
-      ]
-      
-      // Get unique break heights within the floor
       const floorBreaks = [0, ...floorCuts.map(c => c.cutStart), floorZ]
       const uniqueFloorBreaks = [...new Set(floorBreaks)].filter(h => h >= 0 && h <= floorZ).sort((a, b) => a - b)
-      
       
       for (let fi = 0; fi < uniqueFloorBreaks.length - 1; fi++) {
         const layerBot = uniqueFloorBreaks[fi]
@@ -1181,8 +1121,6 @@ function createGridfinityInsert(points, config) {
         const layerH = layerTop - layerBot
         if (layerH < 0.01) continue
         
-        // Which notch holes are open at this floor layer?
-        // A notch hole is open if layerBot >= cutStart (the cut goes from cutStart to floorZ)
         const floorShape = outerShape.clone()
         floorCuts.forEach(c => {
           if (layerBot >= c.cutStart - 0.001) {
@@ -1196,111 +1134,78 @@ function createGridfinityInsert(points, config) {
         group.add(new THREE.Mesh(floorGeo, trayMat))
       }
     } else {
+      // Simple floor: no items cut deeper than primary
       const floorGeo = new THREE.ExtrudeGeometry(outerShape, { depth: floorZ, bevelEnabled: false })
       floorGeo.translate(0, 0, GF.baseHeight)
       group.add(new THREE.Mesh(floorGeo, trayMat))
     }
   }
 
-  // Unified wall generation using CSG approach for all cases.
-  // This handles same-depth, different-depth, and overlapping notch/tool scenarios correctly.
-  {
-    // Unified CSG wall generation.
-    // Wall holes: only full-depth items (tool 0 + default notches + same-depth tools + deeper items).
-    // Shallower items: NO wall hole. CSG-subtract from solid wall to create pockets at their depth.
-    const fullDepthIndepPts = [
-      ...deeperNotches.map(n => n.pts),
-      ...deeperGfTools.map(et => et.pts),
-    ]
-    
-    let baseWallHoles = gfUnifiedHoles
-    if (fullDepthIndepPts.length > 0) {
-      const scale = 1000
-      const clipper = new ClipperLib.Clipper()
-      gfUnifiedHoles.forEach(pts => {
-        clipper.AddPath(pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptSubject, true)
-      })
-      fullDepthIndepPts.forEach(pts => {
-        clipper.AddPath(pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptClip, true)
-      })
-      const solution = []
-      clipper.Execute(ClipperLib.ClipType.ctUnion, solution, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero)
-      if (solution.length > 0) {
-        baseWallHoles = solution.map(path => {
-          const pts = path.map(p => ({ x: p.X / scale, y: p.Y / scale }))
-          if (ClipperLib.Clipper.Area(path) < 0) pts.reverse()
-          return pts
-        })
+  // ─── Wall: start solid, CSG-subtract each cavity independently ───
+  // Build a completely solid wall (outer shape, no holes)
+  const solidWallGeo = new THREE.ExtrudeGeometry(outerShape, { depth: wallHeight, bevelEnabled: false })
+  solidWallGeo.translate(0, 0, GF.baseHeight)
+
+  let wallBrush = new Brush(solidWallGeo)
+  wallBrush.updateMatrixWorld()
+  const csgEval = new Evaluator()
+
+  // Sort items: deepest first so we cut the biggest holes first (more stable CSG)
+  const sortedItems = [...allCavityItems].sort((a, b) => b.depth - a.depth)
+
+  for (const item of sortedItems) {
+    try {
+      const cutShape = new THREE.Shape()
+      item.pts.forEach((p, i) => { if (i === 0) cutShape.moveTo(p.x, p.y); else cutShape.lineTo(p.x, p.y) })
+      cutShape.closePath()
+
+      // Cut from the top surface down to item.depth
+      const cutDepth = item.depth + 0.1 // slight overshoot for clean boolean
+      const cutGeo = new THREE.ExtrudeGeometry(cutShape, { depth: cutDepth, bevelEnabled: false })
+      cutGeo.translate(0, 0, topSurface - item.depth - 0.05)
+
+      const cutBrush = new Brush(cutGeo)
+      cutBrush.updateMatrixWorld()
+      const result = csgEval.evaluate(wallBrush, cutBrush, SUBTRACTION)
+      if (result && result.geometry) {
+        wallBrush = new Brush(result.geometry)
+        wallBrush.updateMatrixWorld()
       }
+    } catch (e) {
+      console.warn('[GF CSG] Failed to subtract cavity:', item.label, e)
     }
-    
-    const wallShape = outerShape.clone()
-    baseWallHoles.forEach(pts => {
-      wallShape.holes.push(new THREE.Path(pts.map(p => new THREE.Vector2(p.x, p.y))))
-    })
-    const wallGeo = new THREE.ExtrudeGeometry(wallShape, { depth: cavityZ, bevelEnabled: false })
-    wallGeo.translate(0, 0, GF.baseHeight + floorZ)
-    
-    // CSG-subtract shallower notches/tools at their individual depths.
-    // Since these have NO wall holes, we are cutting pockets into solid wall.
-    const csgItems = [
-      ...shallowerNotches.map(n => ({ pts: n.pts, depth: n.depth })),
-      ...shallowerGfTools.map(et => ({ pts: et.pts, depth: et.depth })),
-    ]
-    
-    let wallBrush = new Brush(wallGeo)
-    wallBrush.updateMatrixWorld()
-    const csgEval = new Evaluator()
-    
-    for (const item of csgItems) {
-      try {
-        const cutShape = new THREE.Shape()
-        item.pts.forEach((p, i) => { if (i === 0) cutShape.moveTo(p.x, p.y); else cutShape.lineTo(p.x, p.y) })
-        cutShape.closePath()
-        // Cut from the top surface down to item.depth
-        const cutGeo = new THREE.ExtrudeGeometry(cutShape, { depth: item.depth + 0.1, bevelEnabled: false })
-        cutGeo.translate(0, 0, topSurface - item.depth - 0.05)
-        const cutBrush = new Brush(cutGeo)
-        cutBrush.updateMatrixWorld()
-        const result = csgEval.evaluate(wallBrush, cutBrush, SUBTRACTION)
+  }
+
+  // Apply cavity bevel if any tool has it
+  const maxBevelAll = Math.max(...allCavityItems.map(c => c.bevel || 0))
+  if (maxBevelAll > 0.1) {
+    try {
+      for (const item of allCavityItems) {
+        if ((item.bevel || 0) < 0.1) continue
+        const bevelShape = new THREE.Shape()
+        item.pts.forEach((p, i) => { if (i === 0) bevelShape.moveTo(p.x, p.y); else bevelShape.lineTo(p.x, p.y) })
+        bevelShape.closePath()
+        const bevelGeo = new THREE.ExtrudeGeometry(bevelShape, {
+          depth: 0.01, bevelEnabled: true,
+          bevelThickness: item.bevel, bevelSize: item.bevel, bevelSegments: 1, bevelOffset: 0,
+        })
+        bevelGeo.translate(0, 0, topSurface)
+        const bevelBrush = new Brush(bevelGeo)
+        bevelBrush.updateMatrixWorld()
+        const result = csgEval.evaluate(wallBrush, bevelBrush, SUBTRACTION)
         if (result && result.geometry) {
           wallBrush = new Brush(result.geometry)
           wallBrush.updateMatrixWorld()
         }
-      } catch (e) {
-        console.warn('[GF CSG] Failed to subtract notch/tool:', e)
       }
-    }
-    
-    // Apply cavity bevel if needed
-    const maxBevelCSG = Math.max(cb, ...extraToolCutters.map(e => e.cavityBevel || 0))
-    if (maxBevelCSG > 0.1) {
-      try {
-        baseWallHoles.forEach(holePts => {
-          const bevelShape = new THREE.Shape()
-          holePts.forEach((p, i) => { if (i === 0) bevelShape.moveTo(p.x, p.y); else bevelShape.lineTo(p.x, p.y) })
-          bevelShape.closePath()
-          const bevelGeo = new THREE.ExtrudeGeometry(bevelShape, {
-            depth: 0.01, bevelEnabled: true,
-            bevelThickness: maxBevelCSG, bevelSize: maxBevelCSG, bevelSegments: 1, bevelOffset: 0,
-          })
-          bevelGeo.translate(0, 0, topSurface)
-          const bevelBrush = new Brush(bevelGeo)
-          bevelBrush.updateMatrixWorld()
-          const result = csgEval.evaluate(wallBrush, bevelBrush, SUBTRACTION)
-          if (result && result.geometry) {
-            wallBrush = new Brush(result.geometry)
-            wallBrush.updateMatrixWorld()
-          }
-        })
-      } catch (e) { /* bevel non-critical */ }
-    }
-    
-    // Final wall mesh
-    const finalGeo = wallBrush.geometry || wallGeo
-    finalGeo.computeVertexNormals()
-    group.add(new THREE.Mesh(finalGeo, trayMat2))
+    } catch (e) { /* bevel non-critical */ }
   }
+
+  // Final wall mesh
+  const finalWallGeo = wallBrush.geometry || solidWallGeo
+  finalWallGeo.computeVertexNormals()
+  group.add(new THREE.Mesh(finalWallGeo, trayMat2))
+
 
   // ─── Stacking lip - perimeter ring on top of walls ───
   // 1.9mm thick ring matching outer wall profile exactly
@@ -1425,34 +1330,21 @@ function createGridfinityInsert(points, config) {
     group.add(handleMesh)
   }
 
-  // Default-depth notches visualization
-  gfDefaultNotchPts.forEach((nPts, ni) => {
+  // Finger notch visualizations for gridfinity (each notch at its own depth)
+  allNotchData.forEach((nd, ni) => {
+    const nPts = nd.pts
+    const notchDepth = nd.depth > 0 ? Math.min(nd.depth, maxCavity) : cavityZ
+    const origIdx = nd.origIdx !== undefined ? nd.origIdx : ni
     const nShape = new THREE.Shape()
     nPts.forEach((p, i) => { if (i === 0) nShape.moveTo(p.x, p.y); else nShape.lineTo(p.x, p.y) })
     nShape.closePath()
-    const nGeo = new THREE.ExtrudeGeometry(nShape, { depth: cavityZ + 0.5, bevelEnabled: false })
-    nGeo.translate(0, 0, GF.baseHeight + floorZ - 0.25)
-    const vizIdx = gfAllNotchPtsForViz.findIndex(vp => vp === nPts || (vp.length === nPts.length && vp[0].x === nPts[0].x && vp[0].y === nPts[0].y))
-    const origIdx = vizIdx >= 0 && gfNotchOrigIdx[vizIdx] !== undefined ? gfNotchOrigIdx[vizIdx] : ni
+    const nGeo = new THREE.ExtrudeGeometry(nShape, { depth: notchDepth + 0.5, bevelEnabled: false })
+    nGeo.translate(0, 0, topSurface - notchDepth - 0.25)
     const nMesh = new THREE.Mesh(nGeo, origIdx === gfActiveNotchIdx ? gfActiveNotchMat : gfInactiveNotchMat)
     nMesh.userData.vizOnly = true
     nMesh.userData.notchIndex = origIdx
     group.add(nMesh)
     addGrabHandle(nPts, origIdx)
-  })
-  // Custom-depth notches - drawn at their actual independent depth
-  gfIndepNotches.forEach(({ pts: nPts, depth: nDepth, origIdx }, ni) => {
-    const nShape = new THREE.Shape()
-    nPts.forEach((p, i) => { if (i === 0) nShape.moveTo(p.x, p.y); else nShape.lineTo(p.x, p.y) })
-    nShape.closePath()
-    const nGeo = new THREE.ExtrudeGeometry(nShape, { depth: nDepth + 0.5, bevelEnabled: false })
-    nGeo.translate(0, 0, GF.baseHeight + floorZ + cavityZ - nDepth - 0.25)
-    const idx = origIdx !== undefined ? origIdx : ni
-    const nMesh = new THREE.Mesh(nGeo, idx === gfActiveNotchIdx ? gfActiveNotchMat : gfInactiveNotchMat)
-    nMesh.userData.vizOnly = true
-    nMesh.userData.notchIndex = idx
-    group.add(nMesh)
-    addGrabHandle(nPts, idx)
   })
 
   // ─── Branding emboss (raised text on inside floor) ───
