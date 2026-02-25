@@ -362,35 +362,98 @@ function createCustomInsert(points, config) {
     bodyGeo.translate(0, 0, es)
     group.add(new THREE.Mesh(bodyGeo, trayMat))
 
-    // Chamfer skirt at bottom: full-size outline at z=es, scaled-down outline at z=0
-    // Use getPoints on the SAME shape for both, just scale the bottom copy
-    const pts = outerShape.getPoints(256)
-    const hw = trayWidth / 2, hh = trayHeight / 2
-    const maxHalf = Math.max(hw, hh)
-    const scaleX = (hw - es) / hw
-    const scaleY = (hh - es) / hh
+    // Build chamfer/fillet skirt using Clipper inset for uniform edge distance.
+    // This works correctly for all shapes (rectangle, oval, custom/odd shapes).
+    const outerPts = outerShape.getPoints(256)
     const segs = edgeProfile === 'fillet' ? 8 : 1
 
-    const skirtVerts = []
-    for (let s = 0; s < segs; s++) {
-      const t0 = s / segs, t1 = (s + 1) / segs
-      let sx0, sy0, z0, sx1, sy1, z1
+    // Generate inset rings at each intermediate level using Clipper offset
+    // Ring 0 = full outer (inset=0), Ring segs = bottom (inset=es)
+    const rings = []
+    for (let s = 0; s <= segs; s++) {
+      const t = s / segs
+      let insetAmt, z
       if (edgeProfile === 'chamfer') {
-        sx0 = 1 - (1 - scaleX) * (1 - t0); sy0 = 1 - (1 - scaleY) * (1 - t0); z0 = es * t0
-        sx1 = 1 - (1 - scaleX) * (1 - t1); sy1 = 1 - (1 - scaleY) * (1 - t1); z1 = es * t1
+        insetAmt = es * (1 - t)
+        z = es * t
       } else {
-        const a0 = (t0 * Math.PI) / 2, a1 = (t1 * Math.PI) / 2
-        sx0 = 1 - (1 - scaleX) * Math.cos(a0); sy0 = 1 - (1 - scaleY) * Math.cos(a0); z0 = es * Math.sin(a0)
-        sx1 = 1 - (1 - scaleX) * Math.cos(a1); sy1 = 1 - (1 - scaleY) * Math.cos(a1); z1 = es * Math.sin(a1)
+        // Fillet: quarter-circle profile
+        const angle = (t * Math.PI) / 2
+        insetAmt = es * Math.cos(angle)
+        z = es * Math.sin(angle)
       }
-      for (let i = 0; i < pts.length; i++) {
-        const j = (i + 1) % pts.length
-        const ax0 = pts[i].x * sx0, ay0 = pts[i].y * sy0
-        const ax1 = pts[i].x * sx1, ay1 = pts[i].y * sy1
-        const bx0 = pts[j].x * sx0, by0 = pts[j].y * sy0
-        const bx1 = pts[j].x * sx1, by1 = pts[j].y * sy1
-        skirtVerts.push(ax0,ay0,z0, bx0,by0,z0, bx1,by1,z1)
-        skirtVerts.push(ax0,ay0,z0, bx1,by1,z1, ax1,ay1,z1)
+
+      if (insetAmt < 0.01) {
+        // No inset needed, use outer points directly
+        rings.push({ pts: outerPts.map(p => ({ x: p.x, y: p.y })), z })
+      } else {
+        // Use Clipper to compute uniform inset
+        const clipScale = 1000
+        const path = outerPts.map(p => ({ X: Math.round(p.x * clipScale), Y: Math.round(p.y * clipScale) }))
+        const co = new ClipperLib.ClipperOffset()
+        co.AddPath(path, ClipperLib.JoinType.jtRound, ClipperLib.EndType.etClosedPolygon)
+        const solution = []
+        co.Execute(solution, -insetAmt * clipScale) // negative = inset
+        if (solution.length > 0 && solution[0].length >= 3) {
+          // Create a shape from the inset result and get same-resolution points
+          const insetShape = new THREE.Shape()
+          const rawPts = solution[0].map(p => ({ x: p.X / clipScale, y: p.Y / clipScale }))
+          // Ensure consistent winding
+          if (ClipperLib.Clipper.Area(solution[0]) < 0) rawPts.reverse()
+          rawPts.forEach((p, i) => { i === 0 ? insetShape.moveTo(p.x, p.y) : insetShape.lineTo(p.x, p.y) })
+          insetShape.closePath()
+          const insetPts = insetShape.getPoints(256)
+          rings.push({ pts: insetPts.map(p => ({ x: p.x, y: p.y })), z })
+        } else {
+          // Fallback: if inset fails (shape too small), use a very small version
+          rings.push({ pts: outerPts.map(p => ({ x: p.x * 0.5, y: p.y * 0.5 })), z })
+        }
+      }
+    }
+
+    // Build skirt triangles between adjacent rings
+    // Match vertices by normalized arc-length parameter for correct pairing
+    function arcLengths(pts) {
+      const lens = [0]
+      for (let i = 1; i < pts.length; i++) {
+        const dx = pts[i].x - pts[i-1].x, dy = pts[i].y - pts[i-1].y
+        lens.push(lens[i-1] + Math.sqrt(dx*dx + dy*dy))
+      }
+      const total = lens[lens.length - 1] || 1
+      return lens.map(l => l / total)
+    }
+
+    function sampleRing(pts, params, t) {
+      // Find the segment where t falls and interpolate
+      for (let i = 0; i < params.length - 1; i++) {
+        if (t <= params[i+1] + 0.0001) {
+          const segT = (params[i+1] - params[i]) > 0.0001
+            ? (t - params[i]) / (params[i+1] - params[i])
+            : 0
+          return {
+            x: pts[i].x + (pts[i+1].x - pts[i].x) * segT,
+            y: pts[i].y + (pts[i+1].y - pts[i].y) * segT,
+          }
+        }
+      }
+      return pts[pts.length - 1]
+    }
+
+    const skirtVerts = []
+    const skirtRes = 256 // uniform sampling resolution
+    for (let r = 0; r < rings.length - 1; r++) {
+      const ringA = rings[r], ringB = rings[r+1]
+      const paramsA = arcLengths(ringA.pts)
+      const paramsB = arcLengths(ringB.pts)
+
+      for (let i = 0; i < skirtRes; i++) {
+        const t0 = i / skirtRes, t1 = (i + 1) / skirtRes
+        const a0 = sampleRing(ringA.pts, paramsA, t0)
+        const a1 = sampleRing(ringA.pts, paramsA, t1)
+        const b0 = sampleRing(ringB.pts, paramsB, t0)
+        const b1 = sampleRing(ringB.pts, paramsB, t1)
+        skirtVerts.push(a0.x,a0.y,ringA.z, b0.x,b0.y,ringB.z, b1.x,b1.y,ringB.z)
+        skirtVerts.push(a0.x,a0.y,ringA.z, b1.x,b1.y,ringB.z, a1.x,a1.y,ringA.z)
       }
     }
     const skirtGeo = new THREE.BufferGeometry()
@@ -398,14 +461,15 @@ function createCustomInsert(points, config) {
     skirtGeo.computeVertexNormals()
     group.add(new THREE.Mesh(skirtGeo, trayMat))
 
-    // Bottom cap at z=0 (the scaled-down face)
+    // Bottom cap at z=0 (the most inset ring)
+    const bottomRing = rings[rings.length - 1]
     const capShape = new THREE.Shape()
-    pts.forEach((p, i) => {
-      const x = p.x * scaleX, y = p.y * scaleY
-      i === 0 ? capShape.moveTo(x, y) : capShape.lineTo(x, y)
+    bottomRing.pts.forEach((p, i) => {
+      i === 0 ? capShape.moveTo(p.x, p.y) : capShape.lineTo(p.x, p.y)
     })
     capShape.closePath()
-    group.add(new THREE.Mesh(new THREE.ShapeGeometry(capShape), trayMat))
+    const capGeo = new THREE.ShapeGeometry(capShape)
+    group.add(new THREE.Mesh(capGeo, trayMat))
   } else {
     // Skip flat base here if deeper notches/tools will build layered base later
     const hasDeeperNotches = indepNotches.some(n => n.depth > cavityZ)
