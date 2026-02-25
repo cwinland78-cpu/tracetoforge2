@@ -362,98 +362,82 @@ function createCustomInsert(points, config) {
     bodyGeo.translate(0, 0, es)
     group.add(new THREE.Mesh(bodyGeo, trayMat))
 
-    // Build chamfer/fillet skirt using Clipper inset for uniform edge distance.
-    // This works correctly for all shapes (rectangle, oval, custom/odd shapes).
+    // Build chamfer/fillet skirt by offsetting each vertex along its inward normal.
+    // This keeps vertex count and order identical across all rings, so triangle
+    // strips connect correctly for any shape (rectangle, oval, custom/odd).
     const outerPts = outerShape.getPoints(256)
     const segs = edgeProfile === 'fillet' ? 8 : 1
+    const n = outerPts.length
 
-    // Generate inset rings at each intermediate level using Clipper offset
-    // Ring 0 = full outer (inset=0), Ring segs = bottom (inset=es)
-    const rings = []
-    for (let s = 0; s <= segs; s++) {
-      const t = s / segs
-      let insetAmt, z
-      if (edgeProfile === 'chamfer') {
-        insetAmt = es * (1 - t)
-        z = es * t
-      } else {
-        // Fillet: quarter-circle profile
-        const angle = (t * Math.PI) / 2
-        insetAmt = es * Math.cos(angle)
-        z = es * Math.sin(angle)
-      }
+    // Compute inward normal at each vertex (average of adjacent edge normals)
+    const normals = []
+    for (let i = 0; i < n; i++) {
+      const prev = outerPts[(i - 1 + n) % n]
+      const curr = outerPts[i]
+      const next = outerPts[(i + 1) % n]
+      // Edge normals (inward = rotate edge direction 90 degrees clockwise for CCW polygon)
+      const e1x = curr.x - prev.x, e1y = curr.y - prev.y
+      const e2x = next.x - curr.x, e2y = next.y - curr.y
+      // Inward normals (perpendicular, pointing inward)
+      const n1x = e1y, n1y = -e1x
+      const n2x = e2y, n2y = -e2x
+      const len1 = Math.sqrt(n1x * n1x + n1y * n1y) || 1
+      const len2 = Math.sqrt(n2x * n2x + n2y * n2y) || 1
+      // Average and normalize
+      let nx = n1x / len1 + n2x / len2
+      let ny = n1y / len1 + n2y / len2
+      const len = Math.sqrt(nx * nx + ny * ny) || 1
+      nx /= len; ny /= len
 
-      if (insetAmt < 0.01) {
-        // No inset needed, use outer points directly
-        rings.push({ pts: outerPts.map(p => ({ x: p.x, y: p.y })), z })
-      } else {
-        // Use Clipper to compute uniform inset
-        const clipScale = 1000
-        const path = outerPts.map(p => ({ X: Math.round(p.x * clipScale), Y: Math.round(p.y * clipScale) }))
-        const co = new ClipperLib.ClipperOffset()
-        co.AddPath(path, ClipperLib.JoinType.jtRound, ClipperLib.EndType.etClosedPolygon)
-        const solution = []
-        co.Execute(solution, -insetAmt * clipScale) // negative = inset
-        if (solution.length > 0 && solution[0].length >= 3) {
-          // Create a shape from the inset result and get same-resolution points
-          const insetShape = new THREE.Shape()
-          const rawPts = solution[0].map(p => ({ x: p.X / clipScale, y: p.Y / clipScale }))
-          // Ensure consistent winding
-          if (ClipperLib.Clipper.Area(solution[0]) < 0) rawPts.reverse()
-          rawPts.forEach((p, i) => { i === 0 ? insetShape.moveTo(p.x, p.y) : insetShape.lineTo(p.x, p.y) })
-          insetShape.closePath()
-          const insetPts = insetShape.getPoints(256)
-          rings.push({ pts: insetPts.map(p => ({ x: p.x, y: p.y })), z })
-        } else {
-          // Fallback: if inset fails (shape too small), use a very small version
-          rings.push({ pts: outerPts.map(p => ({ x: p.x * 0.5, y: p.y * 0.5 })), z })
-        }
-      }
+      // Miter correction: scale by 1/cos(half-angle) so the offset distance
+      // is uniform (es mm) rather than the projected distance
+      const dot = (n1x / len1) * nx + (n1y / len1) * ny
+      const miter = dot > 0.15 ? 1 / dot : 1 / 0.15 // clamp to avoid spikes at sharp corners
+      normals.push({ x: nx * miter, y: ny * miter })
     }
 
-    // Build skirt triangles between adjacent rings
-    // Match vertices by normalized arc-length parameter for correct pairing
-    function arcLengths(pts) {
-      const lens = [0]
-      for (let i = 1; i < pts.length; i++) {
-        const dx = pts[i].x - pts[i-1].x, dy = pts[i].y - pts[i-1].y
-        lens.push(lens[i-1] + Math.sqrt(dx*dx + dy*dy))
-      }
-      const total = lens[lens.length - 1] || 1
-      return lens.map(l => l / total)
+    // Check winding: if normals point outward instead of inward, flip them
+    // Test: offset the first point and see if it's closer to center
+    const cx = outerPts.reduce((s, p) => s + p.x, 0) / n
+    const cy = outerPts.reduce((s, p) => s + p.y, 0) / n
+    const testPt = outerPts[0]
+    const testOff = { x: testPt.x + normals[0].x, y: testPt.y + normals[0].y }
+    const distOrig = (testPt.x - cx) ** 2 + (testPt.y - cy) ** 2
+    const distOff = (testOff.x - cx) ** 2 + (testOff.y - cy) ** 2
+    if (distOff > distOrig) {
+      // Normals point outward, flip them
+      normals.forEach(nm => { nm.x = -nm.x; nm.y = -nm.y })
     }
 
-    function sampleRing(pts, params, t) {
-      // Find the segment where t falls and interpolate
-      for (let i = 0; i < params.length - 1; i++) {
-        if (t <= params[i+1] + 0.0001) {
-          const segT = (params[i+1] - params[i]) > 0.0001
-            ? (t - params[i]) / (params[i+1] - params[i])
-            : 0
-          return {
-            x: pts[i].x + (pts[i+1].x - pts[i].x) * segT,
-            y: pts[i].y + (pts[i+1].y - pts[i].y) * segT,
-          }
-        }
-      }
-      return pts[pts.length - 1]
-    }
-
+    // Generate rings: each ring offsets vertices inward by a profile-dependent amount
     const skirtVerts = []
-    const skirtRes = 256 // uniform sampling resolution
-    for (let r = 0; r < rings.length - 1; r++) {
-      const ringA = rings[r], ringB = rings[r+1]
-      const paramsA = arcLengths(ringA.pts)
-      const paramsB = arcLengths(ringB.pts)
+    for (let s = 0; s < segs; s++) {
+      const t0 = s / segs, t1 = (s + 1) / segs
+      let inset0, z0, inset1, z1
+      if (edgeProfile === 'chamfer') {
+        inset0 = es * (1 - t0); z0 = es * t0
+        inset1 = es * (1 - t1); z1 = es * t1
+      } else {
+        const a0 = (t0 * Math.PI) / 2, a1 = (t1 * Math.PI) / 2
+        inset0 = es * Math.cos(a0); z0 = es * Math.sin(a0)
+        inset1 = es * Math.cos(a1); z1 = es * Math.sin(a1)
+      }
 
-      for (let i = 0; i < skirtRes; i++) {
-        const t0 = i / skirtRes, t1 = (i + 1) / skirtRes
-        const a0 = sampleRing(ringA.pts, paramsA, t0)
-        const a1 = sampleRing(ringA.pts, paramsA, t1)
-        const b0 = sampleRing(ringB.pts, paramsB, t0)
-        const b1 = sampleRing(ringB.pts, paramsB, t1)
-        skirtVerts.push(a0.x,a0.y,ringA.z, b0.x,b0.y,ringB.z, b1.x,b1.y,ringB.z)
-        skirtVerts.push(a0.x,a0.y,ringA.z, b1.x,b1.y,ringB.z, a1.x,a1.y,ringA.z)
+      for (let i = 0; i < n; i++) {
+        const j = (i + 1) % n
+        // Ring at t0
+        const ax0 = outerPts[i].x + normals[i].x * inset0
+        const ay0 = outerPts[i].y + normals[i].y * inset0
+        const bx0 = outerPts[j].x + normals[j].x * inset0
+        const by0 = outerPts[j].y + normals[j].y * inset0
+        // Ring at t1
+        const ax1 = outerPts[i].x + normals[i].x * inset1
+        const ay1 = outerPts[i].y + normals[i].y * inset1
+        const bx1 = outerPts[j].x + normals[j].x * inset1
+        const by1 = outerPts[j].y + normals[j].y * inset1
+
+        skirtVerts.push(ax0,ay0,z0, bx0,by0,z0, bx1,by1,z1)
+        skirtVerts.push(ax0,ay0,z0, bx1,by1,z1, ax1,ay1,z1)
       }
     }
     const skirtGeo = new THREE.BufferGeometry()
@@ -461,15 +445,16 @@ function createCustomInsert(points, config) {
     skirtGeo.computeVertexNormals()
     group.add(new THREE.Mesh(skirtGeo, trayMat))
 
-    // Bottom cap at z=0 (the most inset ring)
-    const bottomRing = rings[rings.length - 1]
+    // Bottom cap at z=0 (most inset ring)
+    const bottomInset = edgeProfile === 'chamfer' ? 0 : es * Math.cos(Math.PI / 2)  // = 0 for both
     const capShape = new THREE.Shape()
-    bottomRing.pts.forEach((p, i) => {
-      i === 0 ? capShape.moveTo(p.x, p.y) : capShape.lineTo(p.x, p.y)
+    outerPts.forEach((p, i) => {
+      const x = p.x + normals[i].x * es
+      const y = p.y + normals[i].y * es
+      i === 0 ? capShape.moveTo(x, y) : capShape.lineTo(x, y)
     })
     capShape.closePath()
-    const capGeo = new THREE.ShapeGeometry(capShape)
-    group.add(new THREE.Mesh(capGeo, trayMat))
+    group.add(new THREE.Mesh(new THREE.ShapeGeometry(capShape), trayMat))
   } else {
     // Skip flat base here if deeper notches/tools will build layered base later
     const hasDeeperNotches = indepNotches.some(n => n.depth > cavityZ)
