@@ -13,6 +13,7 @@ import PhotoToSTL from './pages/blog/PhotoToSTL'
 import ComparisonPost from './pages/blog/ComparisonPost'
 import OrganizerIdeas from './pages/blog/OrganizerIdeas'
 import FoamAlternative from './pages/blog/FoamAlternative'
+import OrganizePackout from './pages/blog/OrganizePackout'
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
           <Route path="/blog/gridfinity-vs-packout-vs-custom-tray" element={<ComparisonPost />} />
           <Route path="/blog/best-3d-printed-tool-organizer-ideas" element={<OrganizerIdeas />} />
           <Route path="/blog/3d-printed-inserts-vs-kaizen-foam" element={<FoamAlternative />} />
+          <Route path="/blog/how-to-organize-milwaukee-packout" element={<OrganizePackout />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
