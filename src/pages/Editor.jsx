@@ -1929,8 +1929,8 @@ export default function Editor() {
                             setActiveTemplate('packout-compact')
                             setOuterShapeType('custom')
                             setOuterShapePoints(pts)
-                            setTrayWidth(209)
-                            setTrayHeight(299)
+                            setTrayWidth(211)
+                            setTrayHeight(304)
                             setTrayDepth(Math.round(packoutCompact.height))
                             setCornerRadius(0)
                           }}
