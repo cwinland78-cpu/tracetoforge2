@@ -1205,29 +1205,22 @@ function createGridfinityInsert(points, config) {
   // Unified wall generation using CSG approach for all cases.
   // This handles same-depth, different-depth, and overlapping notch/tool scenarios correctly.
   {
-    // CSG approach for independent notch/tool depths
-    // Build a solid wall with only the primary holes (tool + default notches),
-    // then CSG-subtract each independent notch/tool at its own depth.
-    // This produces a single clean manifold mesh.
-    
-    // Start with a solid wall using gfUnifiedHoles (tool + default notches + same-depth extra tools)
-    // Also include deeper notches/tools as full-depth holes (they go all the way through)
-    // Include ALL independent notch/tool holes in the wall (they all need a hole through the wall)
-    const allIndepPts = [
+    // Unified CSG wall generation.
+    // Wall holes: only full-depth items (tool 0 + default notches + same-depth tools + deeper items).
+    // Shallower items: NO wall hole. CSG-subtract from solid wall to create pockets at their depth.
+    const fullDepthIndepPts = [
       ...deeperNotches.map(n => n.pts),
       ...deeperGfTools.map(et => et.pts),
-      ...shallowerNotches.map(n => n.pts),
-      ...shallowerGfTools.map(et => et.pts),
     ]
     
     let baseWallHoles = gfUnifiedHoles
-    if (allIndepPts.length > 0) {
+    if (fullDepthIndepPts.length > 0) {
       const scale = 1000
       const clipper = new ClipperLib.Clipper()
       gfUnifiedHoles.forEach(pts => {
         clipper.AddPath(pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptSubject, true)
       })
-      allIndepPts.forEach(pts => {
+      fullDepthIndepPts.forEach(pts => {
         clipper.AddPath(pts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) })), ClipperLib.PolyType.ptClip, true)
       })
       const solution = []
@@ -1248,7 +1241,8 @@ function createGridfinityInsert(points, config) {
     const wallGeo = new THREE.ExtrudeGeometry(wallShape, { depth: cavityZ, bevelEnabled: false })
     wallGeo.translate(0, 0, GF.baseHeight + floorZ)
     
-    // CSG-subtract each shallower notch/tool at its individual depth from the top
+    // CSG-subtract shallower notches/tools at their individual depths.
+    // Since these have NO wall holes, we are cutting pockets into solid wall.
     const csgItems = [
       ...shallowerNotches.map(n => ({ pts: n.pts, depth: n.depth })),
       ...shallowerGfTools.map(et => ({ pts: et.pts, depth: et.depth })),
@@ -1260,50 +1254,18 @@ function createGridfinityInsert(points, config) {
     
     for (const item of csgItems) {
       try {
-        // Clip the CSG item polygon against existing wall holes.
-        // Only the portion OUTSIDE existing full-depth holes needs CSG subtraction.
-        // Subtracting from already-open areas creates bad edge geometry.
-        const clipScale = 1000
-        const clipper2 = new ClipperLib.Clipper()
-        clipper2.AddPath(
-          item.pts.map(p => ({ X: Math.round(p.x * clipScale), Y: Math.round(p.y * clipScale) })),
-          ClipperLib.PolyType.ptSubject, true
-        )
-        baseWallHoles.forEach(holePts => {
-          clipper2.AddPath(
-            holePts.map(p => ({ X: Math.round(p.x * clipScale), Y: Math.round(p.y * clipScale) })),
-            ClipperLib.PolyType.ptClip, true
-          )
-        })
-        const diffSolution = []
-        clipper2.Execute(ClipperLib.ClipType.ctDifference, diffSolution, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero)
-        
-        // If nothing remains after clipping, the notch is entirely inside an existing hole - skip
-        if (diffSolution.length === 0) continue
-        
-        // Use clipped polygons for CSG subtraction (only the parts that overlap solid wall)
-        const clippedPolys = diffSolution.map(path => {
-          const pts = path.map(p => ({ x: p.X / clipScale, y: p.Y / clipScale }))
-          if (ClipperLib.Clipper.Area(path) < 0) pts.reverse()
-          return pts
-        }).filter(pts => pts.length >= 3)
-        
-        if (clippedPolys.length === 0) continue
-        
-        for (const clippedPts of clippedPolys) {
-          const cutShape = new THREE.Shape()
-          clippedPts.forEach((p, i) => { if (i === 0) cutShape.moveTo(p.x, p.y); else cutShape.lineTo(p.x, p.y) })
-          cutShape.closePath()
-          // Cut from the top down to item.depth
-          const cutGeo = new THREE.ExtrudeGeometry(cutShape, { depth: item.depth + 0.1, bevelEnabled: false })
-          cutGeo.translate(0, 0, topSurface - item.depth - 0.05)
-          const cutBrush = new Brush(cutGeo)
-          cutBrush.updateMatrixWorld()
-          const result = csgEval.evaluate(wallBrush, cutBrush, SUBTRACTION)
-          if (result && result.geometry) {
-            wallBrush = new Brush(result.geometry)
-            wallBrush.updateMatrixWorld()
-          }
+        const cutShape = new THREE.Shape()
+        item.pts.forEach((p, i) => { if (i === 0) cutShape.moveTo(p.x, p.y); else cutShape.lineTo(p.x, p.y) })
+        cutShape.closePath()
+        // Cut from the top surface down to item.depth
+        const cutGeo = new THREE.ExtrudeGeometry(cutShape, { depth: item.depth + 0.1, bevelEnabled: false })
+        cutGeo.translate(0, 0, topSurface - item.depth - 0.05)
+        const cutBrush = new Brush(cutGeo)
+        cutBrush.updateMatrixWorld()
+        const result = csgEval.evaluate(wallBrush, cutBrush, SUBTRACTION)
+        if (result && result.geometry) {
+          wallBrush = new Brush(result.geometry)
+          wallBrush.updateMatrixWorld()
         }
       } catch (e) {
         console.warn('[GF CSG] Failed to subtract notch/tool:', e)
