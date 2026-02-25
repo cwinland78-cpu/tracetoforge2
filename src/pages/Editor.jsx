@@ -9,6 +9,7 @@ import ThreePreview from '../components/ThreePreview'
 import PaywallModal from '../components/PaywallModal'
 import packoutCompact from '../data/packout_compact_profile.json'
 import packoutSlim from '../data/packout_slim_profile.json'
+import packoutShockwave from '../data/packout_shockwave_profile.json'
 import { useAuth } from '../components/AuthContext'
 import { exportSTL } from '../lib/stlExporter'
 import { exportSVG, exportDXF, export3MF, bundleAsZip } from '../lib/exportFormats'
@@ -1983,6 +1984,38 @@ export default function Editor() {
                             <div className="text-[10px] text-[#666680]">48-22-8436 Low Profile Slim • 206×300×34mm</div>
                           </div>
                           {activeTemplate === 'packout-slim' && (
+                            <span className="text-red-400 text-sm flex-shrink-0">✓</span>
+                          )}
+                        </button>
+                        <button
+                          onClick={() => {
+                            const pts = packoutShockwave.inner.map(([x, y]) => ({ x, y }))
+                            setActiveTemplate('packout-shockwave')
+                            setOuterShapeType('custom')
+                            setOuterShapePoints(pts)
+                            setTrayWidth(Math.round(packoutShockwave.cavity_width))
+                            setTrayHeight(Math.round(packoutShockwave.cavity_depth))
+                            setTrayDepth(Math.round(packoutShockwave.height))
+                            setCornerRadius(0)
+                          }}
+                          className={`w-full p-3 rounded-lg border-2 transition-all text-left flex items-center gap-3 ${
+                            activeTemplate === 'packout-shockwave'
+                              ? 'border-red-500 bg-red-500/10 shadow-lg shadow-red-500/10'
+                              : 'border-[#2A2A35] bg-[#1A1A22] hover:border-[#444] hover:bg-[#222230]'
+                          }`}
+                        >
+                          <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                            activeTemplate === 'packout-shockwave' ? 'bg-red-500/20' : 'bg-[#2A2A35]'
+                          }`}>
+                            <span className={`text-lg font-bold ${activeTemplate === 'packout-shockwave' ? 'text-red-400' : 'text-[#666]'}`}>M</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className={`text-xs font-bold ${activeTemplate === 'packout-shockwave' ? 'text-red-400' : 'text-[#C8C8D0]'}`}>
+                              Milwaukee Packout
+                            </div>
+                            <div className="text-[10px] text-[#666680]">48-32-9921 Shockwave Insert Tray • 80×184×25mm</div>
+                          </div>
+                          {activeTemplate === 'packout-shockwave' && (
                             <span className="text-red-400 text-sm flex-shrink-0">✓</span>
                           )}
                         </button>
