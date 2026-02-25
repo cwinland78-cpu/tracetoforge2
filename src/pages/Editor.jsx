@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react'
 import ReactDOM from 'react-dom'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
-  Box, Upload, Download, ChevronLeft, Pencil, MousePointer, Eye,
+  Upload, Download, ChevronLeft, Pencil, MousePointer, Eye,
   Info, ZoomIn, ZoomOut, Save, FolderOpen, X, Camera, Sun, Contrast, Crop, FilePlus2, Copy
 } from 'lucide-react'
 import ThreePreview from '../components/ThreePreview'

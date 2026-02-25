@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { Brush, Evaluator, SUBTRACTION, INTERSECTION, ADDITION } from 'three-bvh-csg'
+import { Brush, Evaluator, SUBTRACTION, INTERSECTION } from 'three-bvh-csg'
 import ClipperLib from 'clipper-lib'
 import { Font } from 'three/examples/jsm/loaders/FontLoader.js'
 import helvetikerBold from 'three/examples/fonts/helvetiker_bold.typeface.json'
@@ -60,35 +60,6 @@ function createBrandGeometry(toolPts, floorZ, cornerMargin = 1) {
     console.warn('[Brand] Failed to create branding geometry:', e)
     return null
   }
-}
-
-// ─── Edge Profile Helpers ───
-
-/**
- * Create a chamfered edge profile path (45-degree cut)
- * Returns array of {x, y} offsets from the edge
- */
-function chamferProfile(size, segments = 1) {
-  return [
-    { x: 0, y: 0 },
-    { x: size, y: size },
-  ]
-}
-
-/**
- * Create a fillet (rounded) edge profile
- * Returns array of {x, y} offsets forming a quarter-circle
- */
-function filletProfile(radius, segments = 8) {
-  const pts = []
-  for (let i = 0; i <= segments; i++) {
-    const angle = (Math.PI / 2) * (i / segments)
-    pts.push({
-      x: radius * (1 - Math.cos(angle)),
-      y: radius * (1 - Math.sin(angle)),
-    })
-  }
-  return pts
 }
 
 // ─── Shape Utilities ───
@@ -168,46 +139,6 @@ function createCustomOuterShape(outerPoints) {
   })
   shape.closePath()
   return shape
-}
-
-/**
- * Get the outer tray shape based on config
- * Returns { outerShape, innerShape } where innerShape is the wall-inset version
- */
-function getOuterShape(config) {
-  const {
-    trayWidth = 150,
-    trayHeight = 100,
-    cornerRadius = 2,
-    wallThickness = 3,
-    outerShapeType = 'rectangle', // 'rectangle' | 'oval' | 'custom'
-    outerShapePoints = null,
-  } = config
-
-  let outerShape, innerW, innerH, innerShape
-
-  if (outerShapeType === 'oval') {
-    outerShape = createOvalShape(trayWidth, trayHeight)
-    innerW = trayWidth - wallThickness * 2
-    innerH = trayHeight - wallThickness * 2
-    innerShape = createOvalShape(innerW, innerH)
-  } else if (outerShapeType === 'custom' && outerShapePoints && outerShapePoints.length >= 3) {
-    outerShape = createCustomOuterShape(outerShapePoints)
-    // For custom, create inner by offsetting inward (simplified: scale down)
-    const scale = 1 - (wallThickness * 2 / Math.max(trayWidth, trayHeight))
-    const scaledPts = outerShapePoints.map(p => ({ x: p.x * scale, y: p.y * scale }))
-    innerShape = createCustomOuterShape(scaledPts)
-    innerW = trayWidth * scale
-    innerH = trayHeight * scale
-  } else {
-    outerShape = createRoundedRectShape(trayWidth, trayHeight, cornerRadius)
-    innerW = trayWidth - wallThickness * 2
-    innerH = trayHeight - wallThickness * 2
-    const innerR = Math.max(0, cornerRadius - wallThickness)
-    innerShape = createRoundedRectShape(innerW, innerH, innerR)
-  }
-
-  return { outerShape, innerShape, innerW, innerH }
 }
 
 // ─── Gridfinity Constants ───
@@ -339,13 +270,6 @@ function createCustomInsert(points, config) {
 
   // Apply tolerance using Clipper polygon offset - uniform gap on all edges
   const holePts = (tolerance > 0) ? offsetPolygon(scaledToolPts, tolerance) : scaledToolPts
-
-  const toolHolePath = new THREE.Path()
-  holePts.forEach((p, i) => {
-    if (i === 0) toolHolePath.moveTo(p.x, p.y)
-    else toolHolePath.lineTo(p.x, p.y)
-  })
-  toolHolePath.closePath()
 
   // ─── Finger notches ───
   const { fingerNotches = [] } = config
@@ -948,13 +872,9 @@ function createGridfinityInsert(points, config) {
 
   // Build ALL notch point arrays with their depths
   const allNotchData = [] // { pts, depth, origIdx } for each notch
-  const gfAllNotchPtsForViz = [] // for grab handle raycasting
-  let gfNotchOrigIdx = []
   gfNotches.forEach((fn, fnIdx) => {
     const pts = buildNotchPts(fn)
     if (pts.length < 3) return
-    gfAllNotchPtsForViz.push(pts)
-    gfNotchOrigIdx.push(fnIdx)
     allNotchData.push({ pts, depth: fn.depth || 0, origIdx: fnIdx })
   })
 
