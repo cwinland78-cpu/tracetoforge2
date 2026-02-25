@@ -247,7 +247,15 @@ function createCustomInsert(points, config) {
   if (outerShapeType === 'oval') {
     outerShape = createOvalShape(trayWidth, trayHeight)
   } else if (outerShapeType === 'custom' && config.outerShapePoints && config.outerShapePoints.length >= 3) {
-    outerShape = createCustomOuterShape(config.outerShapePoints)
+    // Scale custom points to match trayWidth/trayHeight so UI sliders resize the shape
+    const rawPts = config.outerShapePoints
+    const xs = rawPts.map(p => p.x), ys = rawPts.map(p => p.y)
+    const rawW = Math.max(...xs) - Math.min(...xs)
+    const rawH = Math.max(...ys) - Math.min(...ys)
+    const sx = rawW > 0 ? trayWidth / rawW : 1
+    const sy = rawH > 0 ? trayHeight / rawH : 1
+    const scaledPts = (sx === 1 && sy === 1) ? rawPts : rawPts.map(p => ({ x: p.x * sx, y: p.y * sy }))
+    outerShape = createCustomOuterShape(scaledPts)
   } else {
     outerShape = createRoundedRectShape(trayWidth, trayHeight, cornerRadius)
   }
