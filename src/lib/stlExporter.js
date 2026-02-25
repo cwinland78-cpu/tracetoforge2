@@ -1355,18 +1355,50 @@ function createGridfinityInsert(points, config) {
     
     for (const item of csgItems) {
       try {
-        const cutShape = new THREE.Shape()
-        item.pts.forEach((p, i) => { if (i === 0) cutShape.moveTo(p.x, p.y); else cutShape.lineTo(p.x, p.y) })
-        cutShape.closePath()
-        // Cut from the top down to item.depth
-        const cutGeo = new THREE.ExtrudeGeometry(cutShape, { depth: item.depth + 0.1, bevelEnabled: false })
-        cutGeo.translate(0, 0, topSurface - item.depth - 0.05)
-        const cutBrush = new Brush(cutGeo)
-        cutBrush.updateMatrixWorld()
-        const result = csgEval.evaluate(wallBrush, cutBrush, SUBTRACTION)
-        if (result && result.geometry) {
-          wallBrush = new Brush(result.geometry)
-          wallBrush.updateMatrixWorld()
+        // Clip the CSG item polygon against existing wall holes.
+        // Only the portion OUTSIDE existing full-depth holes needs CSG subtraction.
+        // Subtracting from already-open areas creates bad edge geometry.
+        const clipScale = 1000
+        const clipper2 = new ClipperLib.Clipper()
+        clipper2.AddPath(
+          item.pts.map(p => ({ X: Math.round(p.x * clipScale), Y: Math.round(p.y * clipScale) })),
+          ClipperLib.PolyType.ptSubject, true
+        )
+        baseWallHoles.forEach(holePts => {
+          clipper2.AddPath(
+            holePts.map(p => ({ X: Math.round(p.x * clipScale), Y: Math.round(p.y * clipScale) })),
+            ClipperLib.PolyType.ptClip, true
+          )
+        })
+        const diffSolution = []
+        clipper2.Execute(ClipperLib.ClipType.ctDifference, diffSolution, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero)
+        
+        // If nothing remains after clipping, the notch is entirely inside an existing hole - skip
+        if (diffSolution.length === 0) continue
+        
+        // Use clipped polygons for CSG subtraction (only the parts that overlap solid wall)
+        const clippedPolys = diffSolution.map(path => {
+          const pts = path.map(p => ({ x: p.X / clipScale, y: p.Y / clipScale }))
+          if (ClipperLib.Clipper.Area(path) < 0) pts.reverse()
+          return pts
+        }).filter(pts => pts.length >= 3)
+        
+        if (clippedPolys.length === 0) continue
+        
+        for (const clippedPts of clippedPolys) {
+          const cutShape = new THREE.Shape()
+          clippedPts.forEach((p, i) => { if (i === 0) cutShape.moveTo(p.x, p.y); else cutShape.lineTo(p.x, p.y) })
+          cutShape.closePath()
+          // Cut from the top down to item.depth
+          const cutGeo = new THREE.ExtrudeGeometry(cutShape, { depth: item.depth + 0.1, bevelEnabled: false })
+          cutGeo.translate(0, 0, topSurface - item.depth - 0.05)
+          const cutBrush = new Brush(cutGeo)
+          cutBrush.updateMatrixWorld()
+          const result = csgEval.evaluate(wallBrush, cutBrush, SUBTRACTION)
+          if (result && result.geometry) {
+            wallBrush = new Brush(result.geometry)
+            wallBrush.updateMatrixWorld()
+          }
         }
       } catch (e) {
         console.warn('[GF CSG] Failed to subtract notch/tool:', e)
