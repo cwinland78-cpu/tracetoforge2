@@ -1546,12 +1546,12 @@ export default function Editor() {
       if (outerShapeType === 'custom' && outerShapePoints && outerShapePoints.length >= 3) {
         outerPts = outerShapePoints
       }
-      return { ...base, trayWidth, trayHeight, trayDepth, wallThickness, cornerRadius, floorThickness, edgeProfile, edgeSize, cavityBevel: t0.cavityBevel ?? 0, fingerNotches, outerShapeType, outerShapePoints: outerPts, additionalTools, activeToolIdx }
+      return { ...base, trayWidth, trayHeight, trayDepth, wallThickness, cornerRadius, floorThickness, edgeProfile, edgeSize, cavityBevel: t0.cavityBevel ?? 0, fingerNotches, outerShapeType, outerShapePoints: outerPts, additionalTools, activeToolIdx, activeNotchIdx }
     }
     if (outputMode === 'gridfinity') {
-      return { ...base, gridX, gridY, gridHeight, cavityBevel: t0.cavityBevel ?? 0, fingerNotches, additionalTools, activeToolIdx }
+      return { ...base, gridX, gridY, gridHeight, cavityBevel: t0.cavityBevel ?? 0, fingerNotches, additionalTools, activeToolIdx, activeNotchIdx }
     }
-    return { ...base, additionalTools, activeToolIdx }
+    return { ...base, additionalTools, activeToolIdx, activeNotchIdx }
   }
 
   /* ── Computed tool height from aspect ratio ── */
@@ -1954,8 +1954,8 @@ export default function Editor() {
                       <div className="flex items-center gap-1 mb-2 flex-wrap">
                         {fingerNotches.map((_, ni) => (
                           <button key={ni} onClick={() => setActiveNotchIdx(ni)}
-                            className={`px-2 py-1 text-[10px] rounded-md transition-colors ${activeNotchIdx === ni ? 'bg-brand text-white' : 'bg-[#1C1C24] text-[#8888A0] hover:text-white'}`}>
-                            {ni + 1}
+                            className={`px-2 py-1 text-[10px] rounded-md transition-colors font-medium ${activeNotchIdx === ni ? 'bg-green-600 text-white shadow-lg shadow-green-600/30 ring-2 ring-green-400 ring-offset-1 ring-offset-[#12121A]' : 'bg-[#1C1C24] text-[#8888A0] hover:text-white hover:bg-[#2A2A35]'}`}>
+                            {activeNotchIdx === ni ? '▸ ' : ''}{ni + 1}
                           </button>
                         ))}
                         {fingerNotches.length < 5 && (
@@ -2097,8 +2097,8 @@ export default function Editor() {
                       <div className="flex items-center gap-1 mb-2 flex-wrap">
                         {fingerNotches.map((_, ni) => (
                           <button key={ni} onClick={() => setActiveNotchIdx(ni)}
-                            className={`px-2 py-1 text-[10px] rounded-md transition-colors ${activeNotchIdx === ni ? 'bg-brand text-white' : 'bg-[#1C1C24] text-[#8888A0] hover:text-white'}`}>
-                            {ni + 1}
+                            className={`px-2 py-1 text-[10px] rounded-md transition-colors font-medium ${activeNotchIdx === ni ? 'bg-green-600 text-white shadow-lg shadow-green-600/30 ring-2 ring-green-400 ring-offset-1 ring-offset-[#12121A]' : 'bg-[#1C1C24] text-[#8888A0] hover:text-white hover:bg-[#2A2A35]'}`}>
+                            {activeNotchIdx === ni ? '▸ ' : ''}{ni + 1}
                           </button>
                         ))}
                         {fingerNotches.length < 5 && (
