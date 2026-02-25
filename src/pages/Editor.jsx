@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import ThreePreview from '../components/ThreePreview'
 import PaywallModal from '../components/PaywallModal'
+import packoutCompact from '../data/packout_compact_profile.json'
 import { useAuth } from '../components/AuthContext'
 import { exportSTL } from '../lib/stlExporter'
 import { exportSVG, exportDXF, export3MF, bundleAsZip } from '../lib/exportFormats'
@@ -1893,6 +1894,29 @@ export default function Editor() {
                       <div className="border-t border-[#2A2A35]/50 pt-3 mt-1">
                         <h4 className="text-[11px] font-semibold text-brand/80 uppercase tracking-wider mb-3">Custom Tray</h4>
                       </div>
+
+                      {/* Template presets */}
+                      <ParamRow label="Template" tooltip="Load a preset tray profile. Sets outer shape, dimensions, and depth to match a specific toolbox.">
+                        <select
+                          value="none"
+                          onChange={e => {
+                            if (e.target.value === 'packout-compact') {
+                              const pts = packoutCompact.inner.map(([x, y]) => ({ x, y }))
+                              setOuterShapeType('custom')
+                              setOuterShapePoints(pts)
+                              setTrayWidth(Math.round(packoutCompact.cavity_width))
+                              setTrayHeight(Math.round(packoutCompact.cavity_depth))
+                              setTrayDepth(Math.round(packoutCompact.height))
+                              setCornerRadius(0)
+                            }
+                            e.target.value = 'none'
+                          }}
+                          className="w-full text-xs bg-[#1C1C24] border border-[#2A2A35] rounded-md px-2 py-1.5 text-[#C8C8D0]"
+                        >
+                          <option value="none">None (manual)</option>
+                          <option value="packout-compact">Milwaukee Packout Compact Organizer</option>
+                        </select>
+                      </ParamRow>
                       <ParamRow label="Width" tooltip="Total tray width (left to right) in mm.">
                         <input type="number" value={trayWidth} onChange={e => setTrayWidth(+e.target.value)} className="w-[4.5rem] text-right" min="10" />
                         <span className="text-xs text-[#8888A0] w-7">mm</span>
