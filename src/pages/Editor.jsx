@@ -125,6 +125,7 @@ export default function Editor() {
   const [fingerNotches, setFingerNotches] = useState([]) // array of { shape, radius, w, h, x, y }
   const [activeNotchIdx, setActiveNotchIdx] = useState(0)
   const [outerShapeType, setOuterShapeType] = useState('rectangle') // 'rectangle' | 'oval' | 'custom'
+  const [activeTemplate, setActiveTemplate] = useState(null) // null | 'packout-compact'
   const [outerShapePoints, setOuterShapePoints] = useState(null) // custom polygon points in mm
   const [editingOuter, setEditingOuter] = useState(false) // true when editing outer shape on canvas
   const [draggingOuterPoint, setDraggingOuterPoint] = useState(null)
@@ -255,6 +256,7 @@ export default function Editor() {
       if (cfg.edgeSize != null) setEdgeSize(cfg.edgeSize)
       if (cfg.outerShapeType) setOuterShapeType(cfg.outerShapeType)
       if (cfg.outerShapePoints) setOuterShapePoints(cfg.outerShapePoints)
+      if (cfg.activeTemplate) setActiveTemplate(cfg.activeTemplate)
       if (cfg.gridX) setGridX(cfg.gridX)
       if (cfg.gridY) setGridY(cfg.gridY)
       if (cfg.gridHeight) setGridHeight(cfg.gridHeight)
@@ -278,7 +280,7 @@ export default function Editor() {
       cavityBevel, toolRotation, toolOffsetX, toolOffsetY,
       fingerNotches, activeToolIdx,
       tools: savedTools, step: step, trayWidth, trayHeight, trayDepth, depth, objectEdgeRadius,
-      edgeProfile, edgeSize, outerShapeType, outerShapePoints, gridX, gridY,
+      edgeProfile, edgeSize, outerShapeType, outerShapePoints, activeTemplate, gridX, gridY,
       gridHeight, threshold, simplification, sensitivity, minContourPct,
       image: image || null,
       imageSize: imageSize || null,
@@ -1895,28 +1897,64 @@ export default function Editor() {
                         <h4 className="text-[11px] font-semibold text-brand/80 uppercase tracking-wider mb-3">Custom Tray</h4>
                       </div>
 
-                      {/* Template presets */}
-                      <ParamRow label="Template" tooltip="Load a preset tray profile. Sets outer shape, dimensions, and depth to match a specific toolbox.">
-                        <select
-                          value="none"
-                          onChange={e => {
-                            if (e.target.value === 'packout-compact') {
-                              const pts = packoutCompact.inner.map(([x, y]) => ({ x, y }))
-                              setOuterShapeType('custom')
-                              setOuterShapePoints(pts)
-                              setTrayWidth(Math.round(packoutCompact.cavity_width))
-                              setTrayHeight(Math.round(packoutCompact.cavity_depth))
-                              setTrayDepth(Math.round(packoutCompact.height))
-                              setCornerRadius(0)
-                            }
-                            e.target.value = 'none'
+                      {/* Template presets - prominent card selector */}
+                      <div className="mb-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-[11px] font-semibold text-[#8888A0] uppercase tracking-wider flex items-center gap-1">
+                            Toolbox Template
+                            <Tooltip text="Load a preset tray profile. Sets outer shape, dimensions, and depth to match a specific toolbox." />
+                          </span>
+                          {activeTemplate && (
+                            <button
+                              onClick={() => {
+                                setActiveTemplate(null)
+                                setOuterShapeType('rectangle')
+                                setOuterShapePoints([])
+                                setTrayWidth(150)
+                                setTrayHeight(100)
+                                setTrayDepth(35)
+                                setCornerRadius(2)
+                              }}
+                              className="text-[10px] text-red-400 hover:text-red-300 transition-colors"
+                            >
+                              ✕ Clear
+                            </button>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => {
+                            const pts = packoutCompact.inner.map(([x, y]) => ({ x, y }))
+                            setActiveTemplate('packout-compact')
+                            setOuterShapeType('custom')
+                            setOuterShapePoints(pts)
+                            setTrayWidth(Math.round(packoutCompact.cavity_width))
+                            setTrayHeight(Math.round(packoutCompact.cavity_depth))
+                            setTrayDepth(Math.round(packoutCompact.height))
+                            setCornerRadius(0)
                           }}
-                          className="w-full text-xs bg-[#1C1C24] border border-[#2A2A35] rounded-md px-2 py-1.5 text-[#C8C8D0]"
+                          className={`w-full p-3 rounded-lg border-2 transition-all text-left flex items-center gap-3 ${
+                            activeTemplate === 'packout-compact'
+                              ? 'border-red-500 bg-red-500/10 shadow-lg shadow-red-500/10'
+                              : 'border-[#2A2A35] bg-[#1A1A22] hover:border-[#444] hover:bg-[#222230]'
+                          }`}
                         >
-                          <option value="none">None (manual)</option>
-                          <option value="packout-compact">Milwaukee Packout Compact Organizer</option>
-                        </select>
-                      </ParamRow>
+                          <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                            activeTemplate === 'packout-compact' ? 'bg-red-500/20' : 'bg-[#2A2A35]'
+                          }`}>
+                            <span className={`text-lg font-bold ${activeTemplate === 'packout-compact' ? 'text-red-400' : 'text-[#666]'}`}>M</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className={`text-xs font-bold ${activeTemplate === 'packout-compact' ? 'text-red-400' : 'text-[#C8C8D0]'}`}>
+                              Milwaukee Packout
+                            </div>
+                            <div className="text-[10px] text-[#666680]">Compact Organizer • 203×293×82mm</div>
+                          </div>
+                          {activeTemplate === 'packout-compact' && (
+                            <span className="text-red-400 text-sm flex-shrink-0">✓</span>
+                          )}
+                        </button>
+                        <p className="text-[10px] text-[#555568] mt-1.5 italic">More templates coming soon: Toolbox, 3-Drawer, Large Toolbox</p>
+                      </div>
                       <ParamRow label="Width" tooltip="Total tray width (left to right) in mm.">
                         <input type="number" value={trayWidth} onChange={e => setTrayWidth(+e.target.value)} className="w-[4.5rem] text-right" min="10" />
                         <span className="text-xs text-[#8888A0] w-7">mm</span>
