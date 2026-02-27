@@ -1930,9 +1930,11 @@ export default function Editor() {
                             setOuterShapeType('custom')
                             setOuterShapePoints(pts)
                             setTrayWidth(211)
-                            setTrayHeight(304)
-                            setTrayDepth(Math.round(packoutCompact.height))
+                            setTrayHeight(303)
+                            setTrayDepth(82)
                             setCornerRadius(0)
+                            setEdgeProfile('chamfer')
+                            setEdgeSize(2)
                           }}
                           className={`w-full p-3 rounded-lg border-2 transition-all text-left flex items-center gap-3 ${
                             activeTemplate === 'packout-compact'
