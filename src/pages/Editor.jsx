@@ -136,7 +136,7 @@ export default function Editor() {
   // Gridfinity
   const [gridX, setGridX] = useState(2)
   const [gridY, setGridY] = useState(1)
-  const [gridHeight, setGridHeight] = useState(21) // mm (was 3 units * 7mm)
+  const [gridHeight, setGridHeight] = useState(32) // mm
 
   // Detection
   const [threshold, setThreshold] = useState(128)
