@@ -1505,7 +1505,7 @@ export default function Editor() {
 
   const addNotch = () => {
     if (fingerNotches.length >= 5) return
-    setFingerNotches(prev => [...prev, { shape: 'circle', radius: 12, w: 24, h: 16, x: 0, y: 0, depth: 0 }])
+    setFingerNotches(prev => [...prev, { shape: 'circle', radius: 12, w: 24, h: 16, x: 0, y: 0, depth: 1 }])
     setActiveNotchIdx(fingerNotches.length)
   }
   const removeNotch = (idx) => {
