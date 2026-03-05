@@ -175,7 +175,7 @@ export default function Editor() {
   // Initialize RevenueCat with user ID when available
   useEffect(() => { initPurchases(user?.id || null) }, [user])
 
-  // Fetch credits (server-side if logged in)
+  // Fetch credits (server-side, login required)
   useEffect(() => {
     async function fetchCredits() {
       if (user?.id) {
@@ -184,8 +184,7 @@ export default function Editor() {
           if (!error && data && data[0]) { setCredits(data[0].credits); return }
         } catch (err) { console.error('[TTF] credits fetch failed:', err) }
       }
-      const val = parseInt(localStorage.getItem('ttf_credits') || '0', 10)
-      setCredits(isNaN(val) ? 0 : val)
+      setCredits(0)
     }
     fetchCredits()
   }, [user, profile])
@@ -391,20 +390,12 @@ export default function Editor() {
     if (selectedFormats.length === 0) return
 
     try {
-      // Deduct credit first (server-side for logged-in, localStorage for guest)
-      if (user?.id) {
-        const spent = await useCredit(user.id, { outputMode })
-        if (!spent) {
-          setShowPaywall(true)
-          return
-        }
-      } else {
-        const spent = await useCredit(null, { outputMode })
-        if (!spent) {
-          navigate('/login')
-          return
-        }
-        setCredits(prev => Math.max(0, prev - 1))
+      // Deduct credit (server-side, login required)
+      if (!user?.id) { navigate('/login'); return }
+      const spent = await useCredit(user.id, { outputMode })
+      if (!spent) {
+        setShowPaywall(true)
+        return
       }
 
       const safeName = (projectName || 'tracetoforge').replace(/[^a-zA-Z0-9_\- ]/g, '').trim().replace(/\s+/g, '-')
@@ -1583,8 +1574,9 @@ export default function Editor() {
       : tools[0]
     const pts = tool0?.contours?.[tool0?.selectedContour ?? 0]
     if (!pts || pts.length < 3) return
+    // Login required for all exports
+    if (!isAuthenticated) { navigate('/login'); return }
     if (credits <= 0) {
-      if (!isAuthenticated) { navigate('/login'); return }
       setShowPaywall(true)
       return
     }
