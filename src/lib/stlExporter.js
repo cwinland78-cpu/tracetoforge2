@@ -27,7 +27,7 @@ function createBrandGeometry(toolPts, floorZ, cornerMargin = 1) {
     const cavH = bounds.height
     if (cavW < 10 || cavH < 5) return null
 
-    const targetW = Math.min(Math.max(cavW * 0.4, 6), 35)
+    const targetW = Math.min(Math.max(cavW * 0.7, 10), 60)
     const shapes = brandFont.generateShapes(BRAND_TEXT, 1)
     if (!shapes || shapes.length === 0) return null
 
@@ -41,7 +41,7 @@ function createBrandGeometry(toolPts, floorZ, cornerMargin = 1) {
 
     const scale = targetW / rawW
     const textH = rawH * scale
-    if (textH > cavH * 0.3) return null
+    if (textH > cavH * 0.5) return null
 
     const geo = new THREE.ExtrudeGeometry(shapes, {
       depth: BRAND_HEIGHT,
