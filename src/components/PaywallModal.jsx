@@ -30,8 +30,7 @@ export default function PaywallModal({ isOpen, onClose, onCreditsChanged, userId
         if (data && data[0]) { setCurrentCredits(data[0].credits); return; }
       } catch (err) { console.error('PaywallModal credits error:', err); }
     }
-    const val = parseInt(localStorage.getItem('ttf_credits') || '0', 10);
-    setCurrentCredits(isNaN(val) ? 0 : val);
+    setCurrentCredits(0);
   }
 
   async function loadOfferings() {

@@ -4,7 +4,6 @@ import { callRpc, queryTable } from './supabase';
 const SUPABASE_URL = 'https://pzmykycxmbzbrzkyotkc.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6bXlreWN4bWJ6YnJ6a3lvdGtjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA1NjUxNjYsImV4cCI6MjA4NjE0MTE2Nn0.382YBaplfZJVl_ngKbGSpEPm1w3urlrxYAQFzRJW3z0';
 const RC_API_KEY = import.meta.env.VITE_RC_API_KEY || 'rcb_qocDHLqCasYLKEOvPuyDacOrCFOt';
-const CREDITS_KEY = 'ttf_credits';
 const CUSTOMER_ID_KEY = 'ttf_customer_id';
 
 let purchasesInstance = null;
@@ -66,46 +65,34 @@ export async function purchasePackage(pkg, userId) {
 }
 
 export async function getCredits(userId) {
-  if (userId) {
-    const { data, error } = await queryTable('profiles', 'credits', { id: userId });
-    if (!error && data && data[0]) return data[0].credits || 0;
-    console.error('Error fetching credits:', error);
-    return 0;
-  }
-  const val = parseInt(localStorage.getItem(CREDITS_KEY) || '0', 10);
-  return isNaN(val) ? 0 : val;
+  if (!userId) return 0;
+  const { data, error } = await queryTable('profiles', 'credits', { id: userId });
+  if (!error && data && data[0]) return data[0].credits || 0;
+  console.error('Error fetching credits:', error);
+  return 0;
 }
 
 export async function addCredits(amount, userId, type = 'admin', metadata = {}) {
-  if (userId) {
-    const { data, error } = await callRpc('add_credits', {
-      p_user_id: userId, p_amount: amount, p_type: type, p_metadata: metadata,
-    });
-    if (error) { console.error('Error adding credits:', error); return 0; }
-    return data;
-  }
-  const current = (parseInt(localStorage.getItem(CREDITS_KEY) || '0', 10) || 0) + amount;
-  localStorage.setItem(CREDITS_KEY, String(current));
-  return current;
+  if (!userId) return 0;
+  const { data, error } = await callRpc('add_credits', {
+    p_user_id: userId, p_amount: amount, p_type: type, p_metadata: metadata,
+  });
+  if (error) { console.error('Error adding credits:', error); return 0; }
+  return data;
 }
 
 export async function useCredit(userId, metadata = {}) {
-  if (userId) {
-    const { data, error } = await callRpc('spend_credit', {
-      p_user_id: userId, p_metadata: metadata,
-    });
-    if (error) { console.error('Error spending credit:', error); return false; }
-    return data;
-  }
-  const current = parseInt(localStorage.getItem(CREDITS_KEY) || '0', 10) || 0;
-  if (current <= 0) return false;
-  localStorage.setItem(CREDITS_KEY, String(current - 1));
-  return true;
+  if (!userId) return false;
+  const { data, error } = await callRpc('spend_credit', {
+    p_user_id: userId, p_metadata: metadata,
+  });
+  if (error) { console.error('Error spending credit:', error); return false; }
+  return data;
 }
 
 export function hasCredits() {
-  const val = parseInt(localStorage.getItem(CREDITS_KEY) || '0', 10);
-  return !isNaN(val) && val > 0;
+  // Guest users always return false - must log in to have credits
+  return false;
 }
 
 export async function redeemPromoCode(code, userId) {
