@@ -485,7 +485,7 @@ export default function Editor() {
   useEffect(() => {
     if (window.cv && window.cv.Mat) { setCvReady(true); return }
     const script = document.createElement('script')
-    script.src = 'https://docs.opencv.org/4.9.0/opencv.js'
+    script.src = '/opencv.js'
     script.async = true
     script.onload = () => {
       const check = setInterval(() => {
