@@ -49,10 +49,11 @@ function createBrandGeometry(toolPts, floorZ, cornerMargin = 1) {
     })
     geo.scale(scale, scale, 1)
 
-    // Center horizontally in cavity, place at bottom with margin
+    // Center both horizontally and vertically in cavity
     const cavCx = (bounds.minX + bounds.maxX) / 2
+    const cavCy = (bounds.minY + bounds.maxY) / 2
     const x = cavCx - targetW / 2
-    const y = bounds.minY + cornerMargin
+    const y = cavCy - textH / 2
     geo.translate(x, y, floorZ)
 
     return geo
