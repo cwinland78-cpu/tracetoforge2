@@ -1,0 +1,125 @@
+import React from 'react'
+import { Link } from 'react-router-dom'
+import BlogPost from './BlogPost'
+
+export default function GridfinityCustomCutout() {
+  return (
+    <BlogPost
+      title="Gridfinity Custom Cutouts Without CAD: The Photo-Based Method"
+      description="Create custom Gridfinity bin cutouts from photos of your tools. No Fusion 360, no TinkerCAD, no parametric generators. Just a photo and 2 minutes."
+      canonical="https://tracetoforge.com/blog/gridfinity-custom-cutout-no-cad"
+      date="2026-03-10"
+      readTime="5 min"
+      tags={['Gridfinity', 'Custom Cutout', '3D Printing', 'No CAD']}
+    >
+      <p>
+        The Gridfinity ecosystem has thousands of premade bins on Printables and Thingiverse.
+        Generic holders for screwdrivers, hex keys, and batteries are everywhere. But the moment
+        you need a cutout shaped exactly like your Knipex Cobra pliers or your Wera Kraftform
+        screwdriver, you are on your own.
+      </p>
+
+      <p>
+        The standard approach is to open Fusion 360, import the Gridfinity base profile, sketch
+        your tool outline by hand, extrude a pocket, and export. Even experienced CAD users
+        spend 20 to 30 minutes on this. If you have never touched parametric CAD, the learning
+        curve is steep and the result is often inaccurate.
+      </p>
+
+      <h2>The Photo-Based Alternative</h2>
+
+      <p>
+        Photo-based cutout generators use your phone camera to capture the exact tool outline.
+        You place the tool on a sheet of paper, take a top-down photo, and upload it.
+        Computer vision algorithms detect the tool boundary and convert it into a precise cutout
+        inside a Gridfinity-compatible bin.
+      </p>
+
+      <p>
+        The resulting bin has the correct 42mm grid spacing, the standard Gridfinity base
+        profile (which snaps into any baseplate), and a cavity that matches your specific tool
+        within 0.5mm accuracy.
+      </p>
+
+      <h2>When Custom Cutouts Beat Generic Bins</h2>
+
+      <p>
+        Generic bins work for small items you dump in a pile (screws, nuts, cable ties).
+        Custom cutouts are better when you need to see at a glance whether a tool is missing,
+        when you want tools secured during transport, or when you are organizing an expensive
+        tool set where each piece has a specific home.
+      </p>
+
+      <p>
+        Tradespeople use custom cutouts in their Gridfinity setups for exactly this reason.
+        A plumber with 15 different fittings tools, an electrician with a specific set of
+        strippers and crimpers, a mechanic with a curated wrench collection. Each tool gets
+        a precision-fit slot that prevents rattling and makes inventory checks instant.
+      </p>
+
+      <h2>How to Make a Custom Gridfinity Cutout in 2 Minutes</h2>
+
+      <h3>Step 1: Photo Setup</h3>
+      <p>
+        White paper on a flat surface. Tool on the paper. Phone directly above, all four
+        paper corners visible. That is the entire setup. The paper is your scale reference.
+        No ruler, no calipers, no measurement needed.
+      </p>
+
+      <h3>Step 2: Upload and Auto-Trace</h3>
+      <p>
+        Open the <Link to="/editor">TracetoForge editor</Link> and upload your photo.
+        The app detects the paper, corrects perspective, and traces the tool outline
+        automatically. You can adjust individual points if the trace picks up a shadow
+        or misses a detail.
+      </p>
+
+      <h3>Step 3: Configure the Bin</h3>
+      <p>
+        Set the grid size (how many Gridfinity units wide and deep), cutout depth, and
+        whether you want a finger notch for easy removal. You can place up to 5 tools
+        in a single bin and position each one independently.
+      </p>
+
+      <h3>Step 4: Export and Print</h3>
+      <p>
+        Download as STL or 3MF. Slice with your preferred slicer. Print time for a typical
+        2x3 Gridfinity bin is 1 to 2 hours depending on depth and infill. PETG is
+        recommended for durability; PLA works fine for indoor workshop use.
+      </p>
+
+      <h2>Custom Cutout Methods Compared</h2>
+
+      <p>
+        Fusion 360 gives maximum control but requires CAD skills and 20 or more minutes per
+        insert. Gridfinity Rebuilt in OpenSCAD is parametric but only handles simple geometric
+        shapes, not organic tool outlines. TinkerCAD is free and simple but extremely tedious
+        for complex curves. Photo-based tools like TracetoForge sacrifice some manual control
+        for speed and accuracy on real tool shapes.
+      </p>
+
+      <p>
+        For most workshop organization projects, the photo method produces better results
+        faster because it captures the actual tool dimensions rather than approximating
+        them from spec sheets or manual measurement.
+      </p>
+
+      <h2>Pro Tips for Perfect Cutouts</h2>
+
+      <ul>
+        <li>Add 0.3 to 0.5mm clearance around the cutout so tools slide in and out easily. TracetoForge adds this automatically.</li>
+        <li>Set cutout depth to about 60 to 70 percent of the tool thickness. You want the tool to sit low enough to stay put but high enough to grab easily.</li>
+        <li>Use finger notches on pliers and wrenches. Without them, flat tools in deep pockets are hard to pull out.</li>
+        <li>Print bins with 3 walls and 15 to 20 percent gyroid infill for a good balance of strength and print speed.</li>
+        <li>Label each bin with the tool name using raised text or a label maker. When you have 20 identical-looking bins, labels save time.</li>
+      </ul>
+
+      <h2>Start Making Custom Cutouts</h2>
+
+      <p>
+        No CAD software to learn. No measurements to take. Just a phone, a piece of paper,
+        and the <Link to="/editor">TracetoForge editor</Link>. Your first export is free.
+      </p>
+    </BlogPost>
+  )
+}

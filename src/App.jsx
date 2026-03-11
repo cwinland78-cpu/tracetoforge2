@@ -14,6 +14,10 @@ import ComparisonPost from './pages/blog/ComparisonPost'
 import OrganizerIdeas from './pages/blog/OrganizerIdeas'
 import FoamAlternative from './pages/blog/FoamAlternative'
 import OrganizePackout from './pages/blog/OrganizePackout'
+import ImageToSTL from './pages/blog/ImageToSTL'
+import GridfinityCustomCutout from './pages/blog/GridfinityCustomCutout'
+import PrintedToolOrganizer from './pages/blog/PrintedToolOrganizer'
+import KnipexOrganizer from './pages/blog/KnipexOrganizer'
 
 function App() {
   return (
@@ -34,6 +38,10 @@ function App() {
           <Route path="/blog/best-3d-printed-tool-organizer-ideas" element={<OrganizerIdeas />} />
           <Route path="/blog/3d-printed-inserts-vs-kaizen-foam" element={<FoamAlternative />} />
           <Route path="/blog/how-to-organize-milwaukee-packout" element={<OrganizePackout />} />
+          <Route path="/blog/image-to-stl-converter-free" element={<ImageToSTL />} />
+          <Route path="/blog/gridfinity-custom-cutout-no-cad" element={<GridfinityCustomCutout />} />
+          <Route path="/blog/3d-printed-tool-organizer-guide" element={<PrintedToolOrganizer />} />
+          <Route path="/blog/knipex-pliers-organizer-3d-printed" element={<KnipexOrganizer />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

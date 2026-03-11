@@ -5,6 +5,42 @@ import SEOHead from '../../components/SEOHead'
 
 export const BLOG_POSTS = [
   {
+    slug: 'knipex-pliers-organizer-3d-printed',
+    title: 'Knipex Pliers Organizer: 3D Printed Inserts for Cobra, Pliers Wrench, and More',
+    excerpt: 'Custom 3D printed organizer inserts for Knipex Cobra, Pliers Wrench, TwinGrip, and diagonal cutters. Gridfinity and Packout compatible. Precision-fit to each model.',
+    date: '2026-03-10',
+    readTime: '7 min',
+    tags: ['Knipex', 'Tool Organizer', '3D Printing', 'Gridfinity'],
+    image: '/blog/knipex-organizer.jpg',
+  },
+  {
+    slug: '3d-printed-tool-organizer-guide',
+    title: '3D Printed Tool Organizer: The Complete Guide to Custom Workshop Storage',
+    excerpt: 'Everything you need to know about 3D printed tool organizers. Design methods, filament choices, mounting options, and how to create custom inserts from photos.',
+    date: '2026-03-10',
+    readTime: '9 min',
+    tags: ['3D Printing', 'Tool Organizer', 'Workshop', 'Storage'],
+    image: '/blog/tool-organizer-guide.jpg',
+  },
+  {
+    slug: 'image-to-stl-converter-free',
+    title: 'Image to STL Converter: Turn Any Photo into a 3D Printable File for Free',
+    excerpt: 'Convert photos of tools, parts, and objects into STL files for 3D printing. No CAD skills needed. Free browser-based converter with instant export.',
+    date: '2026-03-10',
+    readTime: '6 min',
+    tags: ['STL', 'Photo to 3D', '3D Printing', 'Free Tool'],
+    image: '/blog/image-to-stl.jpg',
+  },
+  {
+    slug: 'gridfinity-custom-cutout-no-cad',
+    title: 'Gridfinity Custom Cutouts Without CAD: The Photo-Based Method',
+    excerpt: 'Create custom Gridfinity bin cutouts from photos of your tools. No Fusion 360, no TinkerCAD. Just a photo and 2 minutes.',
+    date: '2026-03-10',
+    readTime: '5 min',
+    tags: ['Gridfinity', 'Custom Cutout', '3D Printing', 'No CAD'],
+    image: '/blog/gridfinity-cutout.jpg',
+  },
+  {
     slug: 'custom-milwaukee-packout-inserts-3d-print',
     title: 'How to Make Custom Milwaukee Packout Inserts with a 3D Printer',
     excerpt: 'Stop buying $40 generic inserts. Learn how to create perfectly fitted, custom Packout inserts from a photo of your tools in under 5 minutes.',

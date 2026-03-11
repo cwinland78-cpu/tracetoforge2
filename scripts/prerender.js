@@ -191,6 +191,10 @@ const blogPosts = [
   { slug: 'best-3d-printed-tool-organizer-ideas', title: '10 Best 3D Printed Tool Organizer Ideas for Your Workshop in 2026', excerpt: 'Socket holders, drill bit racks, wrench organizers, and custom inserts for any workshop.' },
   { slug: '3d-printed-inserts-vs-kaizen-foam', title: '3D Printed Tool Inserts vs Kaizen Foam: Why Foam Is Losing', excerpt: 'Cost breakdown, durability comparison, and why 3D printed inserts are replacing foam.' },
   { slug: 'how-to-organize-milwaukee-packout', title: 'How to Organize a Milwaukee Packout Like a Pro', excerpt: 'A practical guide with 3D printed inserts, Gridfinity bins, and smart layouts.' },
+  { slug: 'image-to-stl-converter-free', title: 'Image to STL Converter: Turn Any Photo into a 3D Printable File for Free', excerpt: 'Convert photos of tools into STL files for 3D printing. No CAD skills needed. Free browser-based converter.' },
+  { slug: 'gridfinity-custom-cutout-no-cad', title: 'Gridfinity Custom Cutouts Without CAD: The Photo-Based Method', excerpt: 'Create custom Gridfinity bin cutouts from photos of your tools. No Fusion 360, no TinkerCAD. Just a photo and 2 minutes.' },
+  { slug: '3d-printed-tool-organizer-guide', title: '3D Printed Tool Organizer: The Complete Guide to Custom Workshop Storage', excerpt: 'Everything you need to know about 3D printed tool organizers. Design methods, filament choices, and custom inserts from photos.' },
+  { slug: 'knipex-pliers-organizer-3d-printed', title: 'Knipex Pliers Organizer: 3D Printed Inserts for Cobra, Pliers Wrench, and More', excerpt: 'Custom 3D printed organizer inserts for Knipex Cobra, Pliers Wrench, TwinGrip. Gridfinity and Packout compatible.' },
 ]
 
 const blogListHtml = blogPosts.map(p =>
@@ -220,6 +224,10 @@ const postConfigs = [
   { slug: 'best-3d-printed-tool-organizer-ideas', file: 'OrganizerIdeas.jsx' },
   { slug: '3d-printed-inserts-vs-kaizen-foam', file: 'FoamAlternative.jsx' },
   { slug: 'how-to-organize-milwaukee-packout', file: 'OrganizePackout.jsx' },
+  { slug: 'image-to-stl-converter-free', file: 'ImageToSTL.jsx' },
+  { slug: 'gridfinity-custom-cutout-no-cad', file: 'GridfinityCustomCutout.jsx' },
+  { slug: '3d-printed-tool-organizer-guide', file: 'PrintedToolOrganizer.jsx' },
+  { slug: 'knipex-pliers-organizer-3d-printed', file: 'KnipexOrganizer.jsx' },
 ]
 
 function extractMeta(jsxContent) {
