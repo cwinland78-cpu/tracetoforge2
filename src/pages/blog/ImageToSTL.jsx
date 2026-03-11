@@ -7,7 +7,7 @@ export default function ImageToSTL() {
     <BlogPost
       title="Image to STL Converter: Turn Any Photo into a 3D Printable File for Free"
       description="Convert photos of tools, parts, and objects into STL files for 3D printing. No CAD skills needed. Free browser-based image to STL converter with instant export."
-      canonical="https://tracetoforge.com/blog/image-to-stl-converter-free"
+      canonical="https://tracetoforge.com/blog/image-to-stl-converter-free/"
       date="2026-03-10"
       readTime="6 min"
       tags={['STL', 'Photo to 3D', '3D Printing', 'Free Tool']}

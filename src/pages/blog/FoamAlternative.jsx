@@ -7,7 +7,7 @@ export default function FoamAlternative() {
     <BlogPost
       title="3D Printed Tool Inserts vs Kaizen Foam: Why Foam Is Losing in 2026"
       description="Compare 3D printed custom tool inserts against Kaizen foam, Shadow Foam, and cut foam alternatives. Cost breakdown, durability, and which option actually lasts."
-      canonical="https://tracetoforge.com/blog/3d-printed-inserts-vs-kaizen-foam"
+      canonical="https://tracetoforge.com/blog/3d-printed-inserts-vs-kaizen-foam/"
       date="2026-02-24"
       readTime="7 min"
       tags={['Tool Organization', '3D Printing', 'Kaizen Foam', 'Workshop']}

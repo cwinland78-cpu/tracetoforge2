@@ -7,7 +7,7 @@ export default function PhotoToSTL() {
     <BlogPost
       title="Photo to STL: Turn Any Tool Photo into a 3D Printable Organizer"
       description="Complete guide to converting tool photos into STL, 3MF, SVG, and DXF files for 3D printing, laser cutting, or CNC machining. No CAD needed."
-      canonical="https://tracetoforge.com/blog/tool-organizer-photo-to-stl"
+      canonical="https://tracetoforge.com/blog/tool-organizer-photo-to-stl/"
       date="2026-02-24"
       readTime="7 min"
       tags={['STL', '3D Printing', 'Tool Storage']}

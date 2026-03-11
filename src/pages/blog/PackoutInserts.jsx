@@ -7,7 +7,7 @@ export default function PackoutInserts() {
     <BlogPost
       title="How to Make Custom Milwaukee Packout Inserts with a 3D Printer"
       description="Learn how to create custom-fit 3D printed Milwaukee Packout inserts from a photo of your tools. No CAD skills needed. Works with any Packout case."
-      canonical="https://tracetoforge.com/blog/custom-milwaukee-packout-inserts-3d-print"
+      canonical="https://tracetoforge.com/blog/custom-milwaukee-packout-inserts-3d-print/"
       date="2026-02-24"
       readTime="6 min"
       tags={['Milwaukee Packout', '3D Printing', 'Tool Organization']}

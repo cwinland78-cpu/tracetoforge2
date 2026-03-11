@@ -7,7 +7,7 @@ export default function GridfinityFromPhoto() {
     <BlogPost
       title="Create Gridfinity Inserts from a Photo: The Fastest Way in 2026"
       description="Generate custom Gridfinity bins with tool cutouts from a simple photo. No CAD software needed. Upload a photo, trace the outline, export STL."
-      canonical="https://tracetoforge.com/blog/gridfinity-insert-from-photo"
+      canonical="https://tracetoforge.com/blog/gridfinity-insert-from-photo/"
       date="2026-02-24"
       readTime="5 min"
       tags={['Gridfinity', '3D Printing', 'Workshop Organization']}

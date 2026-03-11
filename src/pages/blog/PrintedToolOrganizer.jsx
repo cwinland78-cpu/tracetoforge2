@@ -7,7 +7,7 @@ export default function PrintedToolOrganizer() {
     <BlogPost
       title="3D Printed Tool Organizer: The Complete Guide to Custom Workshop Storage"
       description="Everything you need to know about 3D printed tool organizers. Design methods, filament choices, mounting options, and how to create custom inserts from photos of your actual tools."
-      canonical="https://tracetoforge.com/blog/3d-printed-tool-organizer-guide"
+      canonical="https://tracetoforge.com/blog/3d-printed-tool-organizer-guide/"
       date="2026-03-10"
       readTime="9 min"
       tags={['3D Printing', 'Tool Organizer', 'Workshop', 'Storage']}

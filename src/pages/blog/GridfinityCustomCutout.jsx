@@ -7,7 +7,7 @@ export default function GridfinityCustomCutout() {
     <BlogPost
       title="Gridfinity Custom Cutouts Without CAD: The Photo-Based Method"
       description="Create custom Gridfinity bin cutouts from photos of your tools. No Fusion 360, no TinkerCAD, no parametric generators. Just a photo and 2 minutes."
-      canonical="https://tracetoforge.com/blog/gridfinity-custom-cutout-no-cad"
+      canonical="https://tracetoforge.com/blog/gridfinity-custom-cutout-no-cad/"
       date="2026-03-10"
       readTime="5 min"
       tags={['Gridfinity', 'Custom Cutout', '3D Printing', 'No CAD']}

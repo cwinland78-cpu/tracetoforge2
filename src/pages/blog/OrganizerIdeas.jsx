@@ -7,7 +7,7 @@ export default function OrganizerIdeas() {
     <BlogPost
       title="10 Best 3D Printed Tool Organizer Ideas for Your Workshop in 2026"
       description="The best 3D printed tool organizer ideas for workshops, garages, and toolboxes. Socket holders, drill bit racks, wrench organizers, and custom inserts."
-      canonical="https://tracetoforge.com/blog/best-3d-printed-tool-organizer-ideas"
+      canonical="https://tracetoforge.com/blog/best-3d-printed-tool-organizer-ideas/"
       date="2026-02-24"
       readTime="6 min"
       tags={['3D Printing', 'Workshop', 'Organization']}

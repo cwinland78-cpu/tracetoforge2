@@ -7,7 +7,7 @@ export default function GridfinityGenerator() {
     <BlogPost
       title="Gridfinity Generator: Photo-Based vs Parametric — Which Is Better?"
       description="Compare the best Gridfinity generators for creating custom bins. Parametric tools like Fusion 360 add-ins vs photo-based generators like TracetoForge that trace real tools automatically."
-      canonical="https://tracetoforge.com/blog/gridfinity-generator-photo-vs-parametric"
+      canonical="https://tracetoforge.com/blog/gridfinity-generator-photo-vs-parametric/"
       date="2026-03-11"
       readTime="6 min"
       tags={['Gridfinity', 'Generator', 'Comparison', '3D Printing']}

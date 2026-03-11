@@ -768,12 +768,11 @@ export default function Landing() {
 
           <div className="grid md:grid-cols-3 gap-4 mb-8">
             {[
-              { slug: 'image-to-stl-converter-free', title: 'Image to STL Converter: Free & No CAD', desc: 'Convert any photo into a 3D printable STL file in under 2 minutes.' },
               { slug: 'gridfinity-generator-photo-vs-parametric', title: 'Gridfinity Generator: Photo vs Parametric', desc: 'Compare the best Gridfinity generators. When to use parametric vs photo-based.' },
-              { slug: 'gridfinity-custom-cutout-no-cad', title: 'Gridfinity Custom Cutouts Without CAD', desc: 'Photo-based method for creating precision Gridfinity bin cutouts.' },
+              { slug: 'gridfinity-insert-from-photo', title: 'Create Gridfinity Inserts from a Photo', desc: 'The fastest way to generate custom Gridfinity bins in 2026.' },
+              { slug: 'image-to-stl-converter-free', title: 'Image to STL Converter: Free & No CAD', desc: 'Convert any photo into a 3D printable STL file in under 2 minutes.' },
               { slug: '3d-printed-tool-organizer-guide', title: '3D Printed Tool Organizer: Complete Guide', desc: 'Design methods, filament choices, and print settings for workshop storage.' },
               { slug: 'knipex-pliers-organizer-3d-printed', title: 'Knipex Pliers Organizer Inserts', desc: 'Precision-fit inserts for Cobra, Pliers Wrench, TwinGrip, and more.' },
-              { slug: 'gridfinity-insert-from-photo', title: 'Create Gridfinity Inserts from a Photo', desc: 'The fastest way to generate custom Gridfinity bins in 2026.' },
               { slug: 'custom-milwaukee-packout-inserts-3d-print', title: 'Custom Milwaukee Packout Inserts', desc: 'Stop buying $40 generic inserts. Make your own from a photo.' },
             ].map(({ slug, title, desc }) => (
               <a
@@ -809,7 +808,7 @@ export default function Landing() {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a
-              href="https://www.amazon.com/s?k=TracetoForge"
+              href="https://www.amazon.com/s?k=TracetoForge+gridfinity+insert&rh=n%3A553240"
               target="_blank"
               rel="noopener noreferrer"
               className="px-6 py-3 rounded-lg bg-[#FF9900]/10 border border-[#FF9900]/30 text-sm font-semibold text-[#FF9900] hover:bg-[#FF9900]/20 transition-all flex items-center gap-2"

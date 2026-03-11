@@ -202,7 +202,7 @@ const landingHtml = makePage({
         <li><a href="/blog/tool-organizer-photo-to-stl">Photo to STL Tool Organizer Guide</a></li>
       </ul>
       <h2>Buy Ready-Made Inserts</h2>
-      <p>No 3D printer? Buy precision-fit PETG tool inserts on <a href="https://www.amazon.com/s?k=TracetoForge">Amazon</a> and <a href="https://www.etsy.com/shop/TracetoForge">Etsy</a>. Gridfinity and Milwaukee Packout compatible. Inserts for Knipex Cobra, Knipex Pliers Wrench, Klein wire strippers, Wera screwdrivers, Milwaukee hand tools, and more.</p>
+      <p>No 3D printer? Buy precision-fit PETG tool inserts on <a href="https://www.amazon.com/s?k=TracetoForge+gridfinity+insert&rh=n%3A553240">Amazon</a> and <a href="https://www.etsy.com/shop/TracetoForge">Etsy</a>. Gridfinity and Milwaukee Packout compatible. Inserts for Knipex Cobra, Knipex Pliers Wrench, Klein wire strippers, Wera screwdrivers, Milwaukee hand tools, and more.</p>
       <h2>Frequently Asked Questions</h2>
       <h3>How does TracetoForge convert a photo to an STL file?</h3>
       <p>Place your tool on a sheet of paper, take a top-down photo, and upload it. TracetoForge uses OpenCV edge detection to trace the outline automatically. The outline is extruded into a 3D model and exported as STL, 3MF, SVG, or DXF. All processing happens in your browser.</p>
@@ -224,7 +224,7 @@ console.log('[prerender] /index.html (landing)')
 writePage('/guide', makePage({
   title: 'Getting Started Guide | TracetoForge',
   description: 'Step-by-step guide to creating custom 3D-printable tool inserts from photos with TracetoForge. Photo, trace, export, print.',
-  canonical: 'https://tracetoforge.com/guide',
+  canonical: 'https://tracetoforge.com/guide/',
   ogTitle: 'TracetoForge Getting Started Guide',
   h1: 'TracetoForge: Getting Started Guide',
   bodyHtml: `
@@ -246,7 +246,7 @@ writePage('/guide', makePage({
 writePage('/editor', makePage({
   title: 'Tool Insert Editor - Upload Photo & Export STL | TracetoForge',
   description: 'Upload a photo of your tool and create a custom 3D-printable insert. Export STL, 3MF, SVG, or DXF. Works with Packout, Gridfinity, and custom trays.',
-  canonical: 'https://tracetoforge.com/editor',
+  canonical: 'https://tracetoforge.com/editor/',
   ogTitle: 'TracetoForge Editor - Photo to 3D Insert',
   h1: 'TracetoForge Editor',
   bodyHtml: `
@@ -277,7 +277,7 @@ const blogListHtml = blogPosts.map(p =>
 writePage('/blog', makePage({
   title: 'Blog - 3D Printing Tool Organization Tips | TracetoForge',
   description: 'Guides and tutorials on 3D printing custom tool inserts, Gridfinity bins, Milwaukee Packout organizers, and workshop organization.',
-  canonical: 'https://tracetoforge.com/blog',
+  canonical: 'https://tracetoforge.com/blog/',
   ogTitle: 'TracetoForge Blog - 3D Printing Tool Organization',
   h1: 'TracetoForge Blog',
   bodyHtml: `
@@ -389,12 +389,12 @@ ${articleContent}
 // Update sitemap
 const today = new Date().toISOString().split('T')[0]
 const sitemapUrls = [
-  { loc: 'https://tracetoforge.com', freq: 'weekly', priority: '1.0' },
-  { loc: 'https://tracetoforge.com/editor', freq: 'weekly', priority: '0.9' },
-  { loc: 'https://tracetoforge.com/guide', freq: 'monthly', priority: '0.8' },
-  { loc: 'https://tracetoforge.com/blog', freq: 'weekly', priority: '0.9' },
+  { loc: 'https://tracetoforge.com/', freq: 'weekly', priority: '1.0' },
+  { loc: 'https://tracetoforge.com/editor/', freq: 'weekly', priority: '0.9' },
+  { loc: 'https://tracetoforge.com/guide/', freq: 'monthly', priority: '0.8' },
+  { loc: 'https://tracetoforge.com/blog/', freq: 'weekly', priority: '0.9' },
   ...postConfigs.map(p => ({
-    loc: `https://tracetoforge.com/blog/${p.slug}`,
+    loc: `https://tracetoforge.com/blog/${p.slug}/`,
     freq: 'monthly',
     priority: '0.8'
   }))
