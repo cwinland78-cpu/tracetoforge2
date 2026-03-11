@@ -77,7 +77,21 @@ export default function PaywallModal({ isOpen, onClose, onCreditsChanged, userId
     setPurchasing(false);
   }
 
+  const [promoAttempts, setPromoAttempts] = useState(0);
+  const [promoLocked, setPromoLocked] = useState(false);
+
   async function handleRedeemPromo() {
+    if (promoLocked) {
+      setPromoResult({ success: false, error: 'Too many attempts. Try again later.' });
+      return;
+    }
+    if (promoAttempts >= 5) {
+      setPromoLocked(true);
+      setPromoResult({ success: false, error: 'Too many attempts. Try again later.' });
+      setTimeout(() => { setPromoLocked(false); setPromoAttempts(0); }, 60 * 60 * 1000);
+      return;
+    }
+    setPromoAttempts(a => a + 1);
     setPromoLoading(true);
     setPromoResult(null);
     const result = await redeemPromoCode(promoCode, userId || null);
@@ -87,6 +101,7 @@ export default function PaywallModal({ isOpen, onClose, onCreditsChanged, userId
       setCurrentCredits(total);
       onCreditsChanged?.(total);
       setPromoCode('');
+      setPromoAttempts(0);
       setTimeout(() => onClose(), 2000);
     }
     setPromoLoading(false);
