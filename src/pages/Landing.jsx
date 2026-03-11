@@ -733,6 +733,87 @@ export default function Landing() {
 
       <div className="glow-line" />
 
+      {/* Latest Blog Posts - Internal Linking */}
+      <section className="px-6 py-20 md:py-28">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <span className="font-mono text-xs text-brand tracking-widest uppercase mb-3 block">Learn</span>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-extrabold tracking-tight mb-4">
+              Guides & Tutorials
+            </h2>
+            <p className="text-[#8888A0] max-w-lg mx-auto">
+              Everything you need to know about 3D printed tool organization, from beginner to advanced.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-4 mb-8">
+            {[
+              { slug: 'image-to-stl-converter-free', title: 'Image to STL Converter: Free & No CAD', desc: 'Convert any photo into a 3D printable STL file in under 2 minutes.' },
+              { slug: 'gridfinity-custom-cutout-no-cad', title: 'Gridfinity Custom Cutouts Without CAD', desc: 'Photo-based method for creating precision Gridfinity bin cutouts.' },
+              { slug: '3d-printed-tool-organizer-guide', title: '3D Printed Tool Organizer: Complete Guide', desc: 'Design methods, filament choices, and print settings for workshop storage.' },
+              { slug: 'knipex-pliers-organizer-3d-printed', title: 'Knipex Pliers Organizer Inserts', desc: 'Precision-fit inserts for Cobra, Pliers Wrench, TwinGrip, and more.' },
+              { slug: 'gridfinity-insert-from-photo', title: 'Create Gridfinity Inserts from a Photo', desc: 'The fastest way to generate custom Gridfinity bins in 2026.' },
+              { slug: 'custom-milwaukee-packout-inserts-3d-print', title: 'Custom Milwaukee Packout Inserts', desc: 'Stop buying $40 generic inserts. Make your own from a photo.' },
+            ].map(({ slug, title, desc }) => (
+              <a
+                key={slug}
+                href={`/blog/${slug}`}
+                className="p-5 rounded-xl bg-surface border border-surface-lighter/40 card-hover block group"
+              >
+                <h3 className="font-display font-bold text-sm mb-2 group-hover:text-brand transition-colors">{title}</h3>
+                <p className="text-xs text-[#666680] leading-relaxed">{desc}</p>
+              </a>
+            ))}
+          </div>
+
+          <div className="text-center">
+            <a href="/blog" className="inline-flex items-center gap-1.5 text-sm text-brand font-semibold hover:gap-2.5 transition-all">
+              View All Guides <ArrowRight size={14} />
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <div className="glow-line" />
+
+      {/* Shop - Ready-Made Inserts */}
+      <section className="px-6 py-16">
+        <div className="max-w-4xl mx-auto text-center">
+          <span className="font-mono text-xs text-brand tracking-widest uppercase mb-3 block">Shop</span>
+          <h2 className="text-2xl sm:text-3xl font-display font-extrabold tracking-tight mb-4">
+            No Printer? No Problem.
+          </h2>
+          <p className="text-[#8888A0] max-w-lg mx-auto mb-8">
+            Buy ready-made precision-fit tool inserts printed in PETG. Each one traced from the actual tool for guaranteed fit. Available on Amazon and Etsy.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <a
+              href="https://www.amazon.com/s?k=TracetoForge"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-6 py-3 rounded-lg bg-[#FF9900]/10 border border-[#FF9900]/30 text-sm font-semibold text-[#FF9900] hover:bg-[#FF9900]/20 transition-all flex items-center gap-2"
+            >
+              <Package size={16} />
+              Shop on Amazon
+            </a>
+            <a
+              href="https://www.etsy.com/shop/TracetoForge"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-6 py-3 rounded-lg bg-[#F56400]/10 border border-[#F56400]/30 text-sm font-semibold text-[#F56400] hover:bg-[#F56400]/20 transition-all flex items-center gap-2"
+            >
+              <Package size={16} />
+              Shop on Etsy
+            </a>
+          </div>
+          <p className="text-xs text-[#555568] mt-4 font-mono">
+            Gridfinity &bull; Milwaukee Packout &bull; Knipex &bull; Klein &bull; Wera &bull; Milwaukee
+          </p>
+        </div>
+      </section>
+
+      <div className="glow-line" />
+
       {/* Privacy / Trust */}
       <section className="px-6 py-16">
         <div className="max-w-3xl mx-auto">
