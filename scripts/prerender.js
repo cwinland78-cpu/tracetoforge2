@@ -181,7 +181,7 @@ const landingHtml = makePage({
       <h2>Insert Modes</h2>
       <p>Gridfinity Bin: The most popular mode. Standard Gridfinity-compatible insert with proper base profile, stacking lip, and grid alignment. Drops right into any Gridfinity baseplate. Custom Tray: Rectangular or oval tray with a precision-cut cavity for Milwaukee Packout, DeWalt ToughSystem, or any toolbox drawer. 3D Object: Just the extruded shape for custom mounts, templates, or prototyping.</p>
       <h2>Why TracetoForge for Gridfinity?</h2>
-      <p>The Gridfinity ecosystem has thousands of generic bins, but when you need a cutout shaped exactly like your Knipex Cobra pliers or your Wera Kraftform screwdriver, you either learn Fusion 360 or settle for a bin that does not fit. TracetoForge creates precision Gridfinity cutouts from a photo in under 2 minutes. No CAD, no parametric generators, no manual measurement. Every insert is custom-shaped to your exact tools.</p>
+      <p>Most Gridfinity generators are parametric: you type in dimensions and get a bin with rectangular dividers. TracetoForge is a photo-based Gridfinity generator. Snap a photo of your real tool, and the app generates a Gridfinity bin with a precision cutout shaped exactly like your tool. No parametric inputs, no CAD, no manual measurement. The Gridfinity ecosystem has thousands of generic bins, but when you need a cutout shaped exactly like your Knipex Cobra pliers or your Wera Kraftform screwdriver, a parametric generator cannot help. TracetoForge creates precision Gridfinity cutouts from a photo in under 2 minutes.</p>
       <h2>Compatible Tool Storage Systems</h2>
       <p>Milwaukee Packout, Gridfinity, DeWalt ToughSystem 2.0, DeWalt TSTAK, Ridgid Pro Gear 2.0, Makita MakTrak, Flex Stack Pack, Klein ModBox, Bosch L-Boxx, Festool Systainer, Makita MakPac, Kobalt, Husky, Craftsman, Stanley FatMax, Harbor Freight US General, and Snap-on. Works with any 3D printer, laser cutter, or CNC router.</p>
       <h2>Custom Inserts for Any Tool</h2>
@@ -193,6 +193,7 @@ const landingHtml = makePage({
         <li><a href="/blog/3d-printed-tool-organizer-guide">3D Printed Tool Organizer: Complete Guide</a></li>
         <li><a href="/blog/knipex-pliers-organizer-3d-printed">Knipex Pliers Organizer: 3D Printed Inserts</a></li>
         <li><a href="/blog/gridfinity-insert-from-photo">Create Gridfinity Inserts from a Photo</a></li>
+        <li><a href="/blog/gridfinity-generator-photo-vs-parametric">Gridfinity Generator: Photo-Based vs Parametric</a></li>
         <li><a href="/blog/custom-milwaukee-packout-inserts-3d-print">Custom Milwaukee Packout Inserts</a></li>
         <li><a href="/blog/gridfinity-vs-packout-vs-custom-tray">Gridfinity vs Packout vs Custom Trays</a></li>
         <li><a href="/blog/best-3d-printed-tool-organizer-ideas">Best 3D Printed Tool Organizer Ideas</a></li>
@@ -266,6 +267,7 @@ const blogPosts = [
   { slug: 'gridfinity-custom-cutout-no-cad', title: 'Gridfinity Custom Cutouts Without CAD: The Photo-Based Method', excerpt: 'Create custom Gridfinity bin cutouts from photos of your tools. No Fusion 360, no TinkerCAD. Just a photo and 2 minutes.' },
   { slug: '3d-printed-tool-organizer-guide', title: '3D Printed Tool Organizer: The Complete Guide to Custom Workshop Storage', excerpt: 'Everything you need to know about 3D printed tool organizers. Design methods, filament choices, and custom inserts from photos.' },
   { slug: 'knipex-pliers-organizer-3d-printed', title: 'Knipex Pliers Organizer: 3D Printed Inserts for Cobra, Pliers Wrench, and More', excerpt: 'Custom 3D printed organizer inserts for Knipex Cobra, Pliers Wrench, TwinGrip. Gridfinity and Packout compatible.' },
+  { slug: 'gridfinity-generator-photo-vs-parametric', title: 'Gridfinity Generator: Photo-Based vs Parametric — Which Is Better?', excerpt: 'Compare the best Gridfinity generators. Parametric tools for simple bins vs photo-based generators for precision tool cutouts.' },
 ]
 
 const blogListHtml = blogPosts.map(p =>
@@ -299,6 +301,7 @@ const postConfigs = [
   { slug: 'gridfinity-custom-cutout-no-cad', file: 'GridfinityCustomCutout.jsx' },
   { slug: '3d-printed-tool-organizer-guide', file: 'PrintedToolOrganizer.jsx' },
   { slug: 'knipex-pliers-organizer-3d-printed', file: 'KnipexOrganizer.jsx' },
+  { slug: 'gridfinity-generator-photo-vs-parametric', file: 'GridfinityGenerator.jsx' },
 ]
 
 function extractMeta(jsxContent) {

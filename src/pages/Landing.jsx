@@ -42,7 +42,7 @@ const MODES = [
   {
     icon: LayoutGrid,
     title: 'Gridfinity Bin',
-    desc: 'Standard Gridfinity-compatible insert with proper 42mm base profile, stacking lip, and grid alignment. Drops right into your baseplate. The most popular output mode.',
+    desc: 'The photo-based Gridfinity generator. Standard 42mm base profile, stacking lip, and grid alignment. Precision tool cutouts from a photo. Drops right into your baseplate.',
     tag: 'Most Popular',
   },
   {
@@ -272,7 +272,7 @@ export default function Landing() {
 
           <p className="text-base sm:text-lg text-[#9999AD] max-w-2xl mx-auto mb-4 leading-relaxed">
             Snap a photo of any tool, auto-trace the outline, and export a Gridfinity-compatible bin 
-            with precision cutouts. STL, 3MF, SVG, or DXF. Zero CAD skills needed.
+            with precision cutouts. The fastest Gridfinity generator that works from a photo. STL, 3MF, SVG, or DXF. Zero CAD skills.
           </p>
 
           <p className="text-sm text-[#666680] font-mono mb-10">
@@ -769,6 +769,7 @@ export default function Landing() {
           <div className="grid md:grid-cols-3 gap-4 mb-8">
             {[
               { slug: 'image-to-stl-converter-free', title: 'Image to STL Converter: Free & No CAD', desc: 'Convert any photo into a 3D printable STL file in under 2 minutes.' },
+              { slug: 'gridfinity-generator-photo-vs-parametric', title: 'Gridfinity Generator: Photo vs Parametric', desc: 'Compare the best Gridfinity generators. When to use parametric vs photo-based.' },
               { slug: 'gridfinity-custom-cutout-no-cad', title: 'Gridfinity Custom Cutouts Without CAD', desc: 'Photo-based method for creating precision Gridfinity bin cutouts.' },
               { slug: '3d-printed-tool-organizer-guide', title: '3D Printed Tool Organizer: Complete Guide', desc: 'Design methods, filament choices, and print settings for workshop storage.' },
               { slug: 'knipex-pliers-organizer-3d-printed', title: 'Knipex Pliers Organizer Inserts', desc: 'Precision-fit inserts for Cobra, Pliers Wrench, TwinGrip, and more.' },
