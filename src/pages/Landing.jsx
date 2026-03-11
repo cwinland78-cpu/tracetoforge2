@@ -40,22 +40,22 @@ const STEPS = [
 
 const MODES = [
   {
-    icon: Box,
-    title: 'Custom Tray',
-    desc: 'Rectangular or oval tray with a precision-cut cavity for your tool. Set wall height, thickness, and edge chamfers.',
+    icon: LayoutGrid,
+    title: 'Gridfinity Bin',
+    desc: 'Standard Gridfinity-compatible insert with proper 42mm base profile, stacking lip, and grid alignment. Drops right into your baseplate. The most popular output mode.',
     tag: 'Most Popular',
   },
   {
-    icon: LayoutGrid,
-    title: 'Gridfinity Bin',
-    desc: 'Standard Gridfinity-compatible insert with proper base profile, stacking lip, and grid alignment. Drops right into your baseplate.',
-    tag: 'Gridfinity',
+    icon: Box,
+    title: 'Custom Tray',
+    desc: 'Rectangular or oval tray with a precision-cut cavity for your tool. Set wall height, thickness, and edge chamfers.',
+    tag: 'Flexible',
   },
   {
     icon: Layers,
     title: '3D Object',
     desc: 'Just the extruded shape of your tool. Perfect for custom mounts, templates, or prototyping parts.',
-    tag: 'Flexible',
+    tag: 'Advanced',
   },
 ]
 
@@ -260,23 +260,23 @@ export default function Landing() {
         <div className="max-w-4xl mx-auto text-center">
           {/* Eyebrow */}
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand/8 text-brand text-xs font-semibold mb-8 border border-brand/15 font-mono tracking-wide uppercase">
-            <Cpu size={13} />
-            Photo to Custom Insert in Under 5 Minutes
+            <LayoutGrid size={13} />
+            Photo to Gridfinity Insert in Under 2 Minutes
           </div>
 
           <h1 className="text-4xl sm:text-5xl md:text-7xl font-display font-black tracking-tight leading-[1.05] mb-6">
-            The Fastest Way to<br />
-            Turn Any Tool Into a<br />
-            <span className="text-brand">Custom-Fit Insert.</span>
+            Custom Gridfinity Inserts<br />
+            From a Photo.<br />
+            <span className="text-brand">No CAD. No Hassle.</span>
           </h1>
 
           <p className="text-base sm:text-lg text-[#9999AD] max-w-2xl mx-auto mb-4 leading-relaxed">
-            Auto-trace any tool. Export STL, 3MF, SVG, or DXF. Gridfinity compatible. 
-            Zero CAD skills required. 3D print, laser cut, or CNC machine.
+            Snap a photo of any tool, auto-trace the outline, and export a Gridfinity-compatible bin 
+            with precision cutouts. STL, 3MF, SVG, or DXF. Zero CAD skills needed.
           </p>
 
           <p className="text-sm text-[#666680] font-mono mb-10">
-            Works with <span className="text-[#AAABB8]">Milwaukee Packout</span> &bull; <span className="text-[#AAABB8]">DeWalt ToughSystem</span> &bull; <span className="text-[#AAABB8]">Gridfinity</span> &bull; <span className="text-[#AAABB8]">Kobalt</span> &bull; <span className="text-[#AAABB8]">any toolbox</span>
+            <span className="text-brand font-semibold">Gridfinity</span> &bull; <span className="text-[#AAABB8]">Milwaukee Packout</span> &bull; <span className="text-[#AAABB8]">DeWalt ToughSystem</span> &bull; <span className="text-[#AAABB8]">Custom Trays</span> &bull; <span className="text-[#AAABB8]">any toolbox</span>
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -553,7 +553,7 @@ export default function Landing() {
             </div>
             <h3 className="font-display font-bold text-xl mb-3">{MODES[activeMode].title}</h3>
             <p className="text-[#9999AD] max-w-lg mx-auto leading-relaxed">{MODES[activeMode].desc}</p>
-            {activeMode === 1 && (
+            {activeMode === 0 && (
               <div className="mt-6 inline-flex items-center gap-3 px-4 py-2 rounded-lg bg-surface-light border border-surface-lighter/40">
                 <LayoutGrid size={14} className="text-brand" />
                 <span className="text-xs font-mono text-[#8888A0]">42mm grid &bull; Proper base profile &bull; Stacking lip</span>
@@ -602,9 +602,9 @@ export default function Landing() {
           {/* Tier 1 - Primary Systems */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             {[
-              { name: 'Milwaukee Packout', note: 'The standard. Largest ecosystem of cases, mounts, and accessories.', highlight: true },
+              { name: 'Gridfinity', note: 'The open-source 42mm modular system. Magnetic baseplates, stackable bins, infinite customization. The standard for 3D printed workshop organization.', highlight: true },
+              { name: 'Milwaukee Packout', note: 'The #1 modular tool storage system. Largest ecosystem of cases, mounts, and accessories.' },
               { name: 'DeWalt ToughSystem 2.0', note: 'Heavy-duty modular storage. Big presence at Home Depot.' },
-              { name: 'DeWalt TSTAK', note: 'Compact and lightweight. Great for mobile setups.' },
             ].map(({ name, note, highlight }, i) => (
               <div key={i} className={`relative p-5 rounded-xl border transition-colors card-hover ${
                 highlight
@@ -625,10 +625,10 @@ export default function Landing() {
           {/* Tier 2 - Growing Systems */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
             {[
+              { name: 'DeWalt TSTAK', note: 'Compact and lightweight' },
               { name: 'Ridgid Pro Gear 2.0', note: 'Home Depot exclusive' },
               { name: 'Makita MakTrak', note: 'New and growing fast' },
               { name: 'Flex Stack Pack', note: "Lowe's powerhouse" },
-              { name: 'Gridfinity', note: '42mm open standard' },
             ].map(({ name, note }, i) => (
               <div key={i} className="p-4 rounded-xl bg-surface border border-surface-lighter/40 card-hover">
                 <h3 className="font-display font-bold text-xs mb-1">{name}</h3>

@@ -167,21 +167,21 @@ const faqSchema = {
 }
 
 const landingHtml = makePage({
-  title: 'Turn Tool Photos into 3D Printable Inserts | TracetoForge',
-  description: 'Snap a photo of any tool, auto-trace it, and export STL, 3MF, SVG, or DXF files. Custom inserts for Packout, Gridfinity, and more. Free, no CAD needed.',
+  title: 'Custom Gridfinity Inserts From a Photo | TracetoForge',
+  description: 'Create custom Gridfinity inserts from a photo of your tools. Auto-trace, export STL, 3MF, SVG, or DXF. Also works with Milwaukee Packout. Free, no CAD needed.',
   canonical: 'https://tracetoforge.com',
-  ogTitle: 'TracetoForge - Photo to Print-Ready STL, 3MF, SVG & DXF',
-  h1: 'TracetoForge: Turn Any Tool Photo Into a Custom-Fit Insert',
+  ogTitle: 'TracetoForge - Custom Gridfinity Inserts From a Photo',
+  h1: 'Custom Gridfinity Inserts From a Photo — No CAD Needed',
   bodyHtml: `
-      <p>Snap a photo of any tool, auto-trace the outline, and export STL, 3MF, SVG, or DXF files. Custom tray inserts and Gridfinity bins in minutes. No CAD skills needed.</p>
+      <p>Create custom Gridfinity bins with precision tool cutouts from a simple photo. Snap a photo of any tool, auto-trace the outline, and export a Gridfinity-compatible insert as STL, 3MF, SVG, or DXF. Also works with Milwaukee Packout, DeWalt ToughSystem, and any custom tray. No CAD skills needed.</p>
       <h2>How It Works</h2>
-      <p>Place your tool on a sheet of paper. Take a photo with your phone. Upload to TracetoForge and the edge detection finds the outline automatically. Fine-tune with simple click-and-drag controls. See your insert in full 3D before exporting. Download STL, 3MF, SVG, or DXF files for any 3D printer, laser cutter, or CNC router.</p>
+      <p>Place your tool on a sheet of paper. Take a photo with your phone. Upload to TracetoForge and the edge detection finds the outline automatically. The app generates a Gridfinity bin with the correct 42mm grid spacing, standard base profile, and a cavity shaped exactly like your tool. Fine-tune with simple controls, preview in 3D, and export.</p>
       <h2>Export Formats</h2>
-      <p>TracetoForge exports STL files for 3D printing, 3MF for multi-material prints, SVG for laser cutting foam inserts, and DXF for CNC machining. Works with Milwaukee Packout, Gridfinity, DeWalt ToughSystem, and more.</p>
+      <p>TracetoForge exports Gridfinity-compatible STL files for 3D printing, 3MF for multi-material prints, SVG for laser cutting foam inserts, and DXF for CNC machining. Every export includes the proper Gridfinity base profile, stacking lip, and 42mm grid alignment.</p>
       <h2>Insert Modes</h2>
-      <p>Custom Tray: Rectangular or oval tray with a precision-cut cavity. Set wall height, thickness, and edge chamfers. Gridfinity Bin: Standard Gridfinity-compatible insert with proper base profile, stacking lip, and grid alignment. 3D Object: Just the extruded shape for custom mounts, templates, or prototyping.</p>
-      <h2>Why TracetoForge?</h2>
-      <p>No more spending hours in Fusion 360 for a single tray. No more hand-cutting foam with a knife. No more buying generic inserts that do not fit your tools. Every insert is custom-shaped to your exact tools. Print unlimited custom inserts for pennies in filament.</p>
+      <p>Gridfinity Bin: The most popular mode. Standard Gridfinity-compatible insert with proper base profile, stacking lip, and grid alignment. Drops right into any Gridfinity baseplate. Custom Tray: Rectangular or oval tray with a precision-cut cavity for Milwaukee Packout, DeWalt ToughSystem, or any toolbox drawer. 3D Object: Just the extruded shape for custom mounts, templates, or prototyping.</p>
+      <h2>Why TracetoForge for Gridfinity?</h2>
+      <p>The Gridfinity ecosystem has thousands of generic bins, but when you need a cutout shaped exactly like your Knipex Cobra pliers or your Wera Kraftform screwdriver, you either learn Fusion 360 or settle for a bin that does not fit. TracetoForge creates precision Gridfinity cutouts from a photo in under 2 minutes. No CAD, no parametric generators, no manual measurement. Every insert is custom-shaped to your exact tools.</p>
       <h2>Compatible Tool Storage Systems</h2>
       <p>Milwaukee Packout, Gridfinity, DeWalt ToughSystem 2.0, DeWalt TSTAK, Ridgid Pro Gear 2.0, Makita MakTrak, Flex Stack Pack, Klein ModBox, Bosch L-Boxx, Festool Systainer, Makita MakPac, Kobalt, Husky, Craftsman, Stanley FatMax, Harbor Freight US General, and Snap-on. Works with any 3D printer, laser cutter, or CNC router.</p>
       <h2>Custom Inserts for Any Tool</h2>
