@@ -7,24 +7,27 @@ import helvetikerBold from 'three/examples/fonts/helvetiker_bold.typeface.json'
 // ─── Branding: "TracetoForge" deboss ───
 const brandFont = new Font(helvetikerBold)
 const BRAND_TEXT = 'TracetoForge'
-const BRAND_HEIGHT = 0.6 // mm raised above floor
+const DEBOSS_DEPTH = 0.5 // mm into the wall
 
 /**
- * Create branding geometry - raised text on inside floor.
- * Places "TracetoForge" text in the bottom-right corner of the tray floor,
- * raised slightly so it's visible when looking into the tray.
- * @param {number} trayW - tray inner width
- * @param {number} trayH - tray inner height (depth in Y direction)
- * @param {number} floorZ - Z position of the floor top surface
- * @param {number} cornerMargin - margin from corner edge in mm
+ * Create branding geometry for CSG subtraction from a wall.
+ * Text is oriented on the inner face of the front wall (Y = -trayH/2 side),
+ * extruded inward (negative Y) so subtracting it from the wall creates a deboss.
+ * For Gridfinity, same approach on the front inner wall.
+ * 
+ * @param {number} trayW - tray width
+ * @param {number} trayH - tray height  
+ * @param {number} wallZ - Z position of wall bottom (base top)
+ * @param {number} wallHeight - height of the wall section
+ * @param {number} wallThick - wall thickness for deboss depth clamping
  * @returns {THREE.BufferGeometry|null}
  */
-function createBrandGeometry(trayW, trayH, floorZ) {
+function createWallBrandGeometry(trayW, trayH, wallZ, wallHeight, wallThick) {
   try {
-    if (trayW < 20 || trayH < 15) return null
+    if (trayW < 20 || wallHeight < 5) return null
 
-    // Size text to ~40% of tray width, max 50mm
-    const targetW = Math.min(trayW * 0.4, 50)
+    // Size text to 60% of tray width, max 80mm
+    const targetW = Math.min(trayW * 0.6, 80)
     const shapes = brandFont.generateShapes(BRAND_TEXT, 1)
     if (!shapes || shapes.length === 0) return null
 
@@ -36,35 +39,44 @@ function createBrandGeometry(trayW, trayH, floorZ) {
     tempGeo.dispose()
     if (rawW < 0.001) return null
 
-    const scale = targetW / rawW
-    const textH = rawH * scale
-    // If text too tall for tray, shrink further
-    if (textH > trayH * 0.15) {
-      const s2 = (trayH * 0.15) / rawH
-      return createBrandGeoScaled(shapes, s2, rawW * s2, rawH * s2, trayW, trayH, floorZ)
+    let scale = targetW / rawW
+    let textH = rawH * scale
+    // Shrink if text taller than 60% of wall height
+    if (textH > wallHeight * 0.6) {
+      scale = (wallHeight * 0.6) / rawH
+      textH = rawH * scale
     }
+    const textW = rawW * scale
 
-    return createBrandGeoScaled(shapes, scale, targetW, textH, trayW, trayH, floorZ)
+    // Extrude inward (will be subtracted from wall)
+    const deboss = Math.min(DEBOSS_DEPTH, wallThick * 0.4)
+    const geo = new THREE.ExtrudeGeometry(shapes, {
+      depth: deboss,
+      bevelEnabled: false,
+    })
+    geo.scale(scale, scale, 1)
+
+    // Text is generated in XY plane. We need it on the inner front wall face:
+    // - X: centered on tray
+    // - Z: centered vertically on wall 
+    // - Y: at the inner wall face, extruding outward (into the wall)
+    
+    // Start: text in XY plane at origin
+    // Step 1: center text at origin
+    geo.translate(-textW / 2, -textH / 2, 0)
+    // Step 2: rotate to face front wall (rotate -90 around X so Y becomes Z)
+    geo.rotateX(-Math.PI / 2)
+    // Now text is in XZ plane, facing -Y direction, extruding in +Y
+    // Step 3: position on front inner wall
+    const wallY = -trayH / 2 + wallThick  // inner face of front wall
+    const centerZ = wallZ + wallHeight / 2
+    geo.translate(0, wallY, centerZ)
+
+    return geo
   } catch (e) {
     console.warn('[Brand] Failed:', e)
     return null
   }
-}
-
-function createBrandGeoScaled(shapes, scale, textW, textH, trayW, trayH, floorZ) {
-  const geo = new THREE.ExtrudeGeometry(shapes, {
-    depth: BRAND_HEIGHT,
-    bevelEnabled: false,
-  })
-  geo.scale(scale, scale, 1)
-
-  // Place centered horizontally, near the bottom edge of the tray floor
-  const margin = 2
-  const x = -textW / 2
-  const y = -trayH / 2 + margin
-  geo.translate(x, y, floorZ)
-
-  return geo
 }
 
 // ─── Shape Utilities ───
@@ -799,12 +811,14 @@ function createCustomInsert(points, config) {
     group.add(handleMesh)
   })
 
-  // ─── Branding emboss (raised text on tray floor) ───
+  // ─── Branding deboss (indented text on inner front wall) ───
   try {
-    const brandGeo = createBrandGeometry(trayWidth, trayHeight, actualBaseDepth)
-    if (brandGeo) {
-      const brandMat = new THREE.MeshPhongMaterial({ color: 0x555566, side: THREE.DoubleSide })
-      const brandMesh = new THREE.Mesh(brandGeo, brandMat)
+    const brandCutGeo = createWallBrandGeometry(trayWidth, trayHeight, actualBaseDepth, cavityZ, wallThickness)
+    if (brandCutGeo) {
+      // Add as subtle visual indicator (the actual deboss is visual only in preview)
+      const brandMat = new THREE.MeshPhongMaterial({ color: 0x444455, transparent: true, opacity: 0.6, side: THREE.DoubleSide })
+      const brandMesh = new THREE.Mesh(brandCutGeo, brandMat)
+      brandMesh.userData.vizOnly = true
       group.add(brandMesh)
     }
   } catch (e) { /* branding is non-critical */ }
@@ -1281,12 +1295,14 @@ function createGridfinityInsert(points, config) {
     addGrabHandle(nPts, origIdx)
   })
 
-  // ─── Branding emboss (raised text on inside floor) ───
+  // ─── Branding deboss (indented text on inner front wall) ───
   try {
-    const brandGeo = createBrandGeometry(binW, binH, GF.baseHeight + floorZ)
-    if (brandGeo) {
-      const brandMat = new THREE.MeshPhongMaterial({ color: 0x555566, side: THREE.DoubleSide })
-      const brandMesh = new THREE.Mesh(brandGeo, brandMat)
+    const gfWallThick = 1.5 // gridfinity wall thickness approximation
+    const brandCutGeo = createWallBrandGeometry(binW, binH, GF.baseHeight, wallHeight, gfWallThick)
+    if (brandCutGeo) {
+      const brandMat = new THREE.MeshPhongMaterial({ color: 0x444455, transparent: true, opacity: 0.6, side: THREE.DoubleSide })
+      const brandMesh = new THREE.Mesh(brandCutGeo, brandMat)
+      brandMesh.userData.vizOnly = true
       group.add(brandMesh)
     }
   } catch (e) { /* branding is non-critical */ }
@@ -1376,7 +1392,39 @@ export function exportSTL(toolPoints, config) {
 
   if (geometries.length === 0) throw new Error('No geometry to export')
 
-  const merged = mergeGeometries(geometries)
+  let merged = mergeGeometries(geometries)
+
+  // CSG-subtract brand deboss from the merged solid
+  try {
+    let brandCutGeo = null
+    const mode = config.mode || 'object'
+    if (mode === 'custom') {
+      const { trayWidth = 150, trayHeight = 100, wallThickness = 3, trayDepth = 30, floorThickness = 2, toolDepth } = config
+      const cavZ = toolDepth || (trayDepth - floorThickness)
+      const baseD = Math.max(trayDepth - cavZ, floorThickness)
+      brandCutGeo = createWallBrandGeometry(trayWidth, trayHeight, baseD, cavZ, wallThickness)
+    } else if (mode === 'gridfinity') {
+      const { gridX = 2, gridY = 1, gridHeight = 32 } = config
+      const binW = gridX * 42 - 0.5 * 2
+      const binH = gridY * 42 - 0.5 * 2
+      const wH = gridHeight
+      brandCutGeo = createWallBrandGeometry(binW, binH, 4.75, wH, 1.5)
+    }
+    if (brandCutGeo) {
+      const evaluator = new Evaluator()
+      const solidBrush = new Brush(merged)
+      solidBrush.updateMatrixWorld()
+      const cutBrush = new Brush(brandCutGeo)
+      cutBrush.updateMatrixWorld()
+      const result = evaluator.evaluate(solidBrush, cutBrush, SUBTRACTION)
+      if (result && result.geometry) {
+        merged = result.geometry
+      }
+    }
+  } catch (e) {
+    console.warn('[Brand Export] CSG deboss failed, exporting without brand:', e)
+  }
+
   return geometryToSTL(merged)
 }
 
