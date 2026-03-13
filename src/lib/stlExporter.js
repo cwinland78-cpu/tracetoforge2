@@ -527,11 +527,12 @@ function createCustomInsert(points, config) {
 
   // Helper: apply bevel CSG to a wall geometry
   const applyBevel = (wallGeo) => {
-    if (!anyBevel) return new THREE.Mesh(wallGeo, trayMat2)
     try {
       const evaluator = new Evaluator()
       let resultMesh = new Brush(wallGeo)
       resultMesh.updateMatrixWorld()
+
+      if (anyBevel) {
 
       const maxCb = Math.max(cb, nbClamped, ...extraToolViz.map(ev => ev.cavityBevel || 0))
       if (maxCb > 0.1) {
@@ -551,6 +552,19 @@ function createCustomInsert(points, config) {
           prevBrush.updateMatrixWorld()
           resultMesh = evaluator.evaluate(prevBrush, bevelBrush, SUBTRACTION)
         })
+      }
+      } // end if (anyBevel)
+
+      // Brand deboss on outer front wall
+      const brandGeo = createWallBrandGeometry(trayWidth, trayHeight, actualBaseDepth, cavityZ, wallThickness)
+      if (brandGeo) {
+        try {
+          const brandBrush = new Brush(brandGeo)
+          brandBrush.updateMatrixWorld()
+          const prevBrush2 = new Brush(resultMesh.geometry || resultMesh)
+          prevBrush2.updateMatrixWorld()
+          resultMesh = evaluator.evaluate(prevBrush2, brandBrush, SUBTRACTION)
+        } catch (e2) { console.warn('[Brand] wall CSG failed:', e2) }
       }
 
       resultMesh.material = trayMat2
@@ -807,18 +821,6 @@ function createCustomInsert(points, config) {
     handleMesh.userData.notchIndex = ni
     group.add(handleMesh)
   })
-
-  // ─── Branding deboss (indented text on inner front wall) ───
-  try {
-    const brandCutGeo = createWallBrandGeometry(trayWidth, trayHeight, actualBaseDepth, cavityZ, wallThickness)
-    if (brandCutGeo) {
-      // Add as subtle visual indicator (the actual deboss is visual only in preview)
-      const brandMat = new THREE.MeshPhongMaterial({ color: 0x444455, transparent: true, opacity: 0.6, side: THREE.DoubleSide })
-      const brandMesh = new THREE.Mesh(brandCutGeo, brandMat)
-      brandMesh.userData.vizOnly = true
-      group.add(brandMesh)
-    }
-  } catch (e) { /* branding is non-critical */ }
 
   return group
 }
@@ -1292,14 +1294,13 @@ function createGridfinityInsert(points, config) {
     addGrabHandle(nPts, origIdx)
   })
 
-  // ─── Branding deboss (indented text on inner front wall) ───
+  // ─── Branding deboss (indented text on outer front wall) ───
   try {
-    const gfWallThick = 1.5 // gridfinity wall thickness approximation
+    const gfWallThick = 1.5
     const brandCutGeo = createWallBrandGeometry(binW, binH, GF.baseHeight, wallHeight, gfWallThick)
     if (brandCutGeo) {
-      const brandMat = new THREE.MeshPhongMaterial({ color: 0x444455, transparent: true, opacity: 0.6, side: THREE.DoubleSide })
+      const brandMat = new THREE.MeshPhongMaterial({ color: 0x444455, side: THREE.DoubleSide })
       const brandMesh = new THREE.Mesh(brandCutGeo, brandMat)
-      brandMesh.userData.vizOnly = true
       group.add(brandMesh)
     }
   } catch (e) { /* branding is non-critical */ }
@@ -1389,43 +1390,7 @@ export function exportSTL(toolPoints, config) {
 
   if (geometries.length === 0) throw new Error('No geometry to export')
 
-  let merged = mergeGeometries(geometries)
-
-  // CSG-subtract brand deboss from the merged solid
-  try {
-    let brandCutGeo = null
-    const mode = config.mode || 'object'
-    if (mode === 'custom') {
-      const { trayWidth = 150, trayHeight = 100, wallThickness = 3, trayDepth = 30, floorThickness = 2, toolDepth } = config
-      const cavZ = toolDepth || (trayDepth - floorThickness)
-      const baseD = Math.max(trayDepth - cavZ, floorThickness)
-      brandCutGeo = createWallBrandGeometry(trayWidth, trayHeight, baseD, cavZ, wallThickness)
-    } else if (mode === 'gridfinity') {
-      const { gridX = 2, gridY = 1, gridHeight = 32 } = config
-      const binW = gridX * 42 - 0.5 * 2
-      const binH = gridY * 42 - 0.5 * 2
-      const wH = gridHeight
-      brandCutGeo = createWallBrandGeometry(binW, binH, 4.75, wH, 1.5)
-    }
-    if (brandCutGeo) {
-      console.log('[Brand Export] Attempting CSG deboss subtraction...')
-      const evaluator = new Evaluator()
-      const solidBrush = new Brush(merged)
-      solidBrush.updateMatrixWorld()
-      const cutBrush = new Brush(brandCutGeo)
-      cutBrush.updateMatrixWorld()
-      const result = evaluator.evaluate(solidBrush, cutBrush, SUBTRACTION)
-      if (result && result.geometry) {
-        merged = result.geometry
-        console.log('[Brand Export] CSG deboss succeeded')
-      } else {
-        console.warn('[Brand Export] CSG returned no geometry')
-      }
-    }
-  } catch (e) {
-    console.warn('[Brand Export] CSG deboss failed, exporting without brand:', e)
-  }
-
+  const merged = mergeGeometries(geometries)
   return geometryToSTL(merged)
 }
 
