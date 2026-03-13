@@ -212,7 +212,28 @@ function createCustomInsert(points, config) {
   })
 
   // Apply tolerance using Clipper polygon offset - uniform gap on all edges
-  const holePts = (tolerance > 0) ? offsetPolygon(scaledToolPts, tolerance) : scaledToolPts
+  const rawHolePts = (tolerance > 0) ? offsetPolygon(scaledToolPts, tolerance) : scaledToolPts
+
+  // Clip hole to tray interior so tool can't punch through walls
+  const halfIW = trayWidth / 2 - wallThickness
+  const halfIH = trayHeight / 2 - wallThickness
+  const trayInterior = [
+    { x: -halfIW, y: -halfIH }, { x: halfIW, y: -halfIH },
+    { x: halfIW, y: halfIH }, { x: -halfIW, y: halfIH }
+  ]
+  let holePts = rawHolePts
+  try {
+    const sc = 1000
+    const clipper = new ClipperLib.Clipper()
+    clipper.AddPath(rawHolePts.map(p => ({ X: Math.round(p.x * sc), Y: Math.round(p.y * sc) })), ClipperLib.PolyType.ptSubject, true)
+    clipper.AddPath(trayInterior.map(p => ({ X: Math.round(p.x * sc), Y: Math.round(p.y * sc) })), ClipperLib.PolyType.ptClip, true)
+    const solution = new ClipperLib.Paths()
+    clipper.Execute(ClipperLib.ClipType.ctIntersection, solution)
+    if (solution.length > 0 && solution[0].length >= 3) {
+      holePts = solution[0].map(p => ({ x: p.X / sc, y: p.Y / sc }))
+      if (ClipperLib.Clipper.Area(solution[0]) < 0) holePts.reverse()
+    }
+  } catch (e) { /* fallback to unclipped */ }
 
   // ─── Finger notches ───
   const { fingerNotches = [] } = config
@@ -378,7 +399,20 @@ function createCustomInsert(points, config) {
       return { x: r.x + atOx, y: r.y + atOy }
     })
     const atTol = at.tolerance || 0
-    const atHolePts = atTol > 0 ? offsetPolygon(atScaledPts, atTol) : atScaledPts
+    const atRawHole = atTol > 0 ? offsetPolygon(atScaledPts, atTol) : atScaledPts
+    let atHolePts = atRawHole
+    try {
+      const sc = 1000
+      const cl2 = new ClipperLib.Clipper()
+      cl2.AddPath(atRawHole.map(p => ({ X: Math.round(p.x * sc), Y: Math.round(p.y * sc) })), ClipperLib.PolyType.ptSubject, true)
+      cl2.AddPath(trayInterior.map(p => ({ X: Math.round(p.x * sc), Y: Math.round(p.y * sc) })), ClipperLib.PolyType.ptClip, true)
+      const sol = new ClipperLib.Paths()
+      cl2.Execute(ClipperLib.ClipType.ctIntersection, sol)
+      if (sol.length > 0 && sol[0].length >= 3) {
+        atHolePts = sol[0].map(p => ({ x: p.X / sc, y: p.Y / sc }))
+        if (ClipperLib.Clipper.Area(sol[0]) < 0) atHolePts.reverse()
+      }
+    } catch (e) { /* fallback */ }
     const atDepth = at.toolDepth || cavityZ // default to primary cavity depth
     extraToolHolePts.push({ pts: atHolePts, depth: atDepth })
     extraToolViz.push({ shape: atShape, scale: atScale, rad: atRad, ox: atOx, oy: atOy, cutShape: atHolePts, cavityBevel: at.cavityBevel || 0, depth: atDepth })
