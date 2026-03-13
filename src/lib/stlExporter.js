@@ -7,7 +7,7 @@ import helvetikerBold from 'three/examples/fonts/helvetiker_bold.typeface.json'
 // ─── Branding: "TracetoForge" deboss ───
 const brandFont = new Font(helvetikerBold)
 const BRAND_TEXT = 'TracetoForge'
-const DEBOSS_DEPTH = 0.5 // mm into the wall
+const DEBOSS_DEPTH = 1.0 // mm into the wall
 
 /**
  * Create branding geometry for CSG subtraction from a wall.
@@ -1408,6 +1408,7 @@ export function exportSTL(toolPoints, config) {
       brandCutGeo = createWallBrandGeometry(binW, binH, 4.75, wH, 1.5)
     }
     if (brandCutGeo) {
+      console.log('[Brand Export] Attempting CSG deboss subtraction...')
       const evaluator = new Evaluator()
       const solidBrush = new Brush(merged)
       solidBrush.updateMatrixWorld()
@@ -1416,6 +1417,9 @@ export function exportSTL(toolPoints, config) {
       const result = evaluator.evaluate(solidBrush, cutBrush, SUBTRACTION)
       if (result && result.geometry) {
         merged = result.geometry
+        console.log('[Brand Export] CSG deboss succeeded')
+      } else {
+        console.warn('[Brand Export] CSG returned no geometry')
       }
     }
   } catch (e) {
