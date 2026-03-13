@@ -25,9 +25,14 @@ function createBrandGeometry(toolPts, floorZ, cornerMargin = 1) {
     const bounds = getShapeBounds(toolPts)
     const cavW = bounds.width
     const cavH = bounds.height
-    if (cavW < 10 || cavH < 5) return null
+    if (Math.max(cavW, cavH) < 10 || Math.min(cavW, cavH) < 5) return null
 
-    const targetW = Math.min(Math.max(cavW * 0.7, 10), 60)
+    // Orient text along the longest axis
+    const vertical = cavH > cavW
+    const longAxis = vertical ? cavH : cavW
+    const shortAxis = vertical ? cavW : cavH
+
+    const targetW = Math.min(Math.max(longAxis * 0.7, 10), 60)
     const shapes = brandFont.generateShapes(BRAND_TEXT, 1)
     if (!shapes || shapes.length === 0) return null
 
@@ -41,7 +46,7 @@ function createBrandGeometry(toolPts, floorZ, cornerMargin = 1) {
 
     const scale = targetW / rawW
     const textH = rawH * scale
-    if (textH > cavH * 0.5) return null
+    if (textH > shortAxis * 0.5) return null
 
     const geo = new THREE.ExtrudeGeometry(shapes, {
       depth: BRAND_HEIGHT,
@@ -49,12 +54,20 @@ function createBrandGeometry(toolPts, floorZ, cornerMargin = 1) {
     })
     geo.scale(scale, scale, 1)
 
-    // Center both horizontally and vertically in cavity
     const cavCx = (bounds.minX + bounds.maxX) / 2
     const cavCy = (bounds.minY + bounds.maxY) / 2
-    const x = cavCx - targetW / 2
-    const y = cavCy - textH / 2
-    geo.translate(x, y, floorZ)
+
+    if (vertical) {
+      // Rotate 90 degrees CCW, then center in cavity
+      geo.translate(-targetW / 2, -textH / 2, 0)
+      geo.rotateZ(Math.PI / 2)
+      geo.translate(cavCx, cavCy, floorZ)
+    } else {
+      // Normal horizontal placement, centered
+      const x = cavCx - targetW / 2
+      const y = cavCy - textH / 2
+      geo.translate(x, y, floorZ)
+    }
 
     return geo
   } catch (e) {
