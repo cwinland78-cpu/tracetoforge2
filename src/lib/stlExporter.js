@@ -1,82 +1,6 @@
 import * as THREE from 'three'
 import { Brush, Evaluator, SUBTRACTION, INTERSECTION } from 'three-bvh-csg'
 import ClipperLib from 'clipper-lib'
-import { Font } from 'three/examples/jsm/loaders/FontLoader.js'
-import helvetikerBold from 'three/examples/fonts/helvetiker_bold.typeface.json'
-
-// ─── Branding: "TracetoForge" deboss ───
-const brandFont = new Font(helvetikerBold)
-const BRAND_TEXT = 'TracetoForge'
-const DEBOSS_DEPTH = 1.0 // mm into the wall
-
-/**
- * Create branding geometry for CSG subtraction from a wall.
- * Text is oriented on the inner face of the front wall (Y = -trayH/2 side),
- * extruded inward (negative Y) so subtracting it from the wall creates a deboss.
- * For Gridfinity, same approach on the front inner wall.
- * 
- * @param {number} trayW - tray width
- * @param {number} trayH - tray height  
- * @param {number} wallZ - Z position of wall bottom (base top)
- * @param {number} wallHeight - height of the wall section
- * @param {number} wallThick - wall thickness for deboss depth clamping
- * @returns {THREE.BufferGeometry|null}
- */
-function createWallBrandGeometry(trayW, trayH, wallZ, wallHeight, wallThick) {
-  try {
-    if (trayW < 20 || wallHeight < 5) return null
-
-    // Size text to 60% of tray width, max 80mm
-    const targetW = Math.min(trayW * 0.6, 80)
-    const shapes = brandFont.generateShapes(BRAND_TEXT, 1)
-    if (!shapes || shapes.length === 0) return null
-
-    const tempGeo = new THREE.ShapeGeometry(shapes)
-    tempGeo.computeBoundingBox()
-    const bb = tempGeo.boundingBox
-    const rawW = bb.max.x - bb.min.x
-    const rawH = bb.max.y - bb.min.y
-    tempGeo.dispose()
-    if (rawW < 0.001) return null
-
-    let scale = targetW / rawW
-    let textH = rawH * scale
-    // Shrink if text taller than 60% of wall height
-    if (textH > wallHeight * 0.6) {
-      scale = (wallHeight * 0.6) / rawH
-      textH = rawH * scale
-    }
-    const textW = rawW * scale
-
-    // Extrude inward (will be subtracted from wall)
-    const deboss = Math.min(DEBOSS_DEPTH, wallThick * 0.4)
-    const geo = new THREE.ExtrudeGeometry(shapes, {
-      depth: deboss,
-      bevelEnabled: false,
-    })
-    geo.scale(scale, scale, 1)
-
-    // Text is generated in XY plane. We need it on the inner front wall face:
-    // Text on OUTER face of front wall, debossed inward
-    // Step 1: center text at origin
-    geo.translate(-textW / 2, -textH / 2, 0)
-    // Step 2: rotate so extrusion goes +Y (into the wall)
-    // rotateX(-90): +Z becomes +Y, text readable from -Y
-    // But text will be vertically flipped, so also flip Y before rotation
-    geo.scale(1, -1, 1)
-    geo.rotateX(-Math.PI / 2)
-    // Now extrusion goes in +Y direction (into the wall)
-    // Step 3: position just outside the outer wall face
-    const wallY = -trayH / 2 - 0.01  // slightly outside so CSG fully intersects
-    const centerZ = wallZ + wallHeight / 2
-    geo.translate(0, wallY, centerZ)
-
-    return geo
-  } catch (e) {
-    console.warn('[Brand] Failed:', e)
-    return null
-  }
-}
 
 // ─── Shape Utilities ───
 
@@ -529,12 +453,12 @@ function createCustomInsert(points, config) {
 
   // Helper: apply bevel CSG to a wall geometry
   const applyBevel = (wallGeo) => {
+    if (!anyBevel) return new THREE.Mesh(wallGeo, trayMat2)
     try {
       const evaluator = new Evaluator()
       let resultMesh = new Brush(wallGeo)
       resultMesh.updateMatrixWorld()
 
-      if (anyBevel) {
 
       const maxCb = Math.max(cb, nbClamped, ...extraToolViz.map(ev => ev.cavityBevel || 0))
       if (maxCb > 0.1) {
@@ -554,19 +478,6 @@ function createCustomInsert(points, config) {
           prevBrush.updateMatrixWorld()
           resultMesh = evaluator.evaluate(prevBrush, bevelBrush, SUBTRACTION)
         })
-      }
-      } // end if (anyBevel)
-
-      // Brand deboss on outer front wall
-      const brandGeo = createWallBrandGeometry(trayWidth, trayHeight, actualBaseDepth, cavityZ, wallThickness)
-      if (brandGeo) {
-        try {
-          const brandBrush = new Brush(brandGeo)
-          brandBrush.updateMatrixWorld()
-          const prevBrush2 = new Brush(resultMesh.geometry || resultMesh)
-          prevBrush2.updateMatrixWorld()
-          resultMesh = evaluator.evaluate(prevBrush2, brandBrush, SUBTRACTION)
-        } catch (e2) { console.warn('[Brand] wall CSG failed:', e2) }
       }
 
       resultMesh.material = trayMat2
@@ -1295,17 +1206,6 @@ function createGridfinityInsert(points, config) {
     group.add(nMesh)
     addGrabHandle(nPts, origIdx)
   })
-
-  // ─── Branding deboss (indented text on outer front wall) ───
-  try {
-    const gfWallThick = 1.5
-    const brandCutGeo = createWallBrandGeometry(binW, binH, GF.baseHeight, wallHeight, gfWallThick)
-    if (brandCutGeo) {
-      const brandMat = new THREE.MeshPhongMaterial({ color: 0x444455, side: THREE.DoubleSide })
-      const brandMesh = new THREE.Mesh(brandCutGeo, brandMat)
-      group.add(brandMesh)
-    }
-  } catch (e) { /* branding is non-critical */ }
 
   return group
 }
