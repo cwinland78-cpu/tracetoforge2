@@ -60,12 +60,14 @@ function createWallBrandGeometry(trayW, trayH, wallZ, wallHeight, wallThick) {
     // Text on OUTER face of front wall, debossed inward
     // Step 1: center text at origin
     geo.translate(-textW / 2, -textH / 2, 0)
-    // Step 2: rotate to stand up on front wall
-    // Text starts in XY plane. We need it in XZ plane, readable from -Y direction.
-    // rotateX(+90) puts text facing +Y with top of text going to +Z
-    geo.rotateX(Math.PI / 2)
-    // Step 3: position on outer face of front wall
-    const wallY = -trayH / 2  // outer face
+    // Step 2: rotate so extrusion goes +Y (into the wall)
+    // rotateX(-90): +Z becomes +Y, text readable from -Y
+    // But text will be vertically flipped, so also flip Y before rotation
+    geo.scale(1, -1, 1)
+    geo.rotateX(-Math.PI / 2)
+    // Now extrusion goes in +Y direction (into the wall)
+    // Step 3: position just outside the outer wall face
+    const wallY = -trayH / 2 - 0.01  // slightly outside so CSG fully intersects
     const centerZ = wallZ + wallHeight / 2
     geo.translate(0, wallY, centerZ)
 
