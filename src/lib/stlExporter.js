@@ -279,9 +279,10 @@ function createCustomInsert(points, config) {
   const toolBounds = getShapeBounds(points)
   const maxToolW = trayWidth - wallThickness * 2
   const maxToolH = trayHeight - wallThickness * 2
+  // Points are already in real-world mm. Only shrink if tool exceeds tray cavity.
   const scaleX = maxToolW / toolBounds.width
   const scaleY = maxToolH / toolBounds.height
-  const toolScale = Math.min(scaleX, scaleY, 1)
+  const toolScale = (scaleX >= 1 && scaleY >= 1) ? 1 : Math.min(scaleX, scaleY)
 
   // Scale tool points to fit tray
   const scaledToolPts = toolCentered.map(p => {
@@ -446,7 +447,7 @@ function createCustomInsert(points, config) {
     const atBounds = getShapeBounds(at.points)
     const atScaleX = maxToolW / atBounds.width
     const atScaleY = maxToolH / atBounds.height
-    const atScale = Math.min(atScaleX, atScaleY, 1)
+    const atScale = (atScaleX >= 1 && atScaleY >= 1) ? 1 : Math.min(atScaleX, atScaleY)
     const atRad = (at.toolRotation || 0) * Math.PI / 180
     const atRotPt = (x, y) => {
       if (atRad === 0) return { x, y }
