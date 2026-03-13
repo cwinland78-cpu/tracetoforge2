@@ -511,9 +511,10 @@ function createCustomInsert(points, config) {
   }
 
   // ─── Top section (with tool cavity hole) - layered for independent notch depths ───
-  const { cavityBevel = 0 } = config
+  const { cavityBevel = 0, notchBevel: nb = 0 } = config
   const cb = Math.min(cavityBevel, cavityZ * 0.3, 5) // clamp
-  const anyBevel = cb > 0.1 || extraToolViz.some(ev => (ev.cavityBevel || 0) > 0.1)
+  const nbClamped = Math.min(nb, cavityZ * 0.3, 5)
+  const anyBevel = cb > 0.1 || nbClamped > 0.1 || extraToolViz.some(ev => (ev.cavityBevel || 0) > 0.1)
   const topSurface = actualBaseDepth + cavityZ
 
   // Split independent notches by relation to cavity depth
@@ -532,7 +533,7 @@ function createCustomInsert(points, config) {
       let resultMesh = new Brush(wallGeo)
       resultMesh.updateMatrixWorld()
 
-      const maxCb = Math.max(cb, ...extraToolViz.map(ev => ev.cavityBevel || 0))
+      const maxCb = Math.max(cb, nbClamped, ...extraToolViz.map(ev => ev.cavityBevel || 0))
       if (maxCb > 0.1) {
         // Apply bevel to unified holes (all tools + notches merged)
         unifiedHolePtArrays.forEach(pts => {
@@ -1032,10 +1033,11 @@ function createGridfinityInsert(points, config) {
   })
 
   // Finger notches (each is its own cavity item)
+  const notchBev = config.notchBevel || 0
   allNotchData.forEach(nd => {
     // depth=0 means use the primary tool's cavity depth
     const notchDepth = nd.depth > 0 ? Math.min(nd.depth, maxCavity) : cavityZ
-    allCavityItems.push({ pts: nd.pts, depth: notchDepth, bevel: 0, label: `notch${nd.origIdx}` })
+    allCavityItems.push({ pts: nd.pts, depth: notchDepth, bevel: notchBev, label: `notch${nd.origIdx}` })
   })
 
   // ─── Floor generation ───

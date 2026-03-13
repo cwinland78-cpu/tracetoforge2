@@ -126,6 +126,7 @@ export default function Editor() {
   const [cavityBevel, setCavityBevel] = useState(0)
   const [fingerNotches, setFingerNotches] = useState([]) // array of { shape, radius, w, h, x, y }
   const [activeNotchIdx, setActiveNotchIdx] = useState(0)
+  const [notchBevel, setNotchBevel] = useState(0)
   const [outerShapeType, setOuterShapeType] = useState('rectangle') // 'rectangle' | 'oval' | 'custom'
   const [activeTemplate, setActiveTemplate] = useState(null) // null | 'packout-compact'
   const [outerShapePoints, setOuterShapePoints] = useState(null) // custom polygon points in mm
@@ -224,6 +225,7 @@ export default function Editor() {
       if (cfg.toolOffsetX != null) setToolOffsetX(cfg.toolOffsetX)
       if (cfg.toolOffsetY != null) setToolOffsetY(cfg.toolOffsetY)
       if (cfg.fingerNotches) setFingerNotches(cfg.fingerNotches)
+      if (cfg.notchBevel != null) setNotchBevel(cfg.notchBevel)
       else if (cfg.fingerNotch) {
         // Backward compat: convert old single notch to array
         setFingerNotches([{ shape: cfg.fingerNotchShape || 'circle', radius: cfg.fingerNotchRadius || 12, w: cfg.fingerNotchW || 24, h: cfg.fingerNotchH || 16, x: cfg.fingerNotchX || 0, y: cfg.fingerNotchY || 0 }])
@@ -279,7 +281,7 @@ export default function Editor() {
       outputMode, realWidth, realHeight, wallThickness, floorThickness,
       toolDepth, tolerance, contours, selectedContour, cornerRadius,
       cavityBevel, toolRotation, toolOffsetX, toolOffsetY,
-      fingerNotches, activeToolIdx,
+      fingerNotches, activeToolIdx, notchBevel,
       tools: savedTools, step: step, trayWidth, trayHeight, trayDepth, depth, objectEdgeRadius,
       edgeProfile, edgeSize, outerShapeType, outerShapePoints, activeTemplate, gridX, gridY,
       gridHeight, threshold, simplification, sensitivity, minContourPct,
@@ -1543,10 +1545,10 @@ export default function Editor() {
       if (outerShapeType === 'custom' && outerShapePoints && outerShapePoints.length >= 3) {
         outerPts = outerShapePoints
       }
-      return { ...base, trayWidth, trayHeight, trayDepth, wallThickness, cornerRadius, floorThickness, edgeProfile, edgeSize, cavityBevel: t0.cavityBevel ?? 0, fingerNotches, outerShapeType, outerShapePoints: outerPts, additionalTools, activeToolIdx, activeNotchIdx }
+      return { ...base, trayWidth, trayHeight, trayDepth, wallThickness, cornerRadius, floorThickness, edgeProfile, edgeSize, cavityBevel: t0.cavityBevel ?? 0, notchBevel, fingerNotches, outerShapeType, outerShapePoints: outerPts, additionalTools, activeToolIdx, activeNotchIdx }
     }
     if (outputMode === 'gridfinity') {
-      return { ...base, gridX, gridY, gridHeight, cavityBevel: t0.cavityBevel ?? 0, fingerNotches, additionalTools, activeToolIdx, activeNotchIdx }
+      return { ...base, gridX, gridY, gridHeight, cavityBevel: t0.cavityBevel ?? 0, notchBevel, fingerNotches, additionalTools, activeToolIdx, activeNotchIdx }
     }
     return { ...base, additionalTools, activeToolIdx, activeNotchIdx }
   }
@@ -2130,6 +2132,12 @@ export default function Editor() {
                         </>
                         )
                       })()}
+                      {fingerNotches.length > 0 && (
+                        <ParamRow label="Notch Bevel" tooltip="Bevel around the top edge of all finger notches.">
+                          <input type="number" value={notchBevel} onChange={e => setNotchBevel(Math.max(0, +e.target.value))} className="w-[4.5rem] text-right" min="0" step="0.5" />
+                          <span className="text-[11px] text-[#666] ml-1">mm</span>
+                        </ParamRow>
+                      )}
 
                       {/* Outer Shape */}
                       <div className="border-t border-[#2A2A35]/50 pt-3 mt-1">
@@ -2273,6 +2281,12 @@ export default function Editor() {
                         </>
                         )
                       })()}
+                      {fingerNotches.length > 0 && (
+                        <ParamRow label="Notch Bevel" tooltip="Bevel around the top edge of all finger notches.">
+                          <input type="number" value={notchBevel} onChange={e => setNotchBevel(Math.max(0, +e.target.value))} className="w-[4.5rem] text-right" min="0" step="0.5" />
+                          <span className="text-[11px] text-[#666] ml-1">mm</span>
+                        </ParamRow>
+                      )}
                     </>
                   )}
                 </div>
