@@ -1,9 +1,9 @@
 import { Purchases } from '@revenuecat/purchases-js';
 import { callRpc, queryTable } from './supabase';
 
-const SUPABASE_URL = 'https://pzmykycxmbzbrzkyotkc.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6bXlreWN4bWJ6YnJ6a3lvdGtjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA1NjUxNjYsImV4cCI6MjA4NjE0MTE2Nn0.382YBaplfZJVl_ngKbGSpEPm1w3urlrxYAQFzRJW3z0';
-const RC_API_KEY = import.meta.env.VITE_RC_API_KEY || 'rcb_qocDHLqCasYLKEOvPuyDacOrCFOt';
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const RC_API_KEY = import.meta.env.VITE_RC_API_KEY;
 const CUSTOMER_ID_KEY = 'ttf_customer_id';
 
 let purchasesInstance = null;
