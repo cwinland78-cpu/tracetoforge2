@@ -646,7 +646,7 @@ export default function Editor() {
 
           // Skip contours that span nearly the full image (border artifacts from crop)
           const br = cv.boundingRect(contour)
-          if (br.width > img.width * 0.9 && br.height > img.height * 0.9) {
+          if (br.width > img.width * 0.97 && br.height > img.height * 0.97) {
             contour.delete()
             continue
           }

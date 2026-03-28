@@ -44,12 +44,20 @@ export async function updateProject(id, updates) {
   return Array.isArray(data) ? data[0] : data
 }
 
-export async function listProjects(userId) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/projects?user_id=eq.${userId}&select=*&order=updated_at.desc`, {
+export async function listProjects(userId, retries = 2) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/projects?user_id=eq.${userId}&select=id,name,user_id,created_at,updated_at,thumbnail&order=updated_at.desc`, {
     headers: headers(),
   })
   const data = await res.json()
-  if (!res.ok) throw new Error(data?.message || JSON.stringify(data))
+  if (!res.ok) {
+    // Retry on statement timeout (Supabase free tier cold start)
+    if (retries > 0 && data?.message?.includes('statement timeout')) {
+      console.warn(`[Dashboard] Timeout, retrying... (${retries} left)`)
+      await new Promise(r => setTimeout(r, 1500))
+      return listProjects(userId, retries - 1)
+    }
+    throw new Error(data?.message || JSON.stringify(data))
+  }
   return data || []
 }
 
