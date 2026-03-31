@@ -101,7 +101,7 @@ export default function ImageToSTL() {
       <p>
         Most photo-to-STL tools offer a free tier. TracetoForge gives you free exports to try
         the tool, then uses a credit system for additional exports. One credit equals one export.
-        Credit packs start at $9.99 for 5 exports. Compare that to a $70/month Fusion 360
+        Credit packs start at $9.99 for 10 exports. Compare that to a $70/month Fusion 360
         subscription or $15-40 per custom insert on Etsy.
       </p>
 

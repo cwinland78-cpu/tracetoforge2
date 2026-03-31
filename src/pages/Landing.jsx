@@ -410,11 +410,11 @@ export default function Landing() {
                 <div className="flex items-end gap-2 mb-1">
                   <span className="text-4xl font-display font-black">$9.99</span>
                 </div>
-                <p className="text-xs text-[#666680] font-mono">5 export credits &bull; $2.00 per export</p>
+                <p className="text-xs text-[#666680] font-mono">10 export credits &bull; $1.00 per export</p>
               </div>
               <ul className="space-y-2.5 mb-8 flex-1">
                 {[
-                  '5 export credits',
+                  '10 export credits',
                   'Credits never expire',
                   'All output modes & formats',
                   'Priority support',
@@ -445,11 +445,11 @@ export default function Landing() {
                 <div className="flex items-end gap-2 mb-1">
                   <span className="text-4xl font-display font-black">$34.99</span>
                 </div>
-                <p className="text-xs text-[#666680] font-mono">20 export credits &bull; $1.75 per export</p>
+                <p className="text-xs text-[#666680] font-mono">35 export credits &bull; $1.00 per export</p>
               </div>
               <ul className="space-y-2.5 mb-8 flex-1">
                 {[
-                  '20 export credits',
+                  '35 export credits',
                   'Credits never expire',
                   'All output modes & formats',
                   'Priority support',

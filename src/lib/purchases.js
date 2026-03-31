@@ -54,8 +54,8 @@ export async function purchasePackage(pkg, userId) {
     // Credits are added server-side via RevenueCat webhook - no client-side addition needed
     const productId = pkg.rcBillingProduct?.identifier || pkg.identifier || '';
     let creditsToAdd = 0;
-    if (productId.includes('20')) creditsToAdd = 20;
-    else if (productId.includes('5')) creditsToAdd = 5;
+    if (productId.includes('20')) creditsToAdd = 35;
+    else if (productId.includes('5')) creditsToAdd = 10;
     return { success: true, credits: creditsToAdd, result };
   } catch (err) {
     if (err.errorCode === 1) return { success: false, cancelled: true };
