@@ -154,9 +154,9 @@ export default function PaywallModal({ isOpen, onClose, onCreditsChanged, userId
                     const product = pkg.rcBillingProduct;
                     const id = product?.identifier || '';
                     const is20 = id.includes('20');
-                    const credits = is20 ? 35 : 10;
+                    const credits = is20 ? 70 : 20;
                     const price = product?.currentPrice?.formattedPrice || (is20 ? '$34.99' : '$9.99');
-                    const perExport = '$1.00';
+                    const perExport = '$0.50';
                     return (
                       <button
                         key={id}
@@ -186,8 +186,8 @@ export default function PaywallModal({ isOpen, onClose, onCreditsChanged, userId
                     <div className="w-full text-left p-4 rounded-xl border border-zinc-600 bg-zinc-800 opacity-50">
                       <div className="flex justify-between items-center">
                         <div>
-                          <div className="font-bold text-white text-lg">10 Export Credits</div>
-                          <div className="text-zinc-400 text-sm">$1.00 per export</div>
+                          <div className="font-bold text-white text-lg">20 Export Credits</div>
+                          <div className="text-zinc-400 text-sm">$0.50 per export</div>
                         </div>
                         <div className="text-orange-400 font-bold text-xl">$9.99</div>
                       </div>
@@ -196,10 +196,10 @@ export default function PaywallModal({ isOpen, onClose, onCreditsChanged, userId
                       <div className="flex justify-between items-center">
                         <div>
                           <div className="font-bold text-white text-lg">
-                            35 Export Credits
+                            70 Export Credits
                             <span className="ml-2 text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full">BEST VALUE</span>
                           </div>
-                          <div className="text-zinc-400 text-sm">$1.00 per export</div>
+                          <div className="text-zinc-400 text-sm">$0.50 per export</div>
                         </div>
                         <div className="text-orange-400 font-bold text-xl">$34.99</div>
                       </div>
