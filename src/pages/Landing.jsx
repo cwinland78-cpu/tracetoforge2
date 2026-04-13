@@ -355,7 +355,7 @@ export default function Landing() {
       {/* Ad unit - below hero */}
       <div className="max-w-4xl mx-auto px-6 py-4">
         <ins className="adsbygoogle"
-          style={{ display: 'block', minHeight: '100px' }}
+          style={{ display: 'block', minHeight: '100px', background: 'rgba(136,136,160,0.08)', borderRadius: '12px', border: '1px dashed rgba(136,136,160,0.2)' }}
           data-ad-client="ca-pub-5879329589086028"
           data-ad-slot="auto"
           data-ad-format="auto"
@@ -367,7 +367,7 @@ export default function Landing() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <span className="font-mono text-xs text-brand tracking-widest uppercase mb-3 block">Process</span>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-extrabold tracking-tight">
+            <h2 className="text-3xl sm:text-4xl md:text-6xl font-display font-extrabold tracking-tight">
               Four Steps. Two Minutes. Done.
             </h2>
           </div>
@@ -529,7 +529,7 @@ export default function Landing() {
       {/* Ad unit - after pricing */}
       <div className="max-w-4xl mx-auto px-6 py-4">
         <ins className="adsbygoogle"
-          style={{ display: 'block', minHeight: '100px' }}
+          style={{ display: 'block', minHeight: '100px', background: 'rgba(136,136,160,0.08)', borderRadius: '12px', border: '1px dashed rgba(136,136,160,0.2)' }}
           data-ad-client="ca-pub-5879329589086028"
           data-ad-slot="auto"
           data-ad-format="auto"
@@ -540,7 +540,7 @@ export default function Landing() {
       <section className="px-6 py-20 md:py-28">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-extrabold tracking-tight mb-4">
+            <h2 className="text-3xl sm:text-4xl md:text-6xl font-display font-extrabold tracking-tight mb-4">
               Built for <span className="text-brand">Makers</span>, Not Engineers
             </h2>
             <p className="text-[#8888A0] max-w-xl mx-auto leading-relaxed">
@@ -578,7 +578,7 @@ export default function Landing() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <span className="font-mono text-xs text-brand tracking-widest uppercase mb-3 block">Output</span>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-extrabold tracking-tight mb-4">
+            <h2 className="text-3xl sm:text-4xl md:text-6xl font-display font-extrabold tracking-tight mb-4">
               Three Ways to Forge
             </h2>
             <p className="text-[#8888A0] max-w-lg mx-auto">
@@ -649,7 +649,7 @@ export default function Landing() {
       {/* Ad unit - after stats */}
       <div className="max-w-4xl mx-auto px-6 py-4">
         <ins className="adsbygoogle"
-          style={{ display: 'block', minHeight: '100px' }}
+          style={{ display: 'block', minHeight: '100px', background: 'rgba(136,136,160,0.08)', borderRadius: '12px', border: '1px dashed rgba(136,136,160,0.2)' }}
           data-ad-client="ca-pub-5879329589086028"
           data-ad-slot="auto"
           data-ad-format="auto"
@@ -660,7 +660,7 @@ export default function Landing() {
       <section className="px-6 py-20 md:py-28">
         <div className="max-w-5xl mx-auto text-center">
           <span className="font-mono text-xs text-brand tracking-widest uppercase mb-3 block">Compatibility</span>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-extrabold tracking-tight mb-4">
+          <h2 className="text-3xl sm:text-4xl md:text-6xl font-display font-extrabold tracking-tight mb-4">
             Works With What You Already Own
           </h2>
           <p className="text-[#8888A0] max-w-lg mx-auto mb-14">
@@ -763,7 +763,7 @@ export default function Landing() {
       <section className="px-6 py-20 md:py-28">
         <div className="max-w-5xl mx-auto text-center">
           <span className="font-mono text-xs text-brand tracking-widest uppercase mb-3 block">Export</span>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-extrabold tracking-tight mb-4">
+          <h2 className="text-3xl sm:text-4xl md:text-6xl font-display font-extrabold tracking-tight mb-4">
             Four Formats. One Click.
           </h2>
           <p className="text-[#8888A0] max-w-lg mx-auto mb-14">
@@ -794,7 +794,7 @@ export default function Landing() {
       {/* Ad unit - mid page */}
       <div className="max-w-4xl mx-auto px-6 py-4">
         <ins className="adsbygoogle"
-          style={{ display: 'block', minHeight: '100px' }}
+          style={{ display: 'block', minHeight: '100px', background: 'rgba(136,136,160,0.08)', borderRadius: '12px', border: '1px dashed rgba(136,136,160,0.2)' }}
           data-ad-client="ca-pub-5879329589086028"
           data-ad-slot="auto"
           data-ad-format="auto"
@@ -805,7 +805,7 @@ export default function Landing() {
       <section className="px-6 py-16">
         <div className="max-w-4xl mx-auto text-center">
           <span className="font-mono text-xs text-brand tracking-widest uppercase mb-3 block">Organize Everything</span>
-          <h2 className="text-2xl sm:text-3xl font-display font-extrabold tracking-tight mb-4">
+          <h2 className="text-3xl sm:text-4xl md:text-6xl font-display font-extrabold tracking-tight mb-4">
             Custom Inserts for Any Tool
           </h2>
           <p className="text-[#8888A0] max-w-lg mx-auto mb-8">
@@ -836,7 +836,7 @@ export default function Landing() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
             <span className="font-mono text-xs text-brand tracking-widest uppercase mb-3 block">Learn</span>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-extrabold tracking-tight mb-4">
+            <h2 className="text-3xl sm:text-4xl md:text-6xl font-display font-extrabold tracking-tight mb-4">
               Guides & Tutorials
             </h2>
             <p className="text-[#8888A0] max-w-lg mx-auto">
@@ -877,7 +877,7 @@ export default function Landing() {
       {/* Ad unit - after blog */}
       <div className="max-w-4xl mx-auto px-6 py-4">
         <ins className="adsbygoogle"
-          style={{ display: 'block', minHeight: '100px' }}
+          style={{ display: 'block', minHeight: '100px', background: 'rgba(136,136,160,0.08)', borderRadius: '12px', border: '1px dashed rgba(136,136,160,0.2)' }}
           data-ad-client="ca-pub-5879329589086028"
           data-ad-slot="auto"
           data-ad-format="auto"
@@ -888,7 +888,7 @@ export default function Landing() {
       <section className="px-6 py-16">
         <div className="max-w-4xl mx-auto text-center">
           <span className="font-mono text-xs text-brand tracking-widest uppercase mb-3 block">Shop</span>
-          <h2 className="text-2xl sm:text-3xl font-display font-extrabold tracking-tight mb-4">
+          <h2 className="text-3xl sm:text-4xl md:text-6xl font-display font-extrabold tracking-tight mb-4">
             No Printer? No Problem.
           </h2>
           <p className="text-[#8888A0] max-w-lg mx-auto mb-8">
