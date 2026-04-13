@@ -306,6 +306,25 @@ export default function Landing() {
             </span>
           </div>
 
+          {/* Demo Video */}
+          <div className="mt-12 max-w-3xl mx-auto">
+            <div className="rounded-2xl overflow-hidden border-2 border-surface-lighter/60 shadow-2xl shadow-black/30">
+              <video
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                className="w-full"
+              >
+                <source src="/demo.mp4" type="video/mp4" />
+              </video>
+            </div>
+            <p className="text-center text-xs text-[#555568] font-mono mt-3">
+              Photo &rarr; Trace &rarr; 3D Preview &rarr; Export STL
+            </p>
+          </div>
+
         </div>
       </section>
 
