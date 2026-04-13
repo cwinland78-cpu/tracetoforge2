@@ -127,6 +127,21 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-bg landing-page">
+      {/* Sticky sidebar ads - desktop only */}
+      <div className="hidden xl:block fixed left-0 top-1/3 z-40 w-[160px] pl-2">
+        <ins className="adsbygoogle"
+          style={{ display: 'block', width: '160px', height: '600px' }}
+          data-ad-client="ca-pub-5879329589086028"
+          data-ad-slot="auto"
+          data-ad-format="vertical" />
+      </div>
+      <div className="hidden xl:block fixed right-0 top-1/3 z-40 w-[160px] pr-2">
+        <ins className="adsbygoogle"
+          style={{ display: 'block', width: '160px', height: '600px' }}
+          data-ad-client="ca-pub-5879329589086028"
+          data-ad-slot="auto"
+          data-ad-format="vertical" />
+      </div>
       <style>{`
         .landing-page {
           --font-display: 'Outfit', 'Space Grotesk', system-ui, sans-serif;
@@ -382,11 +397,11 @@ export default function Landing() {
       <section className="px-6 py-20 md:py-28">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
-            <span className="font-mono text-xs text-brand tracking-widest uppercase mb-3 block">Pricing</span>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-extrabold tracking-tight mb-4">
+            <span className="font-mono text-sm text-brand tracking-widest uppercase mb-4 block">Pricing</span>
+            <h2 className="text-3xl sm:text-4xl md:text-6xl font-display font-extrabold tracking-tight mb-5">
               Simple. No Subscription.
             </h2>
-            <p className="text-[#8888A0] max-w-lg mx-auto">
+            <p className="text-lg text-[#8888A0] max-w-lg mx-auto">
               Start free. Pay only when you're ready to export. Credits never expire.
             </p>
           </div>
@@ -502,6 +517,16 @@ export default function Landing() {
 
       <div className="glow-line" />
 
+      {/* Ad unit - after pricing */}
+      <div className="max-w-4xl mx-auto px-6 py-4">
+        <ins className="adsbygoogle"
+          style={{ display: 'block' }}
+          data-ad-client="ca-pub-5879329589086028"
+          data-ad-slot="auto"
+          data-ad-format="auto"
+          data-full-width-responsive="true" />
+      </div>
+
       {/* Anti-CAD messaging */}
       <section className="px-6 py-20 md:py-28">
         <div className="max-w-5xl mx-auto">
@@ -611,6 +636,16 @@ export default function Landing() {
       </section>
 
       <div className="glow-line" />
+
+      {/* Ad unit - after stats */}
+      <div className="max-w-4xl mx-auto px-6 py-4">
+        <ins className="adsbygoogle"
+          style={{ display: 'block' }}
+          data-ad-client="ca-pub-5879329589086028"
+          data-ad-slot="auto"
+          data-ad-format="auto"
+          data-full-width-responsive="true" />
+      </div>
 
       {/* Compatible Systems */}
       <section className="px-6 py-20 md:py-28">
@@ -829,6 +864,16 @@ export default function Landing() {
       </section>
 
       <div className="glow-line" />
+
+      {/* Ad unit - after blog */}
+      <div className="max-w-4xl mx-auto px-6 py-4">
+        <ins className="adsbygoogle"
+          style={{ display: 'block' }}
+          data-ad-client="ca-pub-5879329589086028"
+          data-ad-slot="auto"
+          data-ad-format="auto"
+          data-full-width-responsive="true" />
+      </div>
 
       {/* Shop - Ready-Made Inserts */}
       <section className="px-6 py-16">
