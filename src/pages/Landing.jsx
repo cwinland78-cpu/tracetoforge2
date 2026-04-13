@@ -111,6 +111,20 @@ export default function Landing() {
     return () => hero.removeEventListener('mousemove', handleMove)
   }, [])
 
+  // Initialize AdSense ads
+  useEffect(() => {
+    try {
+      const ads = document.querySelectorAll('.adsbygoogle')
+      ads.forEach((ad) => {
+        if (!ad.getAttribute('data-adsbygoogle-status')) {
+          (window.adsbygoogle = window.adsbygoogle || []).push({})
+        }
+      })
+    } catch (e) {
+      console.error('AdSense init error:', e)
+    }
+  }, [])
+
   return (
     <div className="min-h-screen bg-bg landing-page">
       <style>{`
@@ -207,7 +221,7 @@ export default function Landing() {
       {/* Nav */}
       <nav className="flex items-center justify-between px-6 py-4 border-b border-surface-lighter/20 backdrop-blur-sm sticky top-0 z-50 bg-bg/80">
         <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => navigate('/')}>
-          <img src="/logo-nav.png" alt="TracetoForge" className="h-10 object-contain" />
+          <img src="/logo-nav.png" alt="TracetoForge" className="h-14 object-contain" />
         </div>
         <div className="flex items-center gap-3">
           <button onClick={() => navigate('/guide')}
@@ -313,6 +327,16 @@ export default function Landing() {
           </div>
         </div>
       </section>
+
+      {/* Ad unit - below hero */}
+      <div className="max-w-4xl mx-auto px-6 py-4">
+        <ins className="adsbygoogle"
+          style={{ display: 'block' }}
+          data-ad-client="ca-pub-5879329589086028"
+          data-ad-slot="auto"
+          data-ad-format="auto"
+          data-full-width-responsive="true" />
+      </div>
 
       {/* How It Works */}
       <section className="px-6 py-10 md:py-16">
@@ -445,11 +469,11 @@ export default function Landing() {
                 <div className="flex items-end gap-2 mb-1">
                   <span className="text-4xl font-display font-black">$34.99</span>
                 </div>
-                <p className="text-xs text-[#666680] font-mono">70 export credits &bull; $0.50 per export</p>
+                <p className="text-xs text-[#666680] font-mono">100 export credits &bull; $0.35 per export</p>
               </div>
               <ul className="space-y-2.5 mb-8 flex-1">
                 {[
-                  '70 export credits',
+                  '100 export credits',
                   'Credits never expire',
                   'All output modes & formats',
                   'Priority support',
@@ -465,7 +489,7 @@ export default function Landing() {
                 onClick={() => navigate('/editor')}
                 className="w-full py-3 rounded-xl bg-brand hover:bg-brand-light text-white text-sm font-bold transition-all shadow-lg shadow-brand/20"
               >
-                Get 20 Credits
+                Get 100 Credits
               </button>
             </div>
           </div>
@@ -722,6 +746,16 @@ export default function Landing() {
       </section>
 
       <div className="glow-line" />
+
+      {/* Ad unit - mid page */}
+      <div className="max-w-4xl mx-auto px-6 py-4">
+        <ins className="adsbygoogle"
+          style={{ display: 'block' }}
+          data-ad-client="ca-pub-5879329589086028"
+          data-ad-slot="auto"
+          data-ad-format="auto"
+          data-full-width-responsive="true" />
+      </div>
 
       {/* What You Can Organize - SEO keyword section */}
       <section className="px-6 py-16">

@@ -79,6 +79,7 @@ function makePage({ title, description, canonical, ogTitle, ogType = 'website', 
       gtag('js', new Date());
       gtag('config', 'AW-17969979491');
     </script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5879329589086028" crossorigin="anonymous"></script>
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
     <link rel="apple-touch-icon" href="/icon-512.png" />
@@ -146,7 +147,7 @@ const faqSchema = {
     {
       "@type": "Question",
       name: "Is TracetoForge free to use?",
-      acceptedAnswer: { "@type": "Answer", text: "Yes. Tracing and 3D previewing are always free with no account required. You get 3 free export credits when you sign up. Additional credits are available in packs: 5 for $9.99 or 20 for $34.99. Credits never expire." }
+      acceptedAnswer: { "@type": "Answer", text: "Yes. Tracing and 3D previewing are always free with no account required. You get 3 free export credits when you sign up. Additional credits are available in packs: 20 for $9.99 or 100 for $34.99. Credits never expire." }
     },
     {
       "@type": "Question",
@@ -209,7 +210,7 @@ const landingHtml = makePage({
       <h3>What tool storage systems are supported?</h3>
       <p>Milwaukee Packout, Gridfinity, DeWalt ToughSystem, TSTAK, Ridgid Pro Gear, Makita MakTrak, Flex Stack Pack, Klein ModBox, Bosch L-Boxx, Festool Systainer, and any custom-dimension toolbox drawer.</p>
       <h3>Is TracetoForge free?</h3>
-      <p>Tracing and 3D previewing are always free. You get 3 free export credits on signup. Additional credits: 5 for $9.99 or 20 for $34.99. Credits never expire.</p>
+      <p>Tracing and 3D previewing are always free. You get 3 free export credits on signup. Additional credits: 20 for $9.99 or 100 for $34.99. Credits never expire.</p>
       <h3>Do I need CAD experience?</h3>
       <p>No. The entire workflow is photo-based. Snap a photo, adjust the trace, set dimensions, export. Under 2 minutes from photo to printable file.</p>
       <h3>What filament should I use for tool inserts?</h3>
