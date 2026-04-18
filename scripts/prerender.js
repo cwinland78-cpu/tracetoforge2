@@ -255,6 +255,44 @@ writePage('/editor', makePage({
       <p><a href="/">Learn more about TracetoForge</a> | <a href="/guide">Getting Started Guide</a></p>`
 }))
 
+// Privacy Policy
+writePage('/privacy', makePage({
+  title: 'Privacy Policy | TracetoForge',
+  description: 'TracetoForge privacy policy. How we collect, use, and protect your information. Covers AdSense, analytics, cookies, and your data rights.',
+  canonical: 'https://tracetoforge.com/privacy/',
+  ogTitle: 'TracetoForge Privacy Policy',
+  h1: 'Privacy Policy',
+  bodyHtml: `
+      <p>This Privacy Policy explains what information TracetoForge collects, how it is used, and the choices available to you. TracetoForge is operated by Qwikymart LLC.</p>
+      <h2>Information We Collect</h2>
+      <p>We collect account information (email), usage data (analytics), and purchase information (via Stripe/RevenueCat). Photos uploaded to the editor are processed entirely in your browser and are not sent to our servers unless you save a project.</p>
+      <h2>Advertising and Google AdSense</h2>
+      <p>TracetoForge uses Google AdSense. Google and its partners use cookies to serve ads based on your visits to this site and other sites. You can opt out of personalized advertising at <a href="https://www.google.com/settings/ads">Google Ads Settings</a>.</p>
+      <h2>Third Parties</h2>
+      <p>We use Supabase, Cloudflare, Google Analytics, Google Ads, Google AdSense, and Stripe via RevenueCat.</p>
+      <h2>Contact</h2>
+      <p>Email <a href="mailto:support@tracetoforge.com">support@tracetoforge.com</a> for questions.</p>`
+}))
+
+// Terms of Service
+writePage('/terms', makePage({
+  title: 'Terms of Service | TracetoForge',
+  description: 'TracetoForge terms of service. Use of the photo-to-STL tool insert generator, account rules, credits, payments, and intellectual property.',
+  canonical: 'https://tracetoforge.com/terms/',
+  ogTitle: 'TracetoForge Terms of Service',
+  h1: 'Terms of Service',
+  bodyHtml: `
+      <p>By using TracetoForge you agree to these Terms of Service. TracetoForge is operated by Qwikymart LLC.</p>
+      <h2>The Service</h2>
+      <p>TracetoForge is a browser-based tool that converts photos of physical objects into 3D-printable STL, 3MF, SVG, and DXF files.</p>
+      <h2>Accounts and Credits</h2>
+      <p>New accounts receive 3 free export credits. Additional credits are available in packs. Credits are non-refundable once consumed.</p>
+      <h2>Third-Party Trademarks</h2>
+      <p>Milwaukee, Packout, DeWalt, ToughSystem, Gridfinity, Knipex, Klein, Wera, and all other brand names are trademarks of their respective owners and are used only to describe compatibility.</p>
+      <h2>Contact</h2>
+      <p>Email <a href="mailto:support@tracetoforge.com">support@tracetoforge.com</a>.</p>`
+}))
+
 // Blog Index
 const blogPosts = [
   { slug: 'custom-milwaukee-packout-inserts-3d-print', title: 'How to Make Custom Milwaukee Packout Inserts with a 3D Printer', excerpt: 'Stop buying $40 generic inserts. Learn how to create perfectly fitted, custom Packout inserts from a photo.' },
@@ -398,7 +436,9 @@ const sitemapUrls = [
     loc: `https://tracetoforge.com/blog/${p.slug}/`,
     freq: 'monthly',
     priority: '0.8'
-  }))
+  })),
+  { loc: 'https://tracetoforge.com/privacy/', freq: 'yearly', priority: '0.3' },
+  { loc: 'https://tracetoforge.com/terms/', freq: 'yearly', priority: '0.3' }
 ]
 
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>

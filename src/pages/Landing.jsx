@@ -136,21 +136,6 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-bg landing-page">
-      {/* Sticky sidebar ads - desktop only */}
-      <div className="hidden xl:block fixed left-0 top-1/3 z-40 w-[160px] pl-2">
-        <ins className="adsbygoogle"
-          style={{ display: 'block', width: '160px', height: '600px' }}
-          data-ad-client="ca-pub-5879329589086028"
-          data-ad-slot="auto"
-          data-ad-format="vertical" />
-      </div>
-      <div className="hidden xl:block fixed right-0 top-1/3 z-40 w-[160px] pr-2">
-        <ins className="adsbygoogle"
-          style={{ display: 'block', width: '160px', height: '600px' }}
-          data-ad-client="ca-pub-5879329589086028"
-          data-ad-slot="auto"
-          data-ad-format="vertical" />
-      </div>
       <style>{`
         .landing-page {
           --font-display: 'Outfit', 'Space Grotesk', system-ui, sans-serif;
@@ -357,7 +342,7 @@ export default function Landing() {
       {/* Ad unit - below hero */}
       <div className="max-w-4xl mx-auto px-6 py-4">
         <ins className="adsbygoogle"
-          style={{ display: 'block', minHeight: '100px', background: 'rgba(136,136,160,0.08)', borderRadius: '12px', border: '1px dashed rgba(136,136,160,0.2)' }}
+          style={{ display: 'block', minHeight: '100px' }}
           data-ad-client="ca-pub-5879329589086028"
           data-ad-slot="auto"
           data-ad-format="auto"
@@ -531,7 +516,7 @@ export default function Landing() {
       {/* Ad unit - after pricing */}
       <div className="max-w-4xl mx-auto px-6 py-4">
         <ins className="adsbygoogle"
-          style={{ display: 'block', minHeight: '100px', background: 'rgba(136,136,160,0.08)', borderRadius: '12px', border: '1px dashed rgba(136,136,160,0.2)' }}
+          style={{ display: 'block', minHeight: '100px' }}
           data-ad-client="ca-pub-5879329589086028"
           data-ad-slot="auto"
           data-ad-format="auto"
@@ -651,7 +636,7 @@ export default function Landing() {
       {/* Ad unit - after stats */}
       <div className="max-w-4xl mx-auto px-6 py-4">
         <ins className="adsbygoogle"
-          style={{ display: 'block', minHeight: '100px', background: 'rgba(136,136,160,0.08)', borderRadius: '12px', border: '1px dashed rgba(136,136,160,0.2)' }}
+          style={{ display: 'block', minHeight: '100px' }}
           data-ad-client="ca-pub-5879329589086028"
           data-ad-slot="auto"
           data-ad-format="auto"
@@ -796,7 +781,7 @@ export default function Landing() {
       {/* Ad unit - mid page */}
       <div className="max-w-4xl mx-auto px-6 py-4">
         <ins className="adsbygoogle"
-          style={{ display: 'block', minHeight: '100px', background: 'rgba(136,136,160,0.08)', borderRadius: '12px', border: '1px dashed rgba(136,136,160,0.2)' }}
+          style={{ display: 'block', minHeight: '100px' }}
           data-ad-client="ca-pub-5879329589086028"
           data-ad-slot="auto"
           data-ad-format="auto"
@@ -937,7 +922,7 @@ export default function Landing() {
       {/* Ad unit - after blog */}
       <div className="max-w-4xl mx-auto px-6 py-4">
         <ins className="adsbygoogle"
-          style={{ display: 'block', minHeight: '100px', background: 'rgba(136,136,160,0.08)', borderRadius: '12px', border: '1px dashed rgba(136,136,160,0.2)' }}
+          style={{ display: 'block', minHeight: '100px' }}
           data-ad-client="ca-pub-5879329589086028"
           data-ad-slot="auto"
           data-ad-format="auto"
@@ -1028,12 +1013,14 @@ export default function Landing() {
             <img src="/logo-nav.png" alt="TracetoForge" className="h-5 object-contain" />
             <span className="font-mono text-xs">&copy; {new Date().getFullYear()}</span>
           </div>
-          <div className="flex items-center gap-6 text-xs text-[#555568] font-mono">
+          <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 text-xs text-[#555568] font-mono">
             <a href="/blog" className="hover:text-white transition-colors">Blog</a>
             <a href="/guide" className="hover:text-white transition-colors">Guide & FAQ</a>
+            <a href="/privacy" className="hover:text-white transition-colors">Privacy</a>
+            <a href="/terms" className="hover:text-white transition-colors">Terms</a>
             <a href="mailto:support@tracetoforge.com" className="hover:text-white transition-colors">Contact</a>
-            <span>All brand names are trademarks of their respective owners</span>
           </div>
+          <p className="text-[10px] text-[#444455] font-mono text-center">All brand names are trademarks of their respective owners</p>
         </div>
       </footer>
     </div>
