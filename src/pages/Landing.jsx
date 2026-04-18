@@ -299,22 +299,24 @@ export default function Landing() {
           {/* Eyebrow */}
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand/8 text-brand text-xs font-semibold mb-8 border border-brand/15 font-mono tracking-wide uppercase">
             <LayoutGrid size={13} />
-            Photo to Gridfinity Insert in Under 2 Minutes
+            Photo to Custom Drawer Tray in Under 2 Minutes
           </div>
 
           <h1 className="text-4xl sm:text-5xl md:text-7xl font-display font-black tracking-tight leading-[1.05] mb-6">
-            Custom Gridfinity Inserts<br />
-            From a Photo.<br />
-            <span className="text-brand">No CAD. No Hassle.</span>
+            Custom Wrench, Plier &amp;<br />
+            Screwdriver Drawer Trays<br />
+            <span className="text-brand">From a Photo of Your Tools.</span>
           </h1>
 
           <p className="text-base sm:text-lg text-[#9999AD] max-w-2xl mx-auto mb-4 leading-relaxed">
-            Snap a photo of any tool, auto-trace the outline, and export a Gridfinity-compatible bin 
-            with precision cutouts. The fastest Gridfinity generator that works from a photo. STL, 3MF, SVG, or DXF. Zero CAD skills.
+            Lay your tools on a sheet of paper, snap a photo, and get a precision-fit drawer tray that
+            holds every piece exactly where it belongs. Works for wrench organizers, plier organizers,
+            screwdriver organizers, hammer trays, Gridfinity bins, and custom tool chest inserts.
+            Export STL, 3MF, SVG, or DXF. Zero CAD skills.
           </p>
 
           <p className="text-sm text-[#666680] font-mono mb-10">
-            <span className="text-brand font-semibold">Gridfinity</span> &bull; <span className="text-[#AAABB8]">Milwaukee Packout</span> &bull; <span className="text-[#AAABB8]">DeWalt ToughSystem</span> &bull; <span className="text-[#AAABB8]">Custom Trays</span> &bull; <span className="text-[#AAABB8]">any toolbox</span>
+            <span className="text-brand font-semibold">Tool Drawer Trays</span> &bull; <span className="text-[#AAABB8]">Wrench Organizer</span> &bull; <span className="text-[#AAABB8]">Plier Organizer</span> &bull; <span className="text-[#AAABB8]">Screwdriver Tray</span> &bull; <span className="text-[#AAABB8]">Gridfinity</span>
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -802,29 +804,87 @@ export default function Landing() {
       </div>
 
       {/* What You Can Organize - SEO keyword section */}
-      <section className="px-6 py-16">
-        <div className="max-w-4xl mx-auto text-center">
-          <span className="font-mono text-xs text-brand tracking-widest uppercase mb-3 block">Organize Everything</span>
-          <h2 className="text-3xl sm:text-4xl md:text-6xl font-display font-extrabold tracking-tight mb-4">
-            Custom Inserts for Any Tool
-          </h2>
-          <p className="text-[#8888A0] max-w-lg mx-auto mb-8">
-            Whether it's a tool chest, drawer, tray, or modular organizer, TracetoForge creates custom tool storage that fits like a shadow board.
-          </p>
-          <div className="flex flex-wrap justify-center gap-2 max-w-3xl mx-auto">
+      <section className="px-6 py-16 md:py-24">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <span className="font-mono text-xs text-brand tracking-widest uppercase mb-3 block">Organize Everything</span>
+            <h2 className="text-3xl sm:text-4xl md:text-6xl font-display font-extrabold tracking-tight mb-4">
+              A Drawer Tray for Every Kind of Tool
+            </h2>
+            <p className="text-[#8888A0] max-w-2xl mx-auto">
+              Lay the tools out, take one photo, and TracetoForge builds a shadow-board-style tray where
+              each piece drops into its own cavity. No rolling sockets, no missing wrenches, no CAD.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
             {[
-              'Pliers', 'Screwdrivers', 'Socket Sets', 'Ratchets', 'Wrenches',
-              'Utility Knives', 'Hex Keys', 'Allen Wrenches', 'Wire Strippers',
-              'Multimeters', 'Drill Bits', 'Tape Measures', 'Chisels', 'Files',
-              'Flashlights', 'Levels', 'Clamps', 'Hammers',
+              {
+                title: 'Wrench Drawer Organizer',
+                keyword: 'wrench organizer',
+                desc: 'Combination, ratcheting, and stubby wrenches in metric or SAE. Fits GearWrench, Tekton, Husky, Craftsman, Kobalt, and Icon silhouettes.',
+                icon: Wrench,
+              },
+              {
+                title: 'Plier Drawer Tray',
+                keyword: 'plier organizer',
+                desc: 'One tray for every plier you own. Knipex Cobras, Pliers Wrench, Channellocks, Klein linemen, needle-nose, diagonal cutters, Vise-Grips.',
+                icon: LayoutGrid,
+              },
+              {
+                title: 'Screwdriver Tray',
+                keyword: 'screwdriver organizer',
+                desc: 'Lay drivers flat, cavity per handle. Works with Klein 11-in-1 sets, Wera Kraftform, Wiha VDE, Craftsman, and multi-bit drivers.',
+                icon: Package,
+              },
+              {
+                title: 'Hammer Drawer Insert',
+                keyword: 'hammer organizer',
+                desc: 'Claw, ball-peen, dead-blow, rubber mallet, tack hammer. Perfect for Estwing, Craftsman, Neiko, Klein, and Harbor Freight Icon sets.',
+                icon: Layers,
+              },
+              {
+                title: 'Custom Tool Chest Organizer',
+                keyword: 'tool drawer organizer',
+                desc: 'Drop-in trays for US General, Kobalt, Husky, Harbor Freight ICON, and Snap-on tool chests. Cut to your exact drawer width.',
+                icon: Box,
+              },
+              {
+                title: 'Gridfinity Tool Bin',
+                keyword: 'gridfinity insert',
+                desc: 'Standard 42mm base profile with precision cavities traced from your tool. Drops into any Gridfinity baseplate.',
+                icon: LayoutGrid,
+              },
+            ].map((item, i) => {
+              const Icon = item.icon
+              return (
+                <div key={i} className="p-5 rounded-xl bg-surface border border-surface-lighter/40 card-hover">
+                  <div className="w-10 h-10 rounded-lg bg-brand/10 flex items-center justify-center mb-3">
+                    <Icon size={20} className="text-brand" />
+                  </div>
+                  <h3 className="font-display font-bold text-base mb-2">{item.title}</h3>
+                  <p className="text-xs text-[#8888A0] leading-relaxed">{item.desc}</p>
+                </div>
+              )
+            })}
+          </div>
+
+          <div className="flex flex-wrap justify-center gap-2 max-w-3xl mx-auto mt-8">
+            {[
+              'Sockets', 'Ratchets', 'Hex Keys', 'Allen Wrenches', 'Chisels', 'Files',
+              'Utility Knives', 'Wire Strippers', 'Multimeters', 'Drill Bits', 'Tape Measures',
+              'Levels', 'Clamps', 'Punches', 'Calipers', 'Combination Squares',
             ].map((tool, i) => (
               <span key={i} className="px-3 py-1.5 rounded-full bg-surface border border-surface-lighter/30 text-[11px] text-[#8888A0] font-mono">
                 {tool}
               </span>
             ))}
           </div>
-          <p className="text-xs text-[#555568] mt-6 max-w-lg mx-auto">
-            Works as a foam organizer alternative. Replace kaizen foam with precision 3D printed, laser cut, or CNC machined inserts for your tool drawer, tool chest, workbench, or garage storage setup. Use as socket holders, drawer dividers, or custom shadow boards.
+
+          <p className="text-xs text-[#555568] mt-6 max-w-2xl mx-auto text-center">
+            A modern alternative to kaizen foam and generic drawer dividers. Precision 3D printed,
+            laser cut, or CNC machined inserts for your tool drawer, tool chest, workbench, or garage
+            storage. Shadow-board style fit, every time.
           </p>
         </div>
       </section>
@@ -915,7 +975,7 @@ export default function Landing() {
             </a>
           </div>
           <p className="text-xs text-[#555568] mt-4 font-mono">
-            Gridfinity &bull; Milwaukee Packout &bull; Knipex &bull; Klein &bull; Wera &bull; Milwaukee
+            Wrench Organizer &bull; Plier Organizer &bull; Screwdriver Tray &bull; Hammer Insert &bull; Gridfinity &bull; Milwaukee Packout
           </p>
         </div>
       </section>

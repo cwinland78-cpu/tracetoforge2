@@ -168,10 +168,10 @@ const faqSchema = {
 }
 
 const landingHtml = makePage({
-  title: 'Custom Gridfinity Inserts From a Photo | TracetoForge',
-  description: 'Create custom Gridfinity inserts from a photo of your tools. Auto-trace, export STL, 3MF, SVG, or DXF. Also works with Milwaukee Packout. Free, no CAD needed.',
+  title: 'Custom Tool Drawer Organizer From a Photo | TracetoForge',
+  description: 'Design custom wrench, plier, screwdriver, and hammer drawer trays from a photo of your tools. Auto-trace, export STL, 3MF, SVG, or DXF. Gridfinity supported. Free, no CAD needed.',
   canonical: 'https://tracetoforge.com',
-  ogTitle: 'TracetoForge - Custom Gridfinity Inserts From a Photo',
+  ogTitle: 'TracetoForge - Custom Tool Drawer Trays From a Photo',
   h1: 'Custom Gridfinity Inserts From a Photo — No CAD Needed',
   bodyHtml: `
       <p>Create custom Gridfinity bins with precision tool cutouts from a simple photo. Snap a photo of any tool, auto-trace the outline, and export a Gridfinity-compatible insert as STL, 3MF, SVG, or DXF. Also works with Milwaukee Packout, DeWalt ToughSystem, and any custom tray. No CAD skills needed.</p>
