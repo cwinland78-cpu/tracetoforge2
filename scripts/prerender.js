@@ -224,73 +224,302 @@ console.log('[prerender] /index.html (landing)')
 // Guide
 writePage('/guide', makePage({
   title: 'Getting Started Guide | TracetoForge',
-  description: 'Step-by-step guide to creating custom 3D-printable tool inserts from photos with TracetoForge. Photo, trace, export, print.',
+  description: 'Step-by-step guide to creating custom 3D-printable tool inserts from photos with TracetoForge. Photo, trace, dimensions, export, and print. No CAD experience needed.',
   canonical: 'https://tracetoforge.com/guide/',
   ogTitle: 'TracetoForge Getting Started Guide',
   h1: 'TracetoForge: Getting Started Guide',
   bodyHtml: `
-      <p>A step-by-step walkthrough for creating custom 3D-printable tool inserts with TracetoForge. No CAD experience needed.</p>
+      <p>This guide walks you through every stage of creating a custom 3D-printable tool insert with TracetoForge, from taking the photo to printing the finished part. The whole process takes around two minutes per tool once you know the workflow. No CAD experience is needed.</p>
+
+      <h2>What You Will Need</h2>
+      <p>Before you start, gather a smartphone with a working camera, a sheet of plain white paper (A4 or US Letter), the tool you want to make an insert for, and a 3D printer with PETG or PLA filament. If you do not own a 3D printer, you can still trace and preview the insert for free, then send the exported STL to a print service or buy ready-made inserts from our shop.</p>
+
       <h2>Step 1: Take a Good Photo</h2>
-      <p>Place your tool on a solid, contrasting background. White paper on a dark surface works great. Shoot from directly above, keeping the camera as level as possible. Make sure the entire tool is in frame with some margin. Good lighting helps the edge detection.</p>
-      <h2>Step 2: Trace the Outline</h2>
-      <p>After uploading, TracetoForge automatically detects the tool outline using edge detection. Use the Threshold and Sensitivity sliders to fine-tune. If auto-detection misses part of the outline, adjust the Simplification slider.</p>
+      <p>Place the tool flat on a sheet of white paper on a non-reflective surface. The white paper does two jobs: it gives the edge detector a clean contrast against your tool, and it acts as a known-size reference so the editor can convert pixels to millimeters.</p>
+      <p>Hold your phone directly above the tool, as level as possible. Get high enough that the tool fills about half the frame, with the entire tool plus all four corners of the paper visible. Use diffused lighting (overhead room light or soft natural light from a window). Avoid harsh direct shadows and avoid glare on shiny chrome tools — a piece of tracing paper or a thin t-shirt over a lamp diffuses light nicely.</p>
+      <p>Common photo problems and fixes: blurry photo (hold phone steadier or use a tripod); shadow falling across the tool (move the light source overhead); part of tool cut off (zoom out); shiny tool reflecting the camera (rotate the tool slightly or use diffuse light); paper edges cropped (zoom out and recompose).</p>
+
+      <h2>Step 2: Upload and Auto-Trace</h2>
+      <p>Open the <a href="/editor">TracetoForge editor</a> and drag your photo onto the upload area. The editor loads OpenCV.js and processes the image entirely in your browser. After a moment, you will see your photo with a red outline showing the detected tool boundary.</p>
+      <p>If the trace looks right, move on. If it missed parts of the outline, included background noise, or picked up shadows, adjust the Sensitivity slider. Lower values (1-2) use Otsu thresholding, ideal when you have strong contrast (dark tool on white paper). Mid-range (3-8) uses Canny edge detection, the safe default. Higher values (9-10) use adaptive thresholding for low-contrast or shadowed photos.</p>
+      <p>The Simplification slider controls how many anchor points the trace uses. Higher simplification means a smoother outline with fewer points, which prints faster and more reliably. Lower simplification preserves fine detail.</p>
+
       <h2>Step 3: Set Real Dimensions</h2>
-      <p>Click the dimension tool and set the actual size of your tool or the paper reference. This lets TracetoForge convert pixel measurements into real-world millimeters for accurate exports.</p>
+      <p>Click the dimension tool and either enter the actual length of your tool in millimeters, or click two corners of the paper to set scale automatically using the known paper size. This calibration is critical: without it, the editor has no way to know whether your tool is a 100mm pair of pliers or a 300mm pair of bolt cutters.</p>
+
       <h2>Step 4: Choose Your Insert Mode</h2>
-      <p>Select Custom Tray for rectangular inserts with adjustable walls. Choose Gridfinity Bin for standard-compatible bins with proper base profiles. Pick 3D Object for just the extruded tool shape.</p>
-      <h2>Step 5: Export and Print</h2>
-      <p>Download STL for standard 3D printing, 3MF for multi-material, SVG for laser cutting, or DXF for CNC. Slice with your preferred slicer and print.</p>
-      <p><a href="/editor">Open the Editor</a></p>`
+      <p>TracetoForge offers three output modes:</p>
+      <p><strong>Custom Tray</strong> creates a rectangular or oval tray with adjustable wall thickness, depth, and dimensions. Use this for Milwaukee Packout, DeWalt ToughSystem, or any custom toolbox drawer. Enter your drawer's interior dimensions and the tool cavity is cut into the tray.</p>
+      <p><strong>Gridfinity Bin</strong> generates a Gridfinity-compatible bin with the standard 42mm grid spacing and proper base profile. Drops directly into any Gridfinity baseplate. The cavity is cut from the tool outline.</p>
+      <p><strong>3D Object</strong> exports just the extruded tool shape. Useful for shadow boards, foam templates, or custom mounts.</p>
+
+      <h2>Step 5: Fine-Tune Tolerance and Notches</h2>
+      <p>The Tolerance slider adds clearance around your tool so it slides in and out without sticking. Start at 0.5mm and adjust based on your printer's calibration. Tighter prints can use 0.3mm; looser prints might need 0.7mm.</p>
+      <p>Add a Finger Notch if you want a curved cutout for grabbing the tool. The notch can be positioned at either end of the tool cavity. For multiple tools in one tray, each tool can have its own independent notch.</p>
+
+      <h2>Step 6: Add Multiple Tools (Optional)</h2>
+      <p>Up to five tools fit in a single insert. Click "Add Tool" and trace a new photo. Each tool can be repositioned by dragging in the 3D preview. Each has independent settings for cavity depth, tolerance, rotation, and finger notch. This is the fastest way to build a complete drawer of pliers, screwdrivers, or wrenches in a single print.</p>
+
+      <h2>Step 7: Preview in 3D</h2>
+      <p>The 3D preview shows your insert exactly as it will print. Rotate, zoom, and inspect the geometry from all angles. If anything looks off (wrong cavity depth, weird overhangs, missing notches), go back and adjust. The preview updates in real time as you change settings.</p>
+
+      <h2>Step 8: Export</h2>
+      <p>Pick your format and click Export. Exporting requires one credit per file:</p>
+      <p><strong>STL</strong> for standard single-material 3D printing. Works with every slicer.</p>
+      <p><strong>3MF</strong> for multi-material or multi-color prints (Bambu AMS, Prusa MMU).</p>
+      <p><strong>SVG</strong> for laser cutting foam, plywood, or acrylic versions of the same shape.</p>
+      <p><strong>DXF</strong> for CNC routing wood or aluminum trays.</p>
+
+      <h2>Step 9: Slice and Print</h2>
+      <p>Open the STL or 3MF in your slicer. Recommended settings for tool inserts:</p>
+      <ul>
+        <li><strong>Filament:</strong> PETG for tool inserts in vehicles, garages, or anywhere temperatures may rise above 60°C. PLA for indoor workshops only.</li>
+        <li><strong>Layer height:</strong> 0.2mm for a balance of speed and finish. 0.16mm if you want smoother walls.</li>
+        <li><strong>Walls:</strong> 3 perimeters minimum for strength.</li>
+        <li><strong>Infill:</strong> 15 to 20 percent gyroid is plenty.</li>
+        <li><strong>Supports:</strong> Usually not needed. The flat-bottom design prints support-free.</li>
+        <li><strong>Bed adhesion:</strong> Brim if your printer struggles with first-layer adhesion on larger trays.</li>
+      </ul>
+
+      <h2>Step 10: Test Fit and Iterate</h2>
+      <p>Print one tray first and test fit your tool. If it sticks, increase tolerance by 0.2mm and reprint. If it rattles loose, decrease tolerance. Once dialed in, those tolerance values will work for all your future inserts on the same printer.</p>
+
+      <h2>Tips for Best Results</h2>
+      <ul>
+        <li>Photograph each tool separately, then combine them in the editor for multi-tool trays.</li>
+        <li>Save your projects so you can come back and adjust tolerance after a test print.</li>
+        <li>For shiny chrome tools, use a thin sheet of tissue paper over the tool to diffuse reflections.</li>
+        <li>Print a small 50mm calibration cube before your first tool insert to confirm dimensional accuracy.</li>
+        <li>For Gridfinity bins, the standard base height is 7mm. Account for this in total bin height.</li>
+      </ul>
+
+      <h2>Common Questions</h2>
+
+      <h3>How long does printing take?</h3>
+      <p>A single-tool insert typically prints in 1 to 3 hours depending on size and tray dimensions. A full Gridfinity-compatible drawer (5 tools) takes 6 to 10 hours.</p>
+
+      <h3>Can I edit a saved project?</h3>
+      <p>Yes. Sign in, open the dashboard, and click any saved project to load it back into the editor with all your settings preserved.</p>
+
+      <h3>Do I need to redo the trace if I want a different tray size?</h3>
+      <p>No. The trace is independent of tray dimensions. Change the tray size and re-export.</p>
+
+      <p>Ready to start? <a href="/editor">Open the editor</a> and upload your first photo. Need inspiration? Browse the <a href="/blog">TracetoForge blog</a> for project ideas.</p>`
 }))
 
 // Editor
 writePage('/editor', makePage({
   title: 'Tool Insert Editor - Upload Photo & Export STL | TracetoForge',
-  description: 'Upload a photo of your tool and create a custom 3D-printable insert. Export STL, 3MF, SVG, or DXF. Works with Packout, Gridfinity, and custom trays.',
+  description: 'Free browser-based tool insert editor. Upload a photo, auto-trace the outline, and export print-ready STL, 3MF, SVG, or DXF files. Works with Milwaukee Packout, Gridfinity, DeWalt ToughSystem, and custom trays.',
   canonical: 'https://tracetoforge.com/editor/',
   ogTitle: 'TracetoForge Editor - Photo to 3D Insert',
-  h1: 'TracetoForge Editor',
+  h1: 'TracetoForge Editor: Photo to Print-Ready Tool Insert',
   bodyHtml: `
-      <p>Upload a photo of your tool to create a custom 3D-printable insert. Supports STL, 3MF, SVG, and DXF export. Compatible with Milwaukee Packout, Gridfinity, DeWalt ToughSystem, and custom trays.</p>
-      <p><a href="/">Learn more about TracetoForge</a> | <a href="/guide">Getting Started Guide</a></p>`
+      <p>The TracetoForge editor turns a top-down photo of any hand tool into a precision-fit 3D printable insert. Upload your photo, the app auto-traces the outline using OpenCV edge detection, and you export a print-ready file in STL, 3MF, SVG, or DXF. The editor runs entirely in your browser — no installs, no uploads to a server, no CAD experience required. Average time from photo to printable file is under two minutes.</p>
+
+      <h2>How to Use the Editor</h2>
+      <h3>Step 1: Take a top-down photo</h3>
+      <p>Place your tool on a clean sheet of white paper, A4 or US Letter size. The paper acts as both a contrasting background and a size reference, which the editor uses to calibrate real-world dimensions. Hold your phone directly above the tool and shoot straight down. Good even lighting matters more than a high-end camera. Avoid harsh shadows, glare on shiny tools, and tilted angles.</p>
+
+      <h3>Step 2: Upload and auto-trace</h3>
+      <p>Drag and drop your photo into the editor or use the file picker. OpenCV processes the image client-side and detects the tool outline automatically. If the trace looks off, adjust the Sensitivity slider. Lower sensitivity (1-2) uses Otsu thresholding, which works well for high-contrast white-paper-and-dark-tool shots. Mid-range sensitivity (3-8) uses Canny edge detection. Higher sensitivity (9-10) blends adaptive thresholding with Canny for low-contrast or shadowed photos.</p>
+
+      <h3>Step 3: Set real dimensions</h3>
+      <p>Enter the actual length of your tool, or use the paper reference for automatic scale calibration. This converts pixel measurements to millimeters so your printed insert fits the tool exactly. You can also adjust tolerance, cavity depth, and add a finger notch for easy tool removal.</p>
+
+      <h3>Step 4: Pick an insert mode</h3>
+      <p>Choose between three output modes depending on where the insert will live. Custom Tray creates a rectangular or oval tray for Milwaukee Packout, DeWalt ToughSystem, or any toolbox drawer with custom dimensions. Gridfinity Bin generates a standards-compliant 42mm-grid bin with the proper base profile. 3D Object exports just the extruded tool shape, useful for custom mounts, foam templates, or shadow boards.</p>
+
+      <h3>Step 5: Preview and export</h3>
+      <p>The 3D preview shows your insert in real time. Drag tools around in the preview to reposition. When you are satisfied, pick your export format and download. Slice with Cura, PrusaSlicer, OrcaSlicer, Bambu Studio, or any other slicer.</p>
+
+      <h2>Multi-Tool Support</h2>
+      <p>The editor supports up to five tools per insert. Trace each tool from its own photo, then position them on a single tray. Each tool has independent settings: cavity depth, wall tolerance, finger notch, rotation, and bevel. This lets you build a single insert that holds an entire set of pliers, screwdrivers, or wrenches in one print.</p>
+
+      <h2>Supported Export Formats</h2>
+      <p><strong>STL:</strong> The universal 3D printing format. Works with every slicer and 3D printer. Best choice for single-material PETG or PLA prints.</p>
+      <p><strong>3MF:</strong> Modern 3D printing format with support for multi-material, multi-color, and embedded slicing settings. Use for Bambu, Prusa XL, or any AMS-equipped printer if you want a two-tone insert.</p>
+      <p><strong>SVG:</strong> Vector format for laser cutting. Use SVG to laser-cut foam inserts, plywood trays, or acrylic templates of the same shape you would otherwise 3D print.</p>
+      <p><strong>DXF:</strong> CAD format for CNC routing. Use DXF when you want to mill a custom hardwood tool tray or aluminum insert on a CNC router.</p>
+
+      <h2>Compatible Tool Storage Systems</h2>
+      <p>TracetoForge generates inserts that fit Milwaukee Packout (full size, compact, low-profile), Gridfinity (42mm standard grid), DeWalt ToughSystem 2.0, DeWalt TSTAK, Ridgid Pro Gear 2.0, Makita MakTrak, Flex Stack Pack, Klein ModBox, Bosch L-Boxx, Festool Systainer, Makita MakPac, Kobalt, Husky, Craftsman, Stanley FatMax, Harbor Freight US General, and Snap-on. For toolbox drawers without a standard system, use Custom Tray mode and enter your own dimensions.</p>
+
+      <h2>Pricing and Credits</h2>
+      <p>Tracing, previewing, and adjusting your insert are always free with no signup required. Exporting a file to download requires one credit. New accounts get three free export credits on signup. Additional credits are available in packs: 20 credits for $9.99 or 100 credits for $34.99. Credits never expire.</p>
+
+      <h2>Editor FAQ</h2>
+
+      <h3>Does the editor work on mobile?</h3>
+      <p>Yes. The editor runs in any modern mobile browser (Safari on iOS, Chrome on Android). Photo upload, tracing, and 3D preview all work on phones and tablets. Most users find it easier to take the photo on phone and do the export on desktop, but either works.</p>
+
+      <h3>What photo quality do I need?</h3>
+      <p>A standard smartphone camera is more than enough. Aim for the tool to fill at least half the frame, shoot from at least 12 inches above the object to minimize perspective distortion, and use diffused lighting. Auto-detection handles 90% of cases on the first try.</p>
+
+      <h3>Are my photos uploaded anywhere?</h3>
+      <p>No. All image processing happens in your browser using OpenCV.js. Your photo never leaves your device unless you explicitly save the project to your account, in which case a small thumbnail is stored alongside the project settings.</p>
+
+      <h3>What filament should I print with?</h3>
+      <p>PETG is the recommended choice for tool inserts. It survives temperatures up to 80°C, which makes it safe for vehicle toolboxes and hot garages. PLA prints faster and looks cleaner but warps above 60°C, so save it for indoor workshop use. ABS and ASA work for industrial applications but require an enclosed printer.</p>
+
+      <h3>Can I save and edit projects later?</h3>
+      <p>Yes. Sign in with email to save unlimited projects. Each project stores your tool dimensions, tracing settings, insert mode, and a thumbnail. Projects are private to your account.</p>
+
+      <h3>Can I sell prints I make with TracetoForge?</h3>
+      <p>Yes. You own the files you generate. There is no royalty or commercial-use restriction on your exports.</p>
+
+      <h2>Tutorials and Guides</h2>
+      <p>For deeper walkthroughs, see the <a href="/guide">Getting Started Guide</a>, or browse practical guides on the <a href="/blog">TracetoForge blog</a>:</p>
+      <ul>
+        <li><a href="/blog/image-to-stl-converter-free">Image to STL Converter: Turn Any Photo into a 3D Printable File for Free</a></li>
+        <li><a href="/blog/gridfinity-custom-cutout-no-cad">Gridfinity Custom Cutouts Without CAD: The Photo-Based Method</a></li>
+        <li><a href="/blog/3d-printed-tool-organizer-guide">3D Printed Tool Organizer: The Complete Guide</a></li>
+        <li><a href="/blog/knipex-pliers-organizer-3d-printed">Knipex Pliers Organizer: 3D Printed Inserts</a></li>
+        <li><a href="/blog/custom-milwaukee-packout-inserts-3d-print">Custom Milwaukee Packout Inserts</a></li>
+      </ul>
+
+      <p><a href="/">Back to TracetoForge home</a> | <a href="/guide">Getting Started Guide</a> | <a href="/blog">Blog</a></p>`
 }))
 
 // Privacy Policy
 writePage('/privacy', makePage({
   title: 'Privacy Policy | TracetoForge',
-  description: 'TracetoForge privacy policy. How we collect, use, and protect your information. Covers AdSense, analytics, cookies, and your data rights.',
+  description: 'TracetoForge privacy policy. How we collect, use, and protect your information. Covers AdSense, analytics, cookies, data retention, your rights, and contact information.',
   canonical: 'https://tracetoforge.com/privacy/',
   ogTitle: 'TracetoForge Privacy Policy',
   h1: 'Privacy Policy',
   bodyHtml: `
-      <p>This Privacy Policy explains what information TracetoForge collects, how it is used, and the choices available to you. TracetoForge is operated by Qwikymart LLC.</p>
+      <p><em>Last updated: April 22, 2026</em></p>
+
+      <h2>Overview</h2>
+      <p>TracetoForge is operated by Qwikymart LLC ("we," "us," "our"). This Privacy Policy explains what information we collect when you use tracetoforge.com, how we use it, who we share it with, how long we keep it, and the rights and choices you have. We have written it in plain English. If anything is unclear, email <!--email_off-->support@tracetoforge.com<!--/email_off-->.</p>
+
       <h2>Information We Collect</h2>
-      <p>We collect account information (email), usage data (analytics), and purchase information (via Stripe/RevenueCat). Photos uploaded to the editor are processed entirely in your browser and are not sent to our servers unless you save a project.</p>
+      <p><strong>Account information.</strong> If you create an account, we collect your email address and a hashed password. We do not collect your real name, mailing address, or phone number.</p>
+      <p><strong>Usage data.</strong> We collect standard web analytics data such as pages viewed, time on site, referring URL, approximate location at the city or country level, browser type, operating system, and device type. This helps us understand which features are useful and which need work.</p>
+      <p><strong>Your photos and designs.</strong> When you upload a photo of a tool to the editor, the image is processed entirely in your browser using client-side OpenCV edge detection. Your photos are never uploaded to our servers unless you explicitly save a project to your account. Saved project data is limited to tool dimensions, tracing settings, output configuration, and a small thumbnail.</p>
+      <p><strong>Purchase information.</strong> If you buy export credits, payments are processed by Stripe through RevenueCat. We never see or store your full credit card number, CVV, or banking details. We only receive a confirmation that payment succeeded and a transaction ID we use to grant credits to your account.</p>
+
+      <h2>How We Use Your Information</h2>
+      <p>We use the information we collect to operate the site and provide the photo-to-STL service, manage your account and saved projects, process payments and grant export credits, improve the product based on usage patterns, respond to support requests, send transactional emails such as password resets and purchase receipts, display advertising, and detect and prevent fraud or abuse.</p>
+
+      <h2>Cookies and Tracking Technologies</h2>
+      <p>We use cookies and similar technologies for three categories of purpose:</p>
+      <p><strong>Essential cookies.</strong> Required for sign-in, session management, and core functionality. These cannot be disabled without breaking the site.</p>
+      <p><strong>Analytics cookies.</strong> Used by Google Analytics to understand site usage in aggregate. These can be opted out at the browser level.</p>
+      <p><strong>Advertising cookies.</strong> Set by Google AdSense and Google Ads to serve and measure ads. These can be opted out as described in the next section.</p>
+
       <h2>Advertising and Google AdSense</h2>
-      <p>TracetoForge uses Google AdSense. Google and its partners use cookies to serve ads based on your visits to this site and other sites. You can opt out of personalized advertising at <a href="https://www.google.com/settings/ads">Google Ads Settings</a>.</p>
-      <h2>Third Parties</h2>
-      <p>We use Supabase, Cloudflare, Google Analytics, Google Ads, Google AdSense, and Stripe via RevenueCat.</p>
+      <p>This site uses Google AdSense to display advertisements. Google and its certified third-party advertising partners use cookies and similar technologies to serve ads based on your prior visits to this site and other sites on the internet.</p>
+      <p>Google's use of advertising cookies enables it and its partners to serve ads based on your visit to our site and other sites. You may opt out of personalized advertising by visiting <a href="https://www.google.com/settings/ads">Google Ads Settings</a>. Alternatively, you can opt out of third-party vendor use of cookies for personalized advertising by visiting <a href="https://www.aboutads.info/">aboutads.info</a> or <a href="https://www.youronlinechoices.eu/">youronlinechoices.eu</a> (for European users).</p>
+      <p>For more information about how Google uses data when you use our partners' sites or apps, see Google's <a href="https://policies.google.com/technologies/partner-sites">privacy and terms page</a>.</p>
+
+      <h2>Third-Party Services We Use</h2>
+      <ul>
+        <li><strong>Supabase</strong> for authentication and database hosting</li>
+        <li><strong>Cloudflare</strong> for website hosting, DNS, and DDoS protection</li>
+        <li><strong>Google Analytics</strong> for website usage analytics</li>
+        <li><strong>Google AdSense</strong> for advertising</li>
+        <li><strong>Google Ads</strong> for conversion tracking</li>
+        <li><strong>Stripe (through RevenueCat)</strong> for payment processing</li>
+      </ul>
+      <p>Each service has its own privacy policy governing how it handles data we share with it.</p>
+
+      <h2>Data Retention</h2>
+      <p>We keep your account data for as long as your account is active. If you request account deletion, we will remove your account, saved projects, and associated personal information within 30 days. Some transactional records (purchase history, refund records) may be retained longer where required by tax or accounting law. Web analytics data is retained according to the default policy of our analytics providers, typically 26 months.</p>
+
+      <h2>Your Rights</h2>
+      <p>Depending on where you live, you may have the right to access the personal information we hold about you, correct inaccurate information, request deletion of your information, object to or restrict certain types of processing, request a copy of your data in a portable format, and withdraw consent where we rely on consent to process your data. To exercise any of these rights, email <!--email_off-->support@tracetoforge.com<!--/email_off--> from the email address on your account.</p>
+      <p><strong>California residents:</strong> Under the California Consumer Privacy Act (CCPA), you have additional rights regarding the categories of personal information we collect, the sources we collect it from, the business purpose for collection, and the right to opt out of the sale of personal information. We do not sell personal information.</p>
+      <p><strong>European users:</strong> Under the GDPR, our legal bases for processing are contract performance (operating the service for you), legitimate interest (analytics and product improvement), consent (advertising cookies), and legal obligation (tax records).</p>
+
+      <h2>Children's Privacy</h2>
+      <p>TracetoForge is not directed at children under 13. We do not knowingly collect personal information from children under 13. If we learn that a child under 13 has provided personal information to us, we will delete it. If you believe a child under 13 has provided us with personal information, please contact <!--email_off-->support@tracetoforge.com<!--/email_off-->.</p>
+
+      <h2>Security</h2>
+      <p>We use industry-standard security measures to protect your data, including encrypted connections (HTTPS), hashed passwords, encrypted database backups, and access controls on our backend systems. No system is perfectly secure, but we work to limit risk.</p>
+
+      <h2>International Data Transfers</h2>
+      <p>TracetoForge is operated from the United States. If you access the site from outside the United States, your information may be transferred to, stored in, and processed in the United States and other countries where our service providers operate.</p>
+
+      <h2>Changes to This Policy</h2>
+      <p>We may update this Privacy Policy from time to time. When we do, we will update the "Last updated" date at the top of this page. Significant changes will be announced on the site or by email. Continued use of TracetoForge after a change indicates acceptance of the updated policy.</p>
+
       <h2>Contact</h2>
-      <p>Email <a href="mailto:support@tracetoforge.com">support@tracetoforge.com</a> for questions.</p>`
+      <p>Questions about this Privacy Policy or about your data? Email <!--email_off-->support@tracetoforge.com<!--/email_off-->. TracetoForge is operated by Qwikymart LLC.</p>
+
+      <p><a href="/">Back to TracetoForge</a> | <a href="/terms/">Terms of Service</a></p>`
 }))
 
 // Terms of Service
 writePage('/terms', makePage({
   title: 'Terms of Service | TracetoForge',
-  description: 'TracetoForge terms of service. Use of the photo-to-STL tool insert generator, account rules, credits, payments, and intellectual property.',
+  description: 'TracetoForge terms of service. Account rules, credit packs, refund policy, intellectual property, third-party trademarks, acceptable use, and contact information.',
   canonical: 'https://tracetoforge.com/terms/',
   ogTitle: 'TracetoForge Terms of Service',
   h1: 'Terms of Service',
   bodyHtml: `
-      <p>By using TracetoForge you agree to these Terms of Service. TracetoForge is operated by Qwikymart LLC.</p>
+      <p><em>Last updated: April 22, 2026</em></p>
+
+      <p>These Terms of Service ("Terms") govern your use of tracetoforge.com (the "Service"), operated by Qwikymart LLC ("we," "us," "our"). By accessing or using the Service, you agree to be bound by these Terms. If you do not agree, do not use the Service.</p>
+
       <h2>The Service</h2>
-      <p>TracetoForge is a browser-based tool that converts photos of physical objects into 3D-printable STL, 3MF, SVG, and DXF files.</p>
-      <h2>Accounts and Credits</h2>
-      <p>New accounts receive 3 free export credits. Additional credits are available in packs. Credits are non-refundable once consumed.</p>
+      <p>TracetoForge is a browser-based application that converts photos of physical objects into 3D-printable files in STL, 3MF, SVG, and DXF formats. The core tracing and preview functions are free. Exporting downloadable files requires export credits.</p>
+
+      <h2>Eligibility</h2>
+      <p>You must be at least 13 years old to use the Service. If you are between 13 and 18, you must have permission from a parent or legal guardian. By using the Service, you represent that you meet these requirements.</p>
+
+      <h2>Accounts</h2>
+      <p>You can use the editor without an account, but creating an account is required to save projects, retain export credits, and access purchase history. You are responsible for keeping your password secure and for all activity that occurs under your account. Notify us immediately at <!--email_off-->support@tracetoforge.com<!--/email_off--> if you suspect unauthorized access.</p>
+
+      <h2>Credits and Payments</h2>
+      <p><strong>How credits work.</strong> One export credit allows one file download. New accounts receive three free export credits on signup. Additional credits are sold in packs: 20 credits for $9.99 or 100 credits for $34.99. Credits do not expire.</p>
+      <p><strong>Payment processing.</strong> Payments are processed by Stripe through RevenueCat. We do not store your full payment information. Prices are in U.S. dollars and exclude any applicable taxes, which may be collected by Stripe based on your billing location.</p>
+      <p><strong>Refunds.</strong> Credits that have not yet been spent on an export are refundable within 14 days of purchase. Email <!--email_off-->support@tracetoforge.com<!--/email_off--> with your order ID to request a refund. Credits that have already been used to generate a downloadable file are non-refundable.</p>
+      <p><strong>Pricing changes.</strong> We may change credit pack prices at any time. Existing unused credits are not affected by price changes.</p>
+
+      <h2>Acceptable Use</h2>
+      <p>You agree not to use the Service to do any of the following:</p>
+      <ul>
+        <li>Attempt to gain unauthorized access to other user accounts, our backend systems, or third-party services we use</li>
+        <li>Reverse-engineer, decompile, or attempt to extract the source code of the Service beyond what is permitted by law</li>
+        <li>Use automated tools, scrapers, or bots to interact with the Service in ways that degrade performance for other users</li>
+        <li>Upload images that contain content you do not have the right to use</li>
+        <li>Use the Service to create files that infringe the intellectual property rights of others</li>
+        <li>Use the Service to create weapons, weapon components, or items prohibited by applicable law</li>
+        <li>Resell, sublicense, or commercially redistribute access to the Service itself (the files you export are yours, but the editor is not)</li>
+      </ul>
+
+      <h2>Intellectual Property</h2>
+      <p><strong>Your content.</strong> You retain all rights to the photos you upload and the files you export. We claim no ownership over your designs.</p>
+      <p><strong>License to operate the Service.</strong> By uploading a photo or saving a project, you grant us a limited, non-exclusive license to process, store (where applicable), and display that content as needed to operate the Service for you. This license ends when you delete the content or your account.</p>
+      <p><strong>Our content.</strong> The TracetoForge name, logo, blog posts, marketing copy, and editor interface are owned by Qwikymart LLC and protected by copyright, trademark, and other intellectual property laws. You may not copy or reuse them without permission.</p>
+
       <h2>Third-Party Trademarks</h2>
-      <p>Milwaukee, Packout, DeWalt, ToughSystem, Gridfinity, Knipex, Klein, Wera, and all other brand names are trademarks of their respective owners and are used only to describe compatibility.</p>
+      <p>Milwaukee, Packout, DeWalt, ToughSystem, TSTAK, Gridfinity, Knipex, Klein, Wera, Bosch, Festool, Makita, Ridgid, Snap-on, Kobalt, Husky, Craftsman, Stanley, FatMax, Bambu, Prusa, and all other brand and product names referenced on this site are trademarks of their respective owners. They are used here only to describe compatibility and are not affiliated with, endorsed by, or sponsored by their owners.</p>
+
+      <h2>Disclaimer of Warranties</h2>
+      <p>The Service is provided "as is" and "as available" without warranties of any kind, either express or implied, including warranties of merchantability, fitness for a particular purpose, and non-infringement. We do not warrant that the Service will be uninterrupted, error-free, or that exports will be perfectly dimensioned for any particular tool. Always test fit a printed sample before printing in volume.</p>
+
+      <h2>Limitation of Liability</h2>
+      <p>To the maximum extent permitted by law, Qwikymart LLC shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits, revenue, data, or use, arising out of or in connection with the Service. Our total liability for any claim arising out of these Terms or the Service is limited to the amount you paid us in the 12 months preceding the claim, or $50, whichever is greater.</p>
+
+      <h2>Indemnification</h2>
+      <p>You agree to indemnify and hold harmless Qwikymart LLC and its officers and operators from any claims, damages, or expenses arising out of your use of the Service, your violation of these Terms, or your infringement of any third party's rights.</p>
+
+      <h2>Account Termination</h2>
+      <p>You can delete your account at any time by emailing <!--email_off-->support@tracetoforge.com<!--/email_off-->. We may suspend or terminate your account if you violate these Terms or use the Service in a way that creates risk or legal exposure for us or for other users. On termination, your saved projects and unused credits may be lost.</p>
+
+      <h2>Changes to These Terms</h2>
+      <p>We may update these Terms from time to time. The "Last updated" date at the top of this page reflects the most recent revision. Significant changes will be announced on the site or by email. Continued use of the Service after changes indicates acceptance of the updated Terms.</p>
+
+      <h2>Governing Law</h2>
+      <p>These Terms are governed by the laws of the State of Ohio, United States, without regard to its conflict of law principles. Any dispute arising out of these Terms or the Service will be resolved in the state or federal courts located in Cuyahoga County, Ohio.</p>
+
       <h2>Contact</h2>
-      <p>Email <a href="mailto:support@tracetoforge.com">support@tracetoforge.com</a>.</p>`
+      <p>Questions about these Terms? Email <!--email_off-->support@tracetoforge.com<!--/email_off-->. TracetoForge is operated by Qwikymart LLC.</p>
+
+      <p><a href="/">Back to TracetoForge</a> | <a href="/privacy/">Privacy Policy</a></p>`
 }))
 
 // Blog Index
@@ -429,7 +658,7 @@ ${articleContent}
 const today = new Date().toISOString().split('T')[0]
 const sitemapUrls = [
   { loc: 'https://tracetoforge.com/', freq: 'weekly', priority: '1.0' },
-  { loc: 'https://tracetoforge.com/editor/', freq: 'weekly', priority: '0.9' },
+  { loc: 'https://tracetoforge.com/editor/', freq: 'weekly', priority: '0.7' },
   { loc: 'https://tracetoforge.com/guide/', freq: 'monthly', priority: '0.8' },
   { loc: 'https://tracetoforge.com/blog/', freq: 'weekly', priority: '0.9' },
   ...postConfigs.map(p => ({

@@ -16,7 +16,7 @@ export default function PrivacyPage() {
         <h1 className="text-3xl md:text-5xl font-display font-extrabold tracking-tight mb-4">
           Privacy Policy
         </h1>
-        <p className="text-sm text-[#666680] font-mono mb-12">Last updated: April 17, 2026</p>
+        <p className="text-sm text-[#666680] font-mono mb-12">Last updated: April 22, 2026</p>
 
         <div className="prose prose-invert max-w-none space-y-8 text-[#AAABB8] leading-relaxed">
           <section>
@@ -137,10 +137,44 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="text-xl md:text-2xl font-display font-bold text-white mb-3">Your Rights</h2>
+            <p className="mb-3">
+              Depending on your location, you may have the right to access the personal information
+              we hold about you, correct inaccurate information, request deletion of your information,
+              object to or restrict certain types of processing, request a copy of your data in a
+              portable format, and withdraw consent where we rely on consent to process your data. To
+              exercise any of these rights, email support@tracetoforge.com from the email address on
+              your account.
+            </p>
+            <p className="mb-3">
+              <strong className="text-white">California residents:</strong> Under the California
+              Consumer Privacy Act (CCPA), you have additional rights regarding the categories of
+              personal information we collect, the sources we collect it from, the business purpose
+              for collection, and the right to opt out of the sale of personal information. We do not
+              sell personal information.
+            </p>
             <p>
-              Depending on your location, you may have the right to access, correct, or delete your
-              personal data, to object to processing, and to data portability. To exercise any of
-              these rights, email support@tracetoforge.com.
+              <strong className="text-white">European users:</strong> Under the GDPR, our legal bases
+              for processing are contract performance (operating the service for you), legitimate
+              interest (analytics and product improvement), consent (advertising cookies), and legal
+              obligation (tax records).
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-xl md:text-2xl font-display font-bold text-white mb-3">Security</h2>
+            <p>
+              We use industry-standard security measures to protect your data, including encrypted
+              connections (HTTPS), hashed passwords, encrypted database backups, and access controls
+              on our backend systems. No system is perfectly secure, but we work to limit risk.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-xl md:text-2xl font-display font-bold text-white mb-3">International Data Transfers</h2>
+            <p>
+              TracetoForge is operated from the United States. If you access the site from outside the
+              United States, your information may be transferred to, stored in, and processed in the
+              United States and other countries where our service providers operate.
             </p>
           </section>
 
