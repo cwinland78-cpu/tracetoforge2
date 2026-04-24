@@ -561,7 +561,7 @@ writePage('/about', makePage({
       <ul>
         <li><strong>Operator:</strong> Qwikymart LLC</li>
         <li><strong>Location:</strong> Northeast Ohio, United States</li>
-        <li><strong>Support email:</strong> <a href="mailto:support@tracetoforge.com">support@tracetoforge.com</a></li>
+        <li><strong>Support email:</strong> <!--email_off--><a href="mailto:support@tracetoforge.com">support@tracetoforge.com</a><!--/email_off--></li>
         <li><strong>Etsy shop:</strong> <a href="https://www.etsy.com/shop/TracetoForge">etsy.com/shop/TracetoForge</a></li>
         <li><strong>Amazon storefront:</strong> <a href="https://www.amazon.com/s?k=TracetoForge+gridfinity+insert&amp;rh=n%3A553240">TracetoForge on Amazon</a></li>
         <li><strong>Founded:</strong> 2025</li>
@@ -584,7 +584,7 @@ writePage('/contact', makePage({
       <p><em>Real email, read by a real person.</em></p>
 
       <h2>Email us directly</h2>
-      <p>The fastest way to reach us is email: <a href="mailto:support@tracetoforge.com">support@tracetoforge.com</a>. Messages are typically answered within 1 to 2 business days. If you are reporting a bug or a tracing problem, a screenshot and the photo you uploaded help a lot.</p>
+      <p>The fastest way to reach us is email: <!--email_off--><a href="mailto:support@tracetoforge.com">support@tracetoforge.com</a><!--/email_off-->. Messages are typically answered within 1 to 2 business days. If you are reporting a bug or a tracing problem, a screenshot and the photo you uploaded help a lot.</p>
       <p>For purchase issues (refund requests, missing credits, receipt problems), include the email address on your TracetoForge account and the approximate date of purchase so we can look up the transaction in RevenueCat.</p>
 
       <h2>What to expect</h2>
@@ -603,7 +603,7 @@ writePage('/contact', makePage({
       <ul>
         <li><strong>Operator:</strong> Qwikymart LLC</li>
         <li><strong>Location:</strong> Northeast Ohio, United States</li>
-        <li><strong>Email:</strong> <a href="mailto:support@tracetoforge.com">support@tracetoforge.com</a></li>
+        <li><strong>Email:</strong> <!--email_off--><a href="mailto:support@tracetoforge.com">support@tracetoforge.com</a><!--/email_off--></li>
         <li><strong>Etsy:</strong> <a href="https://www.etsy.com/shop/TracetoForge">etsy.com/shop/TracetoForge</a></li>
         <li><strong>Amazon:</strong> <a href="https://www.amazon.com/s?k=TracetoForge+gridfinity+insert&amp;rh=n%3A553240">TracetoForge on Amazon</a></li>
       </ul>
@@ -735,7 +735,7 @@ for (const post of postConfigs) {
   const authorBioHtml = `
       <aside>
         <h3>About the author</h3>
-        <p>Chris Winland runs TracetoForge out of a small workshop in Northeast Ohio. Qwikymart LLC, the operator of this site, makes and ships precision-fit 3D printed tool inserts alongside the browser-based editor. Most posts on this blog come from real problems hit while tracing, printing, and selling inserts to other makers. Reach out at <a href="mailto:support@tracetoforge.com">support@tracetoforge.com</a> with corrections, questions, or tracing problems.</p>
+        <p>Chris Winland runs TracetoForge out of a small workshop in Northeast Ohio. Qwikymart LLC, the operator of this site, makes and ships precision-fit 3D printed tool inserts alongside the browser-based editor. Most posts on this blog come from real problems hit while tracing, printing, and selling inserts to other makers. Reach out at <!--email_off-->support@tracetoforge.com<!--/email_off--> with corrections, questions, or tracing problems.</p>
         <p><a href="/about/">More about TracetoForge</a> | <a href="/contact/">Contact</a></p>
       </aside>`
 
