@@ -21,6 +21,8 @@ import KnipexOrganizer from './pages/blog/KnipexOrganizer'
 import GridfinityGenerator from './pages/blog/GridfinityGenerator'
 import PrivacyPage from './pages/PrivacyPage'
 import TermsPage from './pages/TermsPage'
+import AboutPage from './pages/AboutPage'
+import ContactPage from './pages/ContactPage'
 
 function App() {
   return (
@@ -48,6 +50,8 @@ function App() {
           <Route path="/blog/gridfinity-generator-photo-vs-parametric" element={<GridfinityGenerator />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/terms" element={<TermsPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

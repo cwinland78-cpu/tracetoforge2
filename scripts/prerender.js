@@ -215,7 +215,10 @@ const landingHtml = makePage({
       <p>No. The entire workflow is photo-based. Snap a photo, adjust the trace, set dimensions, export. Under 2 minutes from photo to printable file.</p>
       <h3>What filament should I use for tool inserts?</h3>
       <p>PETG is recommended. It handles temperatures up to 80C, making it safe for vehicle toolboxes. PLA works for indoor use but warps in heat above 60C.</p>
-      <p><a href="/editor">Try the Editor Free</a> | <a href="/blog">Read the Blog</a> | <a href="/guide">Getting Started Guide</a></p>`,
+      <h2>About TracetoForge</h2>
+      <p>TracetoForge is a small maker project run out of Northeast Ohio, operated by Qwikymart LLC. It started as a personal fix for a messy tool drawer and turned into a browser-based editor that other makers could use. One person writes the code, answers the support email, and packs the physical inserts that ship from the shop. No venture capital, no outsourced copywriting, no bloat. Every feature in the editor exists because someone hit a wall trying to do it another way. <a href="/about/">Read the full story</a> or <a href="/contact/">get in touch</a>.</p>
+
+      <p><a href="/editor">Try the Editor Free</a> | <a href="/blog">Read the Blog</a> | <a href="/guide">Getting Started Guide</a> | <a href="/about/">About</a> | <a href="/contact/">Contact</a></p>`,
   articleSchema: faqSchema
 })
 writeFileSync(join(DIST, 'index.html'), landingHtml)
@@ -522,6 +525,98 @@ writePage('/terms', makePage({
       <p><a href="/">Back to TracetoForge</a> | <a href="/privacy/">Privacy Policy</a></p>`
 }))
 
+// About
+writePage('/about', makePage({
+  title: 'About TracetoForge | Qwikymart LLC',
+  description: 'TracetoForge is a small maker project run out of Northeast Ohio, operated by Qwikymart LLC. Browser-based tool insert editor plus physical 3D printed inserts shipped from the shop.',
+  canonical: 'https://tracetoforge.com/about/',
+  ogTitle: 'About TracetoForge',
+  h1: 'About TracetoForge',
+  bodyHtml: `
+      <p><em>A small maker project run out of Ohio.</em></p>
+
+      <h2>Why this exists</h2>
+      <p>TracetoForge started as a personal problem. Anyone who owns a decent set of hand tools eventually hits the same wall: the tools are fine, the toolbox is fine, but the inside of the drawer is a loose mess of pliers rolling into wrenches into screwdrivers. Every time you reach for a tool you have to rummage. Foam inserts help but they are expensive, they do not last, and cutting them by hand is slow.</p>
+      <p>3D printed inserts are the obvious answer, but the existing workflow to design one was not obvious at all. You needed to learn Fusion 360 or FreeCAD, manually measure every tool with calipers, model the shape by hand, then extrude it into a tray. For a single pair of pliers that is a 30 to 45 minute project. For a drawer full of them, a whole weekend. That gap is what TracetoForge was built to close.</p>
+      <p>The idea was simple. A phone camera already captures the shape of a tool more accurately than any human with calipers. Edge detection is a solved problem. If you could point that pipeline at a top-down photo of a tool on a sheet of paper, you could skip the measuring and the modeling and go straight to a printable file. Everything else is plumbing.</p>
+
+      <h2>Who runs it</h2>
+      <p>TracetoForge is operated by Qwikymart LLC, an Ohio-registered small business. The team is one person who writes the code, answers the support email, and packs the physical inserts that ship from the shop. It is not a venture-backed company and it will not be one. The goal is to cover its costs, serve the 3D printing and maker community, and grow at a pace that keeps the product quality honest.</p>
+      <p>The owner is a longtime hobbyist maker based in Northeast Ohio. No fancy credentials, no pedigree. Just a garage, a 3D printer, a toolbox that used to be a mess, and enough web development background to turn an idea into something other makers can use. Every feature in the editor got built because somebody (often the owner) hit a wall trying to do something in Fusion 360 that should have taken two minutes.</p>
+
+      <h2>What we actually do</h2>
+      <p><strong>The software side.</strong> TracetoForge is a browser-based editor that runs entirely on your device. You upload a photo of a tool, OpenCV traces the outline, and you export a print-ready STL, 3MF, SVG, or DXF. The app supports Gridfinity, Milwaukee Packout, DeWalt ToughSystem, and any custom tray dimensions. Tracing and previewing are free. Exporting a file costs one credit. New accounts get three free credits on signup.</p>
+      <p><strong>The physical side.</strong> Not everyone owns a 3D printer. For those folks we print and ship inserts from the shop, using PETG filament that holds up to garage heat and vehicle toolboxes. The inserts are listed on the <a href="https://www.etsy.com/shop/TracetoForge">TracetoForge Etsy shop</a> and on <a href="https://www.amazon.com/s?k=TracetoForge+gridfinity+insert&amp;rh=n%3A553240">Amazon</a>, sold under the Qwikymart LLC seller account. Each insert is traced from the actual tool, not from manufacturer spec sheets, so the fit is real.</p>
+
+      <h2>What we believe about tool organization</h2>
+      <p>An honest opinion, because this site is not a neutral encyclopedia. A few things we have come to believe after making a lot of these:</p>
+      <p><strong>Shadowbox trays beat bin systems for flat tools.</strong> Gridfinity is brilliant for small parts and anything you want to stand up. For pliers and wrenches that want to lie flat, a drawer-tray format with a precision cutout wastes less space and looks better. Not every tool wants to live in a bin.</p>
+      <p><strong>PETG is the right filament for tool inserts.</strong> PLA looks cleaner off the bed but warps above roughly 60°C, which is a normal summer day in a closed garage or a truck toolbox. PETG handles 80°C, prints fine on a cheap printer, and ages well. ABS and ASA are overkill unless the shop gets really hot.</p>
+      <p><strong>Socket organizers are a solved problem, leave them alone.</strong> There are hundreds of free socket holder designs on Printables, MakerWorld, and Thingiverse, and most of them work. Wrenches, pliers, screwdrivers, utility knives, and specialty tools are where the gap is. That is where TracetoForge focuses.</p>
+
+      <h2>Where the site is heading</h2>
+      <p>Most of the work happens in the editor. It gets better when users report a case where tracing failed or a tolerance was off. The blog is a slower project: one post at a time, focused on practical questions real makers actually ask instead of SEO fodder. Support email is <!--email_off-->support@tracetoforge.com<!--/email_off--> and it is read by a human.</p>
+
+      <h2>Business information</h2>
+      <ul>
+        <li><strong>Operator:</strong> Qwikymart LLC</li>
+        <li><strong>Location:</strong> Northeast Ohio, United States</li>
+        <li><strong>Support email:</strong> <a href="mailto:support@tracetoforge.com">support@tracetoforge.com</a></li>
+        <li><strong>Etsy shop:</strong> <a href="https://www.etsy.com/shop/TracetoForge">etsy.com/shop/TracetoForge</a></li>
+        <li><strong>Amazon storefront:</strong> <a href="https://www.amazon.com/s?k=TracetoForge+gridfinity+insert&amp;rh=n%3A553240">TracetoForge on Amazon</a></li>
+        <li><strong>Founded:</strong> 2025</li>
+      </ul>
+
+      <h2>Contact</h2>
+      <p>The best way to reach us is email at <!--email_off-->support@tracetoforge.com<!--/email_off-->. Feature requests, bug reports, tracing problems, or just hello, all welcome. There is also a <a href="/contact/">contact form</a> if you prefer.</p>
+
+      <p><a href="/">Back to TracetoForge</a> | <a href="/contact/">Contact</a></p>`
+}))
+
+// Contact
+writePage('/contact', makePage({
+  title: 'Contact TracetoForge | Support & Feedback',
+  description: 'Contact TracetoForge. Email support@tracetoforge.com for bug reports, feature requests, refund inquiries, and partnership questions. Typical response time 1-2 business days.',
+  canonical: 'https://tracetoforge.com/contact/',
+  ogTitle: 'Contact TracetoForge',
+  h1: 'Contact TracetoForge',
+  bodyHtml: `
+      <p><em>Real email, read by a real person.</em></p>
+
+      <h2>Email us directly</h2>
+      <p>The fastest way to reach us is email: <a href="mailto:support@tracetoforge.com">support@tracetoforge.com</a>. Messages are typically answered within 1 to 2 business days. If you are reporting a bug or a tracing problem, a screenshot and the photo you uploaded help a lot.</p>
+      <p>For purchase issues (refund requests, missing credits, receipt problems), include the email address on your TracetoForge account and the approximate date of purchase so we can look up the transaction in RevenueCat.</p>
+
+      <h2>What to expect</h2>
+      <ul>
+        <li><strong>Typical response time:</strong> 1 to 2 business days</li>
+        <li><strong>Bug reports:</strong> fixes usually ship within a week, sometimes same day</li>
+        <li><strong>Feature requests:</strong> reviewed, prioritized against the roadmap, replied to honestly even if the answer is "not soon"</li>
+        <li><strong>Refund requests:</strong> processed per the <a href="/terms/">Terms of Service</a> refund policy (unspent credits refundable within 14 days)</li>
+        <li><strong>Partnership or press inquiries:</strong> also at the same email, with "press" or "partnership" in the subject</li>
+      </ul>
+
+      <h2>Contact form</h2>
+      <p>A contact form is available on the page once it loads. The form opens your email app prefilled with your message. If your browser does not have a mail client configured, just email <!--email_off-->support@tracetoforge.com<!--/email_off--> directly.</p>
+
+      <h2>Business information</h2>
+      <ul>
+        <li><strong>Operator:</strong> Qwikymart LLC</li>
+        <li><strong>Location:</strong> Northeast Ohio, United States</li>
+        <li><strong>Email:</strong> <a href="mailto:support@tracetoforge.com">support@tracetoforge.com</a></li>
+        <li><strong>Etsy:</strong> <a href="https://www.etsy.com/shop/TracetoForge">etsy.com/shop/TracetoForge</a></li>
+        <li><strong>Amazon:</strong> <a href="https://www.amazon.com/s?k=TracetoForge+gridfinity+insert&amp;rh=n%3A553240">TracetoForge on Amazon</a></li>
+      </ul>
+
+      <h2>Before you email: common questions</h2>
+      <p><strong>"Auto-trace is missing part of my tool."</strong> Try increasing the Sensitivity slider. For shiny or chrome tools, tissue paper or a matte spray over the tool helps cut reflections. The <a href="/guide/">Getting Started Guide</a> has photo tips.</p>
+      <p><strong>"I bought credits and they did not show up."</strong> Give it up to 60 seconds for the webhook to fire, then refresh the page. If credits are still missing after five minutes, email us with your order ID.</p>
+      <p><strong>"The printed insert is too tight / too loose."</strong> Adjust the Tolerance slider in the editor. Most printers land well at 0.4 to 0.6 mm tolerance. Dial it in once on your printer and the same value works for every future insert.</p>
+      <p><strong>"Can I get a refund?"</strong> Yes, unspent credits are refundable within 14 days of purchase. Email with the order ID and we will process it. See the full policy in the <a href="/terms/">Terms of Service</a>.</p>
+
+      <p><a href="/">Back to TracetoForge</a> | <a href="/about/">About TracetoForge</a></p>`
+}))
+
 // Blog Index
 const blogPosts = [
   { slug: 'custom-milwaukee-packout-inserts-3d-print', title: 'How to Make Custom Milwaukee Packout Inserts with a 3D Printer', excerpt: 'Stop buying $40 generic inserts. Learn how to create perfectly fitted, custom Packout inserts from a photo.' },
@@ -637,6 +732,13 @@ for (const post of postConfigs) {
     keywords: meta.tags.join(', ')
   }
 
+  const authorBioHtml = `
+      <aside>
+        <h3>About the author</h3>
+        <p>Chris Winland runs TracetoForge out of a small workshop in Northeast Ohio. Qwikymart LLC, the operator of this site, makes and ships precision-fit 3D printed tool inserts alongside the browser-based editor. Most posts on this blog come from real problems hit while tracing, printing, and selling inserts to other makers. Reach out at <a href="mailto:support@tracetoforge.com">support@tracetoforge.com</a> with corrections, questions, or tracing problems.</p>
+        <p><a href="/about/">More about TracetoForge</a> | <a href="/contact/">Contact</a></p>
+      </aside>`
+
   writePage(`/blog/${post.slug}`, makePage({
     title: `${meta.title} | TracetoForge Blog`,
     description: meta.desc,
@@ -645,10 +747,11 @@ for (const post of postConfigs) {
     ogType: 'article',
     h1: meta.title,
     bodyHtml: `
-      <p>Published ${meta.date} by Chris Winland</p>
+      <p>Published ${meta.date} by <a href="/about/">Chris Winland</a></p>
       <article>
 ${articleContent}
       </article>
+${authorBioHtml}
       <p><a href="/blog">Back to Blog</a> | <a href="/editor">Try TracetoForge Free</a></p>`,
     articleSchema
   }))
@@ -658,6 +761,7 @@ ${articleContent}
 const today = new Date().toISOString().split('T')[0]
 const sitemapUrls = [
   { loc: 'https://tracetoforge.com/', freq: 'weekly', priority: '1.0' },
+  { loc: 'https://tracetoforge.com/about/', freq: 'monthly', priority: '0.8' },
   { loc: 'https://tracetoforge.com/editor/', freq: 'weekly', priority: '0.7' },
   { loc: 'https://tracetoforge.com/guide/', freq: 'monthly', priority: '0.8' },
   { loc: 'https://tracetoforge.com/blog/', freq: 'weekly', priority: '0.9' },
@@ -666,6 +770,7 @@ const sitemapUrls = [
     freq: 'monthly',
     priority: '0.8'
   })),
+  { loc: 'https://tracetoforge.com/contact/', freq: 'monthly', priority: '0.5' },
   { loc: 'https://tracetoforge.com/privacy/', freq: 'yearly', priority: '0.3' },
   { loc: 'https://tracetoforge.com/terms/', freq: 'yearly', priority: '0.3' }
 ]

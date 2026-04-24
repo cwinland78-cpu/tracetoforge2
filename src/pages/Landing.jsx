@@ -985,6 +985,36 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* About the maker */}
+      <section className="px-6 py-16 md:py-20">
+        <div className="max-w-3xl mx-auto">
+          <span className="font-mono text-xs text-brand tracking-widest uppercase mb-3 block">About</span>
+          <h2 className="text-2xl md:text-3xl font-display font-bold mb-6">Built by a maker, for makers</h2>
+          <div className="space-y-4 text-[#AAABB8] leading-relaxed">
+            <p>
+              TracetoForge is a small maker project run out of Northeast Ohio, operated by Qwikymart LLC.
+              It started as a personal fix for a messy tool drawer and turned into a browser-based
+              editor that other makers could use. One person writes the code, answers the support
+              email, and packs the physical inserts that ship from the shop.
+            </p>
+            <p>
+              No venture capital, no outsourced copywriting, no bloat. Every feature in the editor
+              exists because someone hit a wall trying to do it another way. If you have a tracing
+              problem, a feature request, or just want to say hi, email is{' '}
+              <a href="mailto:support@tracetoforge.com" className="text-brand underline hover:no-underline">
+                support@tracetoforge.com
+              </a>{' '}
+              and a human reads it.
+            </p>
+            <p className="pt-2">
+              <a href="/about" className="text-brand underline hover:no-underline font-mono text-sm">Read the full story →</a>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <div className="glow-line" />
+
       {/* Final CTA */}
       <section className="px-6 py-20 md:py-28 text-center">
         <div className="max-w-2xl mx-auto">
@@ -1014,11 +1044,12 @@ export default function Landing() {
             <span className="font-mono text-xs">&copy; {new Date().getFullYear()}</span>
           </div>
           <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 text-xs text-[#555568] font-mono">
+            <a href="/about" className="hover:text-white transition-colors">About</a>
             <a href="/blog" className="hover:text-white transition-colors">Blog</a>
             <a href="/guide" className="hover:text-white transition-colors">Guide & FAQ</a>
+            <a href="/contact" className="hover:text-white transition-colors">Contact</a>
             <a href="/privacy" className="hover:text-white transition-colors">Privacy</a>
             <a href="/terms" className="hover:text-white transition-colors">Terms</a>
-            <a href="mailto:support@tracetoforge.com" className="hover:text-white transition-colors">Contact</a>
           </div>
           <p className="text-[10px] text-[#444455] font-mono text-center">All brand names are trademarks of their respective owners</p>
         </div>
