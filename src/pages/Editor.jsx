@@ -86,7 +86,7 @@ export default function Editor() {
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState('')
   const [showDisclaimer, setShowDisclaimer] = useState(false)
-  const [exportFormats, setExportFormats] = useState({ stl: true, svg: false, dxf: false, '3mf': false })
+  const [exportFormats, setExportFormats] = useState({ stl: false, svg: false, dxf: false, '3mf': true })
   const [imageSize, setImageSize] = useState({ w: 0, h: 0 })
   const [contours, setContours] = useState([])
   const [selectedContour, setSelectedContour] = useState(0)
@@ -2381,8 +2381,7 @@ export default function Editor() {
                       <p className="text-zinc-300 text-xs font-medium mb-2">Export Formats</p>
                       <div className="grid grid-cols-2 gap-2">
                         {[
-                          { key: 'stl', label: 'STL', desc: '3D Print' },
-                          { key: '3mf', label: '3MF', desc: '3D Print (modern)' },
+                          { key: '3mf', label: '3MF', desc: '3D Print' },
                           { key: 'svg', label: 'SVG', desc: 'Laser / Vector' },
                           { key: 'dxf', label: 'DXF', desc: 'CAD / CNC' },
                         ].map(fmt => (
