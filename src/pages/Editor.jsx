@@ -3,7 +3,8 @@ import ReactDOM from 'react-dom'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Upload, Download, ChevronLeft, Pencil, MousePointer, Eye,
-  Info, ZoomIn, ZoomOut, Save, FolderOpen, X, Camera, Sun, Contrast, Crop, FilePlus2, Copy
+  Info, ZoomIn, ZoomOut, Save, FolderOpen, X, Camera, Sun, Contrast, Crop, FilePlus2, Copy,
+  Library, Bookmark, Trash2
 } from 'lucide-react'
 import ThreePreview from '../components/ThreePreview'
 import PaywallModal from '../components/PaywallModal'
@@ -16,6 +17,9 @@ import { exportSVG, exportDXF, export3MF, bundleAsZip } from '../lib/exportForma
 import { hasCredits, useCredit, getCredits, initPurchases } from '../lib/purchases'
 import { queryTable } from '../lib/supabase'
 import { createProject, updateProject, getProject } from './Dashboard'
+import {
+  listSavedTools, getSavedTool, createSavedTool, deleteSavedTool, makeThumbnail
+} from '../lib/savedTools'
 
 const STEPS = ['Upload', 'Trace', 'Configure', 'Preview & Export']
 
@@ -90,6 +94,7 @@ export default function Editor() {
   const [imageSize, setImageSize] = useState({ w: 0, h: 0 })
   const [contours, setContours] = useState([])
   const [selectedContour, setSelectedContour] = useState(0)
+  const [locked, setLocked] = useState(false) // true when user has manually edited contours; blocks auto-redetect
   const [editMode, setEditMode] = useState('select')
   const [draggingPoint, setDraggingPoint] = useState(null)
   const [hoveredPoint, setHoveredPoint] = useState(null)
@@ -680,6 +685,7 @@ export default function Editor() {
 
         setContours(detected)
         setSelectedContour(0)
+        setLocked(false) // fresh detection, lock no longer applies
         setStep(2)
         setEditMode('edit')
 
@@ -692,14 +698,16 @@ export default function Editor() {
     }, 50)
   }, [cvReady, simplification, sensitivity, minContourPct])
 
-  // Auto re-detect when settings change (after first detection)
+  // Auto re-detect when settings change (after first detection).
+  // Skipped when locked: user has hand-edited contours and we must not clobber them.
   useEffect(() => {
     if (step < 2 || !cvReady || !imageRef.current) return
+    if (locked) return
     const timer = setTimeout(() => {
       runEdgeDetection()
     }, 300)
     return () => clearTimeout(timer)
-  }, [simplification, sensitivity, minContourPct])
+  }, [simplification, sensitivity, minContourPct, locked])
 
   /* ── Canvas Drawing ── */
   const drawCanvas = useCallback(() => {
@@ -1195,6 +1203,7 @@ export default function Editor() {
         updated[selectedContour] = pts
         return updated
       })
+      if (!locked) setLocked(true)
       return
     }
     const pi = findNearestPoint(pos)
@@ -1266,6 +1275,7 @@ export default function Editor() {
         updated[selectedContour] = pts
         return updated
       })
+      if (!locked) setLocked(true)
     }
   }
 
@@ -1320,6 +1330,7 @@ export default function Editor() {
         updated[selectedContour] = pts
         return updated
       })
+      if (!locked) setLocked(true)
     }
   }
 
@@ -1353,12 +1364,12 @@ export default function Editor() {
   // Save current top-level state into a tool object
   const saveCurrentToolState = useCallback(() => ({
     image, imageSize, imageEl: imageRef.current,
-    contours, selectedContour,
+    contours, selectedContour, locked,
     realWidth, realHeight, toolDepth, tolerance,
     toolOffsetX, toolOffsetY, toolRotation, cavityBevel,
     sensitivity, simplification, minContourPct,
     step: Math.max(step, 0),
-  }), [image, imageSize, contours, selectedContour, realWidth, realHeight, toolDepth, tolerance, toolOffsetX, toolOffsetY, toolRotation, cavityBevel, sensitivity, simplification, minContourPct, step])
+  }), [image, imageSize, contours, selectedContour, locked, realWidth, realHeight, toolDepth, tolerance, toolOffsetX, toolOffsetY, toolRotation, cavityBevel, sensitivity, simplification, minContourPct, step])
 
   // Restore a tool object into top-level state
   const restoreToolState = useCallback((t) => {
@@ -1379,6 +1390,9 @@ export default function Editor() {
     setSimplification(t.simplification ?? 0.5)
     setMinContourPct(t.minContourPct ?? 0.05)
     setStep(t.step ?? 0)
+    // Restore lock LAST so the auto-redetect useEffect sees the correct
+    // locked value alongside the restored sensitivity in the same tick.
+    setLocked(t.locked ?? false)
   }, [])
 
   // Switch active tool - save current, restore target
@@ -1402,6 +1416,133 @@ export default function Editor() {
     setActiveToolIdx(targetIdx)
   }, [activeToolIdx, saveCurrentToolState, restoreToolState])
 
+  /* ── Saved tool library ── */
+  // Lets the user save the active tool's traced shape and reuse it across projects
+  // and tray modes (custom / gridfinity / object) without re-tracing.
+
+  const [showLibrary, setShowLibrary] = useState(false)
+  const [showSaveDialog, setShowSaveDialog] = useState(false)
+  const [savedToolName, setSavedToolName] = useState('')
+  const [savedToolCategory, setSavedToolCategory] = useState('')
+  const [savedTools, setSavedToolsList] = useState([])
+  const [libraryLoading, setLibraryLoading] = useState(false)
+  const [libraryMsg, setLibraryMsg] = useState('')
+
+  const refreshLibrary = useCallback(async () => {
+    if (!user?.id) return
+    setLibraryLoading(true)
+    const { data, error } = await listSavedTools(user.id)
+    setLibraryLoading(false)
+    if (error) { setLibraryMsg('Could not load library'); return }
+    setSavedToolsList(data || [])
+  }, [user])
+
+  // Save the current active tool's full state into the library.
+  const handleSaveToLibrary = async () => {
+    if (!user?.id) { setLibraryMsg('Sign in required'); return }
+    if (!savedToolName.trim()) { setLibraryMsg('Name required'); return }
+    if (!contours[selectedContour] || contours[selectedContour].length < 3) {
+      setLibraryMsg('No traced shape to save')
+      return
+    }
+    setLibraryLoading(true)
+    // Capture the full restorable state. Image is included as data URL so the
+    // saved tool is fully self-contained. Lock state is preserved.
+    const fullState = saveCurrentToolState()
+    const config = {
+      contours: fullState.contours,
+      selectedContour: fullState.selectedContour,
+      locked: fullState.locked,
+      image: fullState.image,
+      imageSize: fullState.imageSize,
+      realWidth: fullState.realWidth,
+      realHeight: fullState.realHeight,
+      toolDepth: fullState.toolDepth,
+      tolerance: fullState.tolerance,
+      toolOffsetX: fullState.toolOffsetX,
+      toolOffsetY: fullState.toolOffsetY,
+      toolRotation: fullState.toolRotation,
+      cavityBevel: fullState.cavityBevel,
+      sensitivity: fullState.sensitivity,
+      simplification: fullState.simplification,
+      minContourPct: fullState.minContourPct,
+    }
+    const thumbnail = makeThumbnail(imageRef.current)
+    const { error } = await createSavedTool(user.id, {
+      name: savedToolName.trim(),
+      category: savedToolCategory.trim() || null,
+      config,
+      thumbnail,
+    })
+    setLibraryLoading(false)
+    if (error) { setLibraryMsg('Save failed: ' + (error.message || 'unknown')); return }
+    setShowSaveDialog(false)
+    setSavedToolName('')
+    setSavedToolCategory('')
+    setLibraryMsg('Saved to library')
+    setTimeout(() => setLibraryMsg(''), 2500)
+  }
+
+  // Load a saved tool into the project as a new additional tool slot.
+  // Works regardless of outputMode (custom / gridfinity / object) because the
+  // contour data is consumed identically by all three downstream code paths.
+  const handleLoadFromLibrary = async (savedToolId) => {
+    setLibraryLoading(true)
+    const { data, error } = await getSavedTool(savedToolId)
+    setLibraryLoading(false)
+    if (error || !data) { setLibraryMsg('Load failed'); return }
+    const cfg = data.config || {}
+
+    // Build the tool object that lives in the tools[] array.
+    // Shape matches what addTool/cloneTool create.
+    const loadedImg = new Image()
+    loadedImg.src = cfg.image || ''
+    const newTool = {
+      name: data.name || `Tool ${tools.length + 1}`,
+      contours: cfg.contours || [],
+      selectedContour: cfg.selectedContour || 0,
+      locked: cfg.locked ?? true, // saved tools default to locked: the saved trace IS the user's intent
+      image: cfg.image || null,
+      imageSize: cfg.imageSize || { w: 0, h: 0 },
+      imageEl: loadedImg,
+      realWidth: cfg.realWidth ?? 100,
+      realHeight: cfg.realHeight ?? 100,
+      toolDepth: cfg.toolDepth ?? 25,
+      tolerance: cfg.tolerance ?? 1.5,
+      toolOffsetX: cfg.toolOffsetX ?? 0,
+      toolOffsetY: cfg.toolOffsetY ?? 0,
+      toolRotation: cfg.toolRotation ?? 0,
+      cavityBevel: cfg.cavityBevel ?? 0,
+      sensitivity: cfg.sensitivity ?? 6,
+      simplification: cfg.simplification ?? 0.5,
+      minContourPct: cfg.minContourPct ?? 0.05,
+      step: 2, // already past Trace
+    }
+
+    // If no project tools yet, snapshot current as Tool 1 first (same pattern as addTool)
+    if (tools.length === 0) {
+      const primaryState = saveCurrentToolState()
+      setTools([
+        { ...primaryState, name: 'Tool 1' },
+        { ...newTool, name: `Tool 2` },
+      ])
+    } else {
+      setTools(prev => [...prev, { ...newTool, name: `Tool ${prev.length + 1}` }])
+    }
+    setShowLibrary(false)
+    setLibraryMsg('Added to project')
+    setTimeout(() => setLibraryMsg(''), 2000)
+  }
+
+  const handleDeleteFromLibrary = async (id, name) => {
+    if (!confirm(`Delete "${name}" from your library? This can't be undone.`)) return
+    setLibraryLoading(true)
+    const { error } = await deleteSavedTool(id)
+    setLibraryLoading(false)
+    if (error) { setLibraryMsg('Delete failed'); return }
+    setSavedToolsList(prev => prev.filter(t => t.id !== id))
+  }
+
   const addTool = () => {
     // If this is the first add, save primary tool as tools[0]
     if (tools.length === 0) {
@@ -1410,7 +1551,7 @@ export default function Editor() {
         { ...primaryState, name: 'Tool 1' },
         {
           name: 'Tool 2',
-          contours: [], selectedContour: 0,
+          contours: [], selectedContour: 0, locked: false,
           image: null, imageSize: { w: 0, h: 0 }, imageEl: null,
           realWidth: 100, realHeight: 100, toolDepth: 25, tolerance: 1.5,
           toolOffsetX: 0, toolOffsetY: 0, toolRotation: 0, cavityBevel: 0,
@@ -1420,7 +1561,7 @@ export default function Editor() {
     } else {
       setTools(prev => [...prev, {
         name: `Tool ${prev.length + 1}`,
-        contours: [], selectedContour: 0,
+        contours: [], selectedContour: 0, locked: false,
         image: null, imageSize: { w: 0, h: 0 }, imageEl: null,
         realWidth: 100, realHeight: 100, toolDepth: 25, tolerance: 1.5,
         toolOffsetX: 0, toolOffsetY: 0, toolRotation: 0, cavityBevel: 0,
@@ -1453,6 +1594,7 @@ export default function Editor() {
         step: toolData.step,
         imageSize: toolData.imageSize,
       })),
+      locked: toolData.locked ?? false,
       image: toolData.image,
       imageEl: toolData.imageEl,
       name: `Tool ${tools.length + 1}`,
@@ -1722,9 +1864,24 @@ export default function Editor() {
                           ⧉ Clone
                         </button>
                       )}
+                      <button onClick={() => { setShowLibrary(true); refreshLibrary() }}
+                        title="Load a saved tool from your library"
+                        className="text-[11px] px-2.5 py-1 rounded-md bg-[#1C1C24] text-blue-400 hover:bg-blue-900/20 transition-colors font-bold flex items-center gap-1">
+                        <Library size={12} /> Library
+                      </button>
+                      {contours.length > 0 && contours[selectedContour] && contours[selectedContour].length >= 3 && (
+                        <button onClick={() => { setShowSaveDialog(true); setSavedToolName(''); setSavedToolCategory('') }}
+                          title="Save this tool's traced shape to your library so you can reuse it in other trays"
+                          className="text-[11px] px-2.5 py-1 rounded-md bg-[#1C1C24] text-amber-400 hover:bg-amber-900/20 transition-colors font-bold flex items-center gap-1">
+                          <Bookmark size={12} /> Save
+                        </button>
+                      )}
                     </>
                   )}
                 </div>
+                {libraryMsg && (
+                  <p className="text-[11px] text-[#8888A0] mt-1.5">{libraryMsg}</p>
+                )}
               </div>
             )}
 
@@ -1759,6 +1916,25 @@ export default function Editor() {
             {step >= 1 && (
               <div>
                 <h3 className="text-xs font-semibold text-[#8888A0] uppercase tracking-wider mb-3">Detection</h3>
+                {locked && (
+                  <div className="mb-3 px-3 py-2 rounded-md bg-amber-500/10 border border-amber-500/30 flex items-start gap-2">
+                    <svg className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-medium text-amber-300">Edits locked</div>
+                      <div className="text-[11px] text-amber-300/70 leading-snug">Sensitivity changes won't re-trace. Switching tools preserves your edits.</div>
+                      <button
+                        onClick={() => {
+                          if (confirm('Unlock and re-run edge detection? Your manual edits to this tool will be lost.')) {
+                            setLocked(false)
+                            runEdgeDetection()
+                          }
+                        }}
+                        className="mt-1.5 text-[11px] font-medium text-amber-300 hover:text-amber-200 underline">
+                        Unlock and re-detect
+                      </button>
+                    </div>
+                  </div>
+                )}
                 <div className="space-y-3">
                   <div className="space-y-3">
                     <div>
@@ -2349,6 +2525,101 @@ export default function Editor() {
                 onCreditsChanged={(c) => { setCredits(c); refreshProfile && refreshProfile() }}
                 userId={user?.id}
               />,
+              document.body
+            )}
+
+            {/* Tool Library Picker Modal */}
+            {showLibrary && ReactDOM.createPortal(
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => setShowLibrary(false)}>
+                <div className="bg-zinc-900 border border-zinc-700 rounded-2xl max-w-3xl w-full mx-4 max-h-[80vh] overflow-hidden shadow-2xl flex flex-col" onClick={e => e.stopPropagation()}>
+                  <div className="bg-gradient-to-r from-blue-600 to-blue-500 px-6 py-4 flex items-center justify-between">
+                    <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                      <Library size={18} /> Your Saved Tools
+                    </h2>
+                    <button onClick={() => setShowLibrary(false)} className="text-white/70 hover:text-white"><X size={18} /></button>
+                  </div>
+                  <div className="px-6 py-5 overflow-y-auto flex-1">
+                    {libraryLoading && <p className="text-zinc-400 text-sm text-center py-8">Loading...</p>}
+                    {!libraryLoading && savedTools.length === 0 && (
+                      <div className="text-center py-12">
+                        <Bookmark size={32} className="mx-auto text-zinc-600 mb-3" />
+                        <p className="text-zinc-400 text-sm">No saved tools yet.</p>
+                        <p className="text-zinc-500 text-xs mt-1">Trace a tool, then click <span className="text-amber-400">Save</span> to add it here.</p>
+                      </div>
+                    )}
+                    {!libraryLoading && savedTools.length > 0 && (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {savedTools.map(t => (
+                          <div key={t.id} className="group relative bg-zinc-800 border border-zinc-700 rounded-lg overflow-hidden hover:border-blue-500/50 transition-colors">
+                            <button onClick={() => handleLoadFromLibrary(t.id)} className="block w-full text-left">
+                              <div className="aspect-square bg-zinc-950 flex items-center justify-center overflow-hidden">
+                                {t.thumbnail
+                                  ? <img src={t.thumbnail} alt={t.name} className="w-full h-full object-contain" />
+                                  : <div className="text-zinc-600 text-xs">No preview</div>}
+                              </div>
+                              <div className="px-3 py-2">
+                                <div className="text-sm font-medium text-white truncate">{t.name}</div>
+                                {t.category && <div className="text-[11px] text-zinc-500 truncate">{t.category}</div>}
+                              </div>
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleDeleteFromLibrary(t.id, t.name) }}
+                              title="Delete from library"
+                              className="absolute top-1.5 right-1.5 p-1.5 rounded-md bg-zinc-900/80 text-zinc-400 opacity-0 group-hover:opacity-100 hover:text-red-400 hover:bg-red-900/40 transition-all">
+                              <Trash2 size={12} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div className="px-6 py-3 border-t border-zinc-800 bg-zinc-950/50 text-[11px] text-zinc-500">
+                    Click any tool to add it to your current project. Your edits to the saved trace are preserved.
+                  </div>
+                </div>
+              </div>,
+              document.body
+            )}
+
+            {/* Save to Library Dialog */}
+            {showSaveDialog && ReactDOM.createPortal(
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => setShowSaveDialog(false)}>
+                <div className="bg-zinc-900 border border-zinc-700 rounded-2xl max-w-md w-full mx-4 overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+                  <div className="bg-gradient-to-r from-amber-600 to-amber-500 px-6 py-4 flex items-center justify-between">
+                    <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                      <Bookmark size={18} /> Save Tool to Library
+                    </h2>
+                    <button onClick={() => setShowSaveDialog(false)} className="text-white/70 hover:text-white"><X size={18} /></button>
+                  </div>
+                  <div className="px-6 py-5 space-y-4">
+                    <p className="text-zinc-400 text-sm leading-relaxed">Save this traced shape, dimensions, and your edits so you can reuse it across any future tray, Gridfinity bin, or 3D object.</p>
+                    <div>
+                      <label className="text-xs text-zinc-400 block mb-1">Name <span className="text-red-400">*</span></label>
+                      <input type="text" value={savedToolName} onChange={e => setSavedToolName(e.target.value)}
+                        placeholder="e.g. Knipex Cobra 250mm"
+                        autoFocus
+                        className="w-full px-3 py-2 rounded-md bg-zinc-800 border border-zinc-700 text-white text-sm focus:border-amber-500 focus:outline-none" />
+                    </div>
+                    <div>
+                      <label className="text-xs text-zinc-400 block mb-1">Category <span className="text-zinc-600">(optional)</span></label>
+                      <input type="text" value={savedToolCategory} onChange={e => setSavedToolCategory(e.target.value)}
+                        placeholder="e.g. Pliers, Wrenches, Screwdrivers"
+                        className="w-full px-3 py-2 rounded-md bg-zinc-800 border border-zinc-700 text-white text-sm focus:border-amber-500 focus:outline-none" />
+                    </div>
+                    {libraryMsg && <p className="text-xs text-amber-400">{libraryMsg}</p>}
+                  </div>
+                  <div className="px-6 py-3 border-t border-zinc-800 flex gap-3">
+                    <button onClick={() => setShowSaveDialog(false)}
+                      className="flex-1 py-2 rounded-lg border border-zinc-700 text-zinc-300 hover:bg-zinc-800 text-sm font-medium transition-colors">
+                      Cancel
+                    </button>
+                    <button onClick={handleSaveToLibrary} disabled={libraryLoading || !savedToolName.trim()}
+                      className="flex-1 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 disabled:bg-zinc-700 disabled:text-zinc-500 text-white text-sm font-medium transition-colors">
+                      {libraryLoading ? 'Saving...' : 'Save'}
+                    </button>
+                  </div>
+                </div>
+              </div>,
               document.body
             )}
 
