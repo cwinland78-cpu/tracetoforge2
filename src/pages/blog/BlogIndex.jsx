@@ -5,6 +5,15 @@ import SEOHead from '../../components/SEOHead'
 
 export const BLOG_POSTS = [
   {
+    slug: 'reusable-tool-library-drawer-trays',
+    title: 'Trace Once, Use Everywhere: Build a Reusable Tool Library for Custom Drawer Trays',
+    excerpt: 'Save your traced tools to a personal library and reuse them across any Gridfinity bin, Packout insert, or drawer tray without re-tracing. New in TracetoForge.',
+    date: '2026-05-02',
+    readTime: '5 min',
+    tags: ['New Feature', 'Tool Organizer', 'Workflow', 'Drawer Tray'],
+    image: '/blog/tool-organizer-guide.jpg',
+  },
+  {
     slug: 'gridfinity-generator-photo-vs-parametric',
     title: 'Gridfinity Generator: Photo-Based vs Parametric — Which Is Better?',
     excerpt: 'Compare the best Gridfinity generators for custom bins. Parametric tools generate simple divider bins. Photo-based generators like TracetoForge create precision tool cutouts from a picture.',

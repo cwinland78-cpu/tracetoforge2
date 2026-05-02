@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Camera, Box, Download, ArrowRight, LayoutGrid, Package, Wrench, ShieldCheck, Layers, MousePointerClick, Printer, ChevronDown, Star, Cpu, Eye, FolderOpen, LogOut } from 'lucide-react'
+import { useNavigate, Link } from 'react-router-dom'
+import { Camera, Box, Download, ArrowRight, LayoutGrid, Package, Wrench, ShieldCheck, Layers, MousePointerClick, Printer, ChevronDown, Star, Cpu, Eye, FolderOpen, LogOut, Bookmark, Sparkles } from 'lucide-react'
 import { useAuth } from '../components/AuthContext'
 
 const STEPS = [
@@ -281,6 +281,17 @@ export default function Landing() {
         </div>
 
         <div className="max-w-4xl mx-auto text-center">
+          {/* New feature announcement */}
+          <Link
+            to="/blog/reusable-tool-library-drawer-trays"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 hover:bg-amber-500/15 text-amber-300 hover:text-amber-200 text-[11px] font-semibold mb-4 border border-amber-500/30 font-mono tracking-wide transition-colors group"
+          >
+            <Sparkles size={11} className="text-amber-400" />
+            <span className="uppercase">New:</span>
+            <span className="normal-case font-medium">Save tools to your library and reuse across trays</span>
+            <ArrowRight size={11} className="opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+          </Link>
+
           {/* Eyebrow */}
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand/8 text-brand text-xs font-semibold mb-8 border border-brand/15 font-mono tracking-wide uppercase">
             <LayoutGrid size={13} />

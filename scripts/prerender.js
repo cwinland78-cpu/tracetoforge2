@@ -189,6 +189,7 @@ const landingHtml = makePage({
       <p>Create precision-fit organizer inserts for pliers, screwdrivers, socket sets, ratchets, wrenches, utility knives, hex keys, wire strippers, multimeters, drill bits, tape measures, chisels, files, flashlights, and more. Works as a foam organizer alternative. Replace kaizen foam with 3D printed inserts for your tool drawer, tool chest, or garage storage.</p>
       <h2>Guides and Tutorials</h2>
       <ul>
+        <li><a href="/blog/reusable-tool-library-drawer-trays">Trace Once, Use Everywhere: Build a Reusable Tool Library</a></li>
         <li><a href="/blog/image-to-stl-converter-free">Image to STL Converter: Free, No CAD Needed</a></li>
         <li><a href="/blog/gridfinity-custom-cutout-no-cad">Gridfinity Custom Cutouts Without CAD</a></li>
         <li><a href="/blog/3d-printed-tool-organizer-guide">3D Printed Tool Organizer: Complete Guide</a></li>
@@ -619,6 +620,7 @@ writePage('/contact', makePage({
 
 // Blog Index
 const blogPosts = [
+  { slug: 'reusable-tool-library-drawer-trays', title: 'Trace Once, Use Everywhere: Build a Reusable Tool Library for Custom Drawer Trays', excerpt: 'Save your traced tools and reuse them across any Gridfinity bin, Packout insert, or drawer tray without re-tracing.' },
   { slug: 'custom-milwaukee-packout-inserts-3d-print', title: 'How to Make Custom Milwaukee Packout Inserts with a 3D Printer', excerpt: 'Stop buying $40 generic inserts. Learn how to create perfectly fitted, custom Packout inserts from a photo.' },
   { slug: 'gridfinity-insert-from-photo', title: 'Create Gridfinity Inserts from a Photo: The Fastest Way in 2026', excerpt: 'Forget hours of CAD work. Snap a photo and generate a perfectly fitted Gridfinity insert in minutes.' },
   { slug: 'tool-organizer-photo-to-stl', title: 'Photo to STL: Turn Any Tool Photo into a 3D Printable Organizer', excerpt: 'A complete guide to converting photos into print-ready STL, 3MF, SVG, and DXF files.' },
@@ -665,6 +667,7 @@ const postConfigs = [
   { slug: '3d-printed-tool-organizer-guide', file: 'PrintedToolOrganizer.jsx' },
   { slug: 'knipex-pliers-organizer-3d-printed', file: 'KnipexOrganizer.jsx' },
   { slug: 'gridfinity-generator-photo-vs-parametric', file: 'GridfinityGenerator.jsx' },
+  { slug: 'reusable-tool-library-drawer-trays', file: 'SavedToolLibrary.jsx' },
 ]
 
 function extractMeta(jsxContent) {
