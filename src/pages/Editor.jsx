@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Upload, Download, ChevronLeft, Pencil, MousePointer, Eye,
   Info, ZoomIn, ZoomOut, Save, FolderOpen, X, Camera, Sun, Contrast, Crop, FilePlus2, Copy,
-  Library, Bookmark, Trash2
+  Library, Bookmark, Trash2, Globe, Share2
 } from 'lucide-react'
 import ThreePreview from '../components/ThreePreview'
 import PaywallModal from '../components/PaywallModal'
@@ -20,6 +20,10 @@ import { createProject, updateProject, getProject } from './Dashboard'
 import {
   listSavedTools, getSavedTool, createSavedTool, deleteSavedTool, makeThumbnail
 } from '../lib/savedTools'
+import {
+  publishTool, buildPublicContour, makeSilhouetteThumbnail, isPayingUser
+} from '../lib/publishedTools'
+import CommunityLibrary from '../components/CommunityLibrary'
 
 const STEPS = ['Upload', 'Trace', 'Configure', 'Preview & Export']
 
@@ -181,6 +185,19 @@ export default function Editor() {
 
   // Initialize RevenueCat with user ID when available
   useEffect(() => { initPurchases(user?.id || null) }, [user])
+
+  // If the user arrived here from /community after picking a tool, load it now.
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem('ttf:loadCommunityTool')
+      if (!raw) return
+      sessionStorage.removeItem('ttf:loadCommunityTool')
+      const tool = JSON.parse(raw)
+      if (tool?.contour) handleUseCommunityTool(tool)
+    } catch {}
+  // run once on mount
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Fetch credits (server-side, login required)
   useEffect(() => {
@@ -1424,12 +1441,22 @@ export default function Editor() {
   // and tray modes (custom / gridfinity / object) without re-tracing.
 
   const [showLibrary, setShowLibrary] = useState(false)
+  const [libraryTab, setLibraryTab] = useState('mine') // 'mine' | 'community'
   const [showSaveDialog, setShowSaveDialog] = useState(false)
+  const [showPublishDialog, setShowPublishDialog] = useState(false)
   const [savedToolName, setSavedToolName] = useState('')
   const [savedToolCategory, setSavedToolCategory] = useState('')
+  const [publishDescription, setPublishDescription] = useState('')
   const [savedTools, setSavedToolsList] = useState([])
   const [libraryLoading, setLibraryLoading] = useState(false)
   const [libraryMsg, setLibraryMsg] = useState('')
+  const [paying, setPaying] = useState(false)
+
+  // Check paying status whenever the user changes
+  useEffect(() => {
+    if (!user?.id) { setPaying(false); return }
+    isPayingUser(user.id).then(setPaying)
+  }, [user])
 
   const refreshLibrary = useCallback(async () => {
     if (!user?.id) return
@@ -1544,6 +1571,79 @@ export default function Editor() {
     setLibraryLoading(false)
     if (error) { setLibraryMsg('Delete failed'); return }
     setSavedToolsList(prev => prev.filter(t => t.id !== id))
+  }
+
+  // Use a community-published tool. Same shape pipeline as handleLoadFromLibrary
+  // but the source is published_tools, which has no original photo (by design).
+  const handleUseCommunityTool = (publishedRow) => {
+    const cfg = publishedRow.contour || {}
+    const newTool = {
+      name: publishedRow.name || `Tool ${tools.length + 1}`,
+      contours: cfg.contours || [],
+      selectedContour: cfg.selectedContour || 0,
+      locked: true, // public traces are intentionally as-published
+      image: null,  // public tools don't carry the original photo
+      imageSize: { w: 0, h: 0 },
+      imageEl: null,
+      realWidth: cfg.realWidth ?? 100,
+      realHeight: cfg.realHeight ?? 100,
+      toolDepth: cfg.toolDepth ?? 25,
+      tolerance: cfg.tolerance ?? 1.5,
+      toolOffsetX: 0,
+      toolOffsetY: 0,
+      toolRotation: cfg.toolRotation ?? 0,
+      cavityBevel: cfg.cavityBevel ?? 0,
+      sensitivity: cfg.sensitivity ?? 6,
+      simplification: cfg.simplification ?? 0.5,
+      minContourPct: cfg.minContourPct ?? 0.05,
+      step: 2,
+    }
+    if (tools.length === 0) {
+      const primaryState = saveCurrentToolState()
+      setTools([{ ...primaryState, name: 'Tool 1' }, { ...newTool, name: 'Tool 2' }])
+    } else {
+      setTools(prev => [...prev, { ...newTool, name: `Tool ${prev.length + 1}` }])
+    }
+    setShowLibrary(false)
+    setLibraryMsg('Added from community')
+    setTimeout(() => setLibraryMsg(''), 2000)
+  }
+
+  // Publish the active tool to the community library (paid users only).
+  // The original photo is stripped at this layer; only contour + thumbnail go public.
+  const handlePublish = async () => {
+    if (!user?.id) { setLibraryMsg('Sign in required'); return }
+    if (!paying) { setLibraryMsg('Publishing is for credit holders. Buy a credit pack to share tools.'); return }
+    if (!savedToolName.trim()) { setLibraryMsg('Name required'); return }
+    if (!contours[selectedContour] || contours[selectedContour].length < 3) {
+      setLibraryMsg('No traced shape to publish'); return
+    }
+    setLibraryLoading(true)
+    const fullState = saveCurrentToolState()
+    const contour = buildPublicContour(fullState) // strips image, offsets, etc.
+    const thumbnail = makeSilhouetteThumbnail(contours, 200)
+    const { error, status } = await publishTool(user.id, {
+      name: savedToolName.trim(),
+      category: savedToolCategory.trim() || null,
+      description: publishDescription.trim() || null,
+      contour, thumbnail,
+    })
+    setLibraryLoading(false)
+    if (error) {
+      // 403 = RLS rejected (not paying). Treat as a clear paywall message.
+      if (status === 403 || /policy|permission|denied/i.test(JSON.stringify(error))) {
+        setLibraryMsg('Publishing requires purchased credits.')
+      } else {
+        setLibraryMsg('Publish failed: ' + (error.message || 'unknown'))
+      }
+      return
+    }
+    setShowPublishDialog(false)
+    setSavedToolName('')
+    setSavedToolCategory('')
+    setPublishDescription('')
+    setLibraryMsg('Published to community library')
+    setTimeout(() => setLibraryMsg(''), 3000)
   }
 
   const addTool = () => {
@@ -1873,11 +1973,24 @@ export default function Editor() {
                         <Library size={12} /> Library
                       </button>
                       {contours.length > 0 && contours[selectedContour] && contours[selectedContour].length >= 3 && (
-                        <button onClick={() => { setShowSaveDialog(true); setSavedToolName(''); setSavedToolCategory('') }}
-                          title="Save this tool's traced shape to your library so you can reuse it in other trays"
-                          className="text-[11px] px-2.5 py-1 rounded-md bg-[#1C1C24] text-amber-400 hover:bg-amber-900/20 transition-colors font-bold flex items-center gap-1">
-                          <Bookmark size={12} /> Save
-                        </button>
+                        <>
+                          <button onClick={() => { setShowSaveDialog(true); setSavedToolName(''); setSavedToolCategory('') }}
+                            title="Save this tool's traced shape to your library so you can reuse it in other trays"
+                            className="text-[11px] px-2.5 py-1 rounded-md bg-[#1C1C24] text-amber-400 hover:bg-amber-900/20 transition-colors font-bold flex items-center gap-1">
+                            <Bookmark size={12} /> Save
+                          </button>
+                          <button onClick={() => {
+                              setShowPublishDialog(true)
+                              setSavedToolName('')
+                              setSavedToolCategory('')
+                              setPublishDescription('')
+                              setLibraryMsg('')
+                            }}
+                            title={paying ? 'Publish this tool to the public community library' : 'Publishing requires purchased credits. Click to learn more.'}
+                            className="text-[11px] px-2.5 py-1 rounded-md bg-[#1C1C24] text-purple-400 hover:bg-purple-900/20 transition-colors font-bold flex items-center gap-1">
+                            <Share2 size={12} /> Publish
+                          </button>
+                        </>
                       )}
                     </>
                   )}
@@ -2551,53 +2664,85 @@ export default function Editor() {
               document.body
             )}
 
-            {/* Tool Library Picker Modal */}
+            {/* Tool Library Picker Modal (tabs: Mine + Community) */}
             {showLibrary && ReactDOM.createPortal(
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => setShowLibrary(false)}>
-                <div className="bg-zinc-900 border border-zinc-700 rounded-2xl max-w-3xl w-full mx-4 max-h-[80vh] overflow-hidden shadow-2xl flex flex-col" onClick={e => e.stopPropagation()}>
+                <div className="bg-zinc-900 border border-zinc-700 rounded-2xl max-w-4xl w-full mx-4 max-h-[85vh] overflow-hidden shadow-2xl flex flex-col" onClick={e => e.stopPropagation()}>
                   <div className="bg-gradient-to-r from-blue-600 to-blue-500 px-6 py-4 flex items-center justify-between">
                     <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                      <Library size={18} /> Your Saved Tools
+                      <Library size={18} /> Tool Library
                     </h2>
                     <button onClick={() => setShowLibrary(false)} className="text-white/70 hover:text-white"><X size={18} /></button>
                   </div>
+
+                  {/* Tabs */}
+                  <div className="flex border-b border-zinc-800 bg-zinc-950/30 px-4">
+                    <button
+                      onClick={() => setLibraryTab('mine')}
+                      className={`px-4 py-2.5 text-sm font-medium transition-colors flex items-center gap-1.5 border-b-2 ${
+                        libraryTab === 'mine' ? 'text-white border-blue-500' : 'text-zinc-400 border-transparent hover:text-zinc-200'
+                      }`}>
+                      <Bookmark size={14} /> My Library
+                    </button>
+                    <button
+                      onClick={() => setLibraryTab('community')}
+                      className={`px-4 py-2.5 text-sm font-medium transition-colors flex items-center gap-1.5 border-b-2 ${
+                        libraryTab === 'community' ? 'text-white border-blue-500' : 'text-zinc-400 border-transparent hover:text-zinc-200'
+                      }`}>
+                      <Globe size={14} /> Community
+                    </button>
+                  </div>
+
                   <div className="px-6 py-5 overflow-y-auto flex-1">
-                    {libraryLoading && <p className="text-zinc-400 text-sm text-center py-8">Loading...</p>}
-                    {!libraryLoading && savedTools.length === 0 && (
-                      <div className="text-center py-12">
-                        <Bookmark size={32} className="mx-auto text-zinc-600 mb-3" />
-                        <p className="text-zinc-400 text-sm">No saved tools yet.</p>
-                        <p className="text-zinc-500 text-xs mt-1">Trace a tool, then click <span className="text-amber-400">Save</span> to add it here.</p>
-                      </div>
-                    )}
-                    {!libraryLoading && savedTools.length > 0 && (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                        {savedTools.map(t => (
-                          <div key={t.id} className="group relative bg-zinc-800 border border-zinc-700 rounded-lg overflow-hidden hover:border-blue-500/50 transition-colors">
-                            <button onClick={() => handleLoadFromLibrary(t.id)} className="block w-full text-left">
-                              <div className="aspect-square bg-zinc-950 flex items-center justify-center overflow-hidden">
-                                {t.thumbnail
-                                  ? <img src={t.thumbnail} alt={t.name} className="w-full h-full object-contain" />
-                                  : <div className="text-zinc-600 text-xs">No preview</div>}
-                              </div>
-                              <div className="px-3 py-2">
-                                <div className="text-sm font-medium text-white truncate">{t.name}</div>
-                                {t.category && <div className="text-[11px] text-zinc-500 truncate">{t.category}</div>}
-                              </div>
-                            </button>
-                            <button
-                              onClick={(e) => { e.stopPropagation(); handleDeleteFromLibrary(t.id, t.name) }}
-                              title="Delete from library"
-                              className="absolute top-1.5 right-1.5 p-1.5 rounded-md bg-zinc-900/80 text-zinc-400 opacity-0 group-hover:opacity-100 hover:text-red-400 hover:bg-red-900/40 transition-all">
-                              <Trash2 size={12} />
-                            </button>
+                    {libraryTab === 'mine' && (
+                      <>
+                        {libraryLoading && <p className="text-zinc-400 text-sm text-center py-8">Loading...</p>}
+                        {!libraryLoading && savedTools.length === 0 && (
+                          <div className="text-center py-12">
+                            <Bookmark size={32} className="mx-auto text-zinc-600 mb-3" />
+                            <p className="text-zinc-400 text-sm">No saved tools yet.</p>
+                            <p className="text-zinc-500 text-xs mt-1">Trace a tool, then click <span className="text-amber-400">Save</span> to add it here.</p>
                           </div>
-                        ))}
-                      </div>
+                        )}
+                        {!libraryLoading && savedTools.length > 0 && (
+                          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                            {savedTools.map(t => (
+                              <div key={t.id} className="group relative bg-zinc-800 border border-zinc-700 rounded-lg overflow-hidden hover:border-blue-500/50 transition-colors">
+                                <button onClick={() => handleLoadFromLibrary(t.id)} className="block w-full text-left">
+                                  <div className="aspect-square bg-zinc-950 flex items-center justify-center overflow-hidden">
+                                    {t.thumbnail
+                                      ? <img src={t.thumbnail} alt={t.name} className="w-full h-full object-contain" />
+                                      : <div className="text-zinc-600 text-xs">No preview</div>}
+                                  </div>
+                                  <div className="px-3 py-2">
+                                    <div className="text-sm font-medium text-white truncate">{t.name}</div>
+                                    {t.category && <div className="text-[11px] text-zinc-500 truncate">{t.category}</div>}
+                                  </div>
+                                </button>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleDeleteFromLibrary(t.id, t.name) }}
+                                  title="Delete from library"
+                                  className="absolute top-1.5 right-1.5 p-1.5 rounded-md bg-zinc-900/80 text-zinc-400 opacity-0 group-hover:opacity-100 hover:text-red-400 hover:bg-red-900/40 transition-all">
+                                  <Trash2 size={12} />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    )}
+                    {libraryTab === 'community' && (
+                      <CommunityLibrary
+                        userId={user?.id}
+                        canContribute={paying}
+                        onUseTool={handleUseCommunityTool}
+                      />
                     )}
                   </div>
                   <div className="px-6 py-3 border-t border-zinc-800 bg-zinc-950/50 text-[11px] text-zinc-500">
-                    Click any tool to add it to your current project. Your edits to the saved trace are preserved.
+                    {libraryTab === 'mine'
+                      ? 'Click any tool to add it to your current project. Your edits to the saved trace are preserved.'
+                      : 'Browse the public library. Click a tool to add it. Original photos are never shared - only the silhouette.'}
                   </div>
                 </div>
               </div>,
@@ -2639,6 +2784,66 @@ export default function Editor() {
                     <button onClick={handleSaveToLibrary} disabled={libraryLoading || !savedToolName.trim()}
                       className="flex-1 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 disabled:bg-zinc-700 disabled:text-zinc-500 text-white text-sm font-medium transition-colors">
                       {libraryLoading ? 'Saving...' : 'Save'}
+                    </button>
+                  </div>
+                </div>
+              </div>,
+              document.body
+            )}
+
+            {/* Publish to Community Dialog */}
+            {showPublishDialog && ReactDOM.createPortal(
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => setShowPublishDialog(false)}>
+                <div className="bg-zinc-900 border border-zinc-700 rounded-2xl max-w-md w-full mx-4 overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+                  <div className="bg-gradient-to-r from-purple-600 to-purple-500 px-6 py-4 flex items-center justify-between">
+                    <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                      <Share2 size={18} /> Publish to Community
+                    </h2>
+                    <button onClick={() => setShowPublishDialog(false)} className="text-white/70 hover:text-white"><X size={18} /></button>
+                  </div>
+                  <div className="px-6 py-5 space-y-4">
+                    {!paying && (
+                      <div className="rounded-md bg-purple-500/10 border border-purple-500/30 px-3 py-2 text-xs text-purple-200 leading-relaxed">
+                        <strong>Credit holders only.</strong> Publishing tools to the community library is a perk for users with a credit pack. Browse and use is free for everyone, but contributing keeps the library spam-free. Buy any credit pack to unlock.
+                      </div>
+                    )}
+                    <p className="text-zinc-400 text-sm leading-relaxed">
+                      Your trace will be added to the public library where other users can find it, rate it, and use it in their own trays.
+                    </p>
+                    <div className="rounded-md bg-zinc-800/60 border border-zinc-700/60 px-3 py-2 text-[11px] text-zinc-400 leading-relaxed">
+                      <strong className="text-zinc-300">What gets shared:</strong> tool name, category, description, contour shape, dimensions, tolerance, a generated silhouette thumbnail.
+                      <br />
+                      <strong className="text-zinc-300">What stays private:</strong> the original photo. Only the silhouette goes public.
+                    </div>
+                    <div>
+                      <label className="text-xs text-zinc-400 block mb-1">Name <span className="text-red-400">*</span></label>
+                      <input type="text" value={savedToolName} onChange={e => setSavedToolName(e.target.value)}
+                        placeholder="e.g. Knipex Cobra 250mm"
+                        autoFocus
+                        className="w-full px-3 py-2 rounded-md bg-zinc-800 border border-zinc-700 text-white text-sm focus:border-purple-500 focus:outline-none" />
+                    </div>
+                    <div>
+                      <label className="text-xs text-zinc-400 block mb-1">Category</label>
+                      <input type="text" value={savedToolCategory} onChange={e => setSavedToolCategory(e.target.value)}
+                        placeholder="e.g. Pliers, Wrenches, Screwdrivers"
+                        className="w-full px-3 py-2 rounded-md bg-zinc-800 border border-zinc-700 text-white text-sm focus:border-purple-500 focus:outline-none" />
+                    </div>
+                    <div>
+                      <label className="text-xs text-zinc-400 block mb-1">Description <span className="text-zinc-600">(optional)</span></label>
+                      <textarea rows={2} value={publishDescription} onChange={e => setPublishDescription(e.target.value)}
+                        placeholder="Brand, model, where it fits well, tolerance notes..."
+                        className="w-full px-3 py-2 rounded-md bg-zinc-800 border border-zinc-700 text-white text-sm focus:border-purple-500 focus:outline-none resize-none" />
+                    </div>
+                    {libraryMsg && <p className="text-xs text-purple-300">{libraryMsg}</p>}
+                  </div>
+                  <div className="px-6 py-3 border-t border-zinc-800 flex gap-3">
+                    <button onClick={() => setShowPublishDialog(false)}
+                      className="flex-1 py-2 rounded-lg border border-zinc-700 text-zinc-300 hover:bg-zinc-800 text-sm font-medium transition-colors">
+                      Cancel
+                    </button>
+                    <button onClick={handlePublish} disabled={libraryLoading || !savedToolName.trim() || !paying}
+                      className="flex-1 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 disabled:bg-zinc-700 disabled:text-zinc-500 text-white text-sm font-medium transition-colors">
+                      {libraryLoading ? 'Publishing...' : (paying ? 'Publish' : 'Credits required')}
                     </button>
                   </div>
                 </div>

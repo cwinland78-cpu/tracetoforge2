@@ -312,6 +312,33 @@ writePage('/guide', makePage({
 }))
 
 // Editor
+writePage('/community', makePage({
+  title: 'Community Tool Library - Shared 3D Printable Tool Traces | TracetoForge',
+  description: 'Browse a growing library of community-shared tool traces. Use any trace in your own custom drawer trays, Gridfinity bins, or Packout inserts. Free to browse and use.',
+  canonical: 'https://tracetoforge.com/community/',
+  ogTitle: 'Community Tool Library - TracetoForge',
+  h1: 'Community Tool Library',
+  bodyHtml: `
+      <p>The TracetoForge community tool library is a public collection of traced tool shapes published by other users. Anyone can browse the library and use any tool in their own custom drawer trays, Gridfinity bins, Milwaukee Packout inserts, or 3D objects. No sign-in is required to look around. No download fees. The traces other people have already perfected become the starting point for your next organizer project.</p>
+
+      <h2>How the Library Works</h2>
+      <p>Every tool in the library was traced and published by another user. Each entry shows a clean silhouette of the tool, the dimensions used, the tolerance setting, the category, and ratings from other users. Click any tool and it loads into the editor as a new tool in your project. From there you arrange it into a tray, combine it with other tools or your own traces, and export STL, 3MF, SVG, or DXF for printing.</p>
+
+      <h2>What Gets Shared, What Stays Private</h2>
+      <p>When a user publishes a tool, only the geometric data and a generated silhouette go public: contour points, real-world dimensions, tolerance, sensitivity, and a small thumbnail rendered from the contour itself. The original photograph is stripped out entirely. This is a deliberate privacy boundary, not a UI choice. You never see the original photo someone uploaded, and they never see yours.</p>
+
+      <h2>Browse Free, Contribute With Credits</h2>
+      <p>Anyone can browse the library and use any published tool in their own projects, free of charge, no account needed beyond what the editor already requires. Publishing tools, rating tools, and upvoting tools is a feature for users who have purchased a credit pack. The reason is moderation: gating contributions behind any payment, no matter how small, eliminates the spam and abuse that kill open libraries. Browsing stays free because that is the value most users want.</p>
+
+      <h2>Sort By Top, Highest Rated, or Newest</h2>
+      <p>The default sort surfaces the most engaged-with tools by combining upvotes and rating count. Highest Rated sorts by average star rating among tools that have been rated at least once. Newest shows the most recent additions. Filter by category to narrow to pliers, wrenches, screwdrivers, ratchets, hammers, or any other category authors have used.</p>
+
+      <h2>Publish Your Traces</h2>
+      <p>If you have a tool dialed in with the right tolerance and a clean contour, publish it. Open the tool in the <a href="/editor">editor</a>, click Publish, give it a name and category, and the next person organizing the same tool skips your work. Trademarks like Knipex, Klein, GearWrench, and Tekton are referenced for compatibility only. Authors are responsible for what they publish; abuse can be reported through the <a href="/contact/">contact page</a>.</p>
+
+      <p><a href="/editor">Open the editor</a> | <a href="/blog/reusable-tool-library-drawer-trays">Read about the saved tool library feature</a> | <a href="/about/">About TracetoForge</a></p>`
+}))
+
 writePage('/editor', makePage({
   title: 'Tool Insert Editor - Upload Photo & Export STL | TracetoForge',
   description: 'Free browser-based tool insert editor. Upload a photo, auto-trace the outline, and export print-ready STL, 3MF, SVG, or DXF files. Works with Milwaukee Packout, Gridfinity, DeWalt ToughSystem, and custom trays.',
@@ -766,6 +793,7 @@ const sitemapUrls = [
   { loc: 'https://tracetoforge.com/', freq: 'weekly', priority: '1.0' },
   { loc: 'https://tracetoforge.com/about/', freq: 'monthly', priority: '0.8' },
   { loc: 'https://tracetoforge.com/editor/', freq: 'weekly', priority: '0.7' },
+  { loc: 'https://tracetoforge.com/community/', freq: 'daily', priority: '0.9' },
   { loc: 'https://tracetoforge.com/guide/', freq: 'monthly', priority: '0.8' },
   { loc: 'https://tracetoforge.com/blog/', freq: 'weekly', priority: '0.9' },
   ...postConfigs.map(p => ({

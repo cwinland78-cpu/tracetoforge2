@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { Camera, Box, Download, ArrowRight, LayoutGrid, Package, Wrench, ShieldCheck, Layers, MousePointerClick, Printer, ChevronDown, Star, Cpu, Eye, FolderOpen, LogOut, Bookmark, Sparkles } from 'lucide-react'
+import { Camera, Box, Download, ArrowRight, LayoutGrid, Package, Wrench, ShieldCheck, Layers, MousePointerClick, Printer, ChevronDown, Star, Cpu, Eye, FolderOpen, LogOut, Bookmark, Sparkles, Globe } from 'lucide-react'
 import { useAuth } from '../components/AuthContext'
 
 const STEPS = [
@@ -281,14 +281,14 @@ export default function Landing() {
         </div>
 
         <div className="max-w-4xl mx-auto text-center">
-          {/* New feature announcement */}
+          {/* New feature announcement - community library */}
           <Link
-            to="/blog/reusable-tool-library-drawer-trays"
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 hover:bg-amber-500/15 text-amber-300 hover:text-amber-200 text-[11px] font-semibold mb-4 border border-amber-500/30 font-mono tracking-wide transition-colors group"
+            to="/community"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-500/10 hover:bg-purple-500/15 text-purple-200 hover:text-purple-100 text-[11px] font-semibold mb-4 border border-purple-500/30 font-mono tracking-wide transition-colors group"
           >
-            <Sparkles size={11} className="text-amber-400" />
+            <Globe size={11} className="text-purple-300" />
             <span className="uppercase">New:</span>
-            <span className="normal-case font-medium">Save tools to your library and reuse across trays</span>
+            <span className="normal-case font-medium">Community tool library — browse and use traces shared by other users</span>
             <ArrowRight size={11} className="opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
           </Link>
 
