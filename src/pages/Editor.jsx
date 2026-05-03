@@ -143,6 +143,7 @@ export default function Editor() {
   const [gridX, setGridX] = useState(2)
   const [gridY, setGridY] = useState(1)
   const [gridHeight, setGridHeight] = useState(32) // mm
+  const [stackingLip, setStackingLip] = useState(true) // Gridfinity-only; on by default to keep existing projects unchanged
 
   // Detection
   const [threshold, setThreshold] = useState(128)
@@ -269,6 +270,8 @@ export default function Editor() {
       if (cfg.gridY) setGridY(cfg.gridY)
       if (cfg.gridHeight) setGridHeight(cfg.gridHeight)
       else if (cfg.heightUnits) setGridHeight(cfg.heightUnits * 7)
+      // stackingLip: defaults to true for older projects that didn't have the field
+      if (cfg.stackingLip !== undefined) setStackingLip(!!cfg.stackingLip)
       if (cfg.threshold) setThreshold(cfg.threshold)
       if (cfg.simplification) setSimplification(cfg.simplification)
       if (cfg.sensitivity) setSensitivity(cfg.sensitivity)
@@ -289,7 +292,7 @@ export default function Editor() {
       fingerNotches, activeToolIdx, notchBevel,
       tools: savedTools, step: step, trayWidth, trayHeight, trayDepth, depth, objectEdgeRadius,
       edgeProfile, edgeSize, outerShapeType, outerShapePoints, activeTemplate, gridX, gridY,
-      gridHeight, threshold, simplification, sensitivity, minContourPct,
+      gridHeight, stackingLip, threshold, simplification, sensitivity, minContourPct,
       image: image || null,
       imageSize: imageSize || null,
     }
@@ -1690,7 +1693,7 @@ export default function Editor() {
       return { ...base, trayWidth, trayHeight, trayDepth, wallThickness, cornerRadius, floorThickness, edgeProfile, edgeSize, cavityBevel: t0.cavityBevel ?? 0, notchBevel, fingerNotches, outerShapeType, outerShapePoints: outerPts, additionalTools, activeToolIdx, activeNotchIdx }
     }
     if (outputMode === 'gridfinity') {
-      return { ...base, gridX, gridY, gridHeight, cavityBevel: t0.cavityBevel ?? 0, notchBevel, fingerNotches, additionalTools, activeToolIdx, activeNotchIdx }
+      return { ...base, gridX, gridY, gridHeight, stackingLip, cavityBevel: t0.cavityBevel ?? 0, notchBevel, fingerNotches, additionalTools, activeToolIdx, activeNotchIdx }
     }
     return { ...base, additionalTools, activeToolIdx, activeNotchIdx }
   }
@@ -2384,6 +2387,26 @@ export default function Editor() {
                         <input type="number" value={gridHeight} onChange={e => setGridHeight(Math.max(7, +e.target.value))} className="w-[4.5rem] text-right" min="7" step="1" />
                         <span className="text-xs text-[#8888A0] w-7">mm</span>
                       </ParamRow>
+
+                      {/* Stacking Lip toggle */}
+                      <div className="flex items-center justify-between gap-3 px-2 py-1.5 mt-1 rounded-md hover:bg-[#1C1C24]/50 transition-colors">
+                        <div className="flex items-center gap-1.5">
+                          <label htmlFor="stackingLipChk" className="text-xs text-[#BBBBCC] cursor-pointer select-none">
+                            Stacking lip
+                          </label>
+                          <Tooltip text="The 1.9mm rim on top that lets bins stack onto each other. Turn off if your slicer adds heavy supports under the lip overhang or you don't need to stack." position="above" />
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            id="stackingLipChk"
+                            type="checkbox"
+                            className="sr-only peer"
+                            checked={stackingLip}
+                            onChange={e => setStackingLip(e.target.checked)}
+                          />
+                          <div className="w-9 h-5 bg-[#2A2A35] rounded-full peer peer-checked:bg-brand transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-transform peer-checked:after:translate-x-4" />
+                        </label>
+                      </div>
 
                       {/* Cavity Bevel */}
                       <div className="border-t border-[#2A2A35]/50 pt-3 mt-1">

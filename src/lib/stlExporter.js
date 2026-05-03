@@ -777,6 +777,7 @@ function createGridfinityInsert(points, config) {
     toolOffsetX = 0,
     toolOffsetY = 0,
     toolRotation = 0,
+    stackingLip = true,
   } = config
 
   const group = new THREE.Group()
@@ -1095,18 +1096,22 @@ function createGridfinityInsert(points, config) {
   // ─── Stacking lip - perimeter ring on top of walls ───
   // 1.9mm thick ring matching outer wall profile exactly
   // Extra 1.5mm added for better stacking grip
-  const lipExtra = 1.5
-  const lipHeight = GF.lipVertical + GF.lipSlope + lipExtra  // ~3.7 + 1.5 = 5.2mm
-  const lipThick = 1.9  // Gridfinity spec
-  const lipOuter = createRoundedRectShape(binW, binH, GF.cornerRadius)
-  const lipInnerW = binW - lipThick * 2
-  const lipInnerH = binH - lipThick * 2
-  const lipInnerR = Math.max(0.5, GF.cornerRadius - lipThick)
-  const lipInner = createRoundedRectShape(lipInnerW, lipInnerH, lipInnerR)
-  lipOuter.holes.push(new THREE.Path(lipInner.getPoints(12)))
-  const lipGeo = new THREE.ExtrudeGeometry(lipOuter, { depth: lipHeight, bevelEnabled: false })
-  lipGeo.translate(0, 0, totalHeight)
-  group.add(new THREE.Mesh(lipGeo, trayMat))
+  // User-toggleable per bin: defaults on, but can be disabled to avoid
+  // slicer support issues under the lip overhang on bins that won't be stacked.
+  if (stackingLip) {
+    const lipExtra = 1.5
+    const lipHeight = GF.lipVertical + GF.lipSlope + lipExtra  // ~3.7 + 1.5 = 5.2mm
+    const lipThick = 1.9  // Gridfinity spec
+    const lipOuter = createRoundedRectShape(binW, binH, GF.cornerRadius)
+    const lipInnerW = binW - lipThick * 2
+    const lipInnerH = binH - lipThick * 2
+    const lipInnerR = Math.max(0.5, GF.cornerRadius - lipThick)
+    const lipInner = createRoundedRectShape(lipInnerW, lipInnerH, lipInnerR)
+    lipOuter.holes.push(new THREE.Path(lipInner.getPoints(12)))
+    const lipGeo = new THREE.ExtrudeGeometry(lipOuter, { depth: lipHeight, bevelEnabled: false })
+    lipGeo.translate(0, 0, totalHeight)
+    group.add(new THREE.Mesh(lipGeo, trayMat))
+  }
 
   // ─── Grid lines on floor ───
   const linesMat = new THREE.LineBasicMaterial({ color: 0x444455 })
