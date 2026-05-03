@@ -174,6 +174,7 @@ const landingHtml = makePage({
   ogTitle: 'TracetoForge - Custom Tool Drawer Trays From a Photo',
   h1: 'Custom Gridfinity Inserts From a Photo — No CAD Needed',
   bodyHtml: `
+      <p><strong>New: <a href="/community/">Community Tool Library</a></strong> — browse traces published by other users and drop them straight into your own drawer trays, Gridfinity bins, or Packout inserts. Free to browse and use.</p>
       <p>Create custom Gridfinity bins with precision tool cutouts from a simple photo. Snap a photo of any tool, auto-trace the outline, and export a Gridfinity-compatible insert as STL, 3MF, SVG, or DXF. Also works with Milwaukee Packout, DeWalt ToughSystem, and any custom tray. No CAD skills needed.</p>
       <h2>How It Works</h2>
       <p>Place your tool on a sheet of paper. Take a photo with your phone. Upload to TracetoForge and the edge detection finds the outline automatically. The app generates a Gridfinity bin with the correct 42mm grid spacing, standard base profile, and a cavity shaped exactly like your tool. Fine-tune with simple controls, preview in 3D, and export.</p>
@@ -219,7 +220,7 @@ const landingHtml = makePage({
       <h2>About TracetoForge</h2>
       <p>TracetoForge is a small maker project run out of Northeast Ohio, operated by Qwikymart LLC. It started as a personal fix for a messy tool drawer and turned into a browser-based editor that other makers could use. One person writes the code, answers the support email, and packs the physical inserts that ship from the shop. No venture capital, no outsourced copywriting, no bloat. Every feature in the editor exists because someone hit a wall trying to do it another way. <a href="/about/">Read the full story</a> or <a href="/contact/">get in touch</a>.</p>
 
-      <p><a href="/editor">Try the Editor Free</a> | <a href="/blog">Read the Blog</a> | <a href="/guide">Getting Started Guide</a> | <a href="/about/">About</a> | <a href="/contact/">Contact</a></p>`,
+      <p><a href="/editor">Try the Editor Free</a> | <a href="/community/">Community Library</a> | <a href="/blog">Read the Blog</a> | <a href="/guide">Getting Started Guide</a> | <a href="/about/">About</a> | <a href="/contact/">Contact</a></p>`,
   articleSchema: faqSchema
 })
 writeFileSync(join(DIST, 'index.html'), landingHtml)

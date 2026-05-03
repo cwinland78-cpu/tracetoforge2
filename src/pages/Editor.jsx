@@ -1550,15 +1550,34 @@ export default function Editor() {
     }
 
     // If no project tools yet, snapshot current as Tool 1 first (same pattern as addTool)
+    let targetIdx
     if (tools.length === 0) {
       const primaryState = saveCurrentToolState()
       setTools([
         { ...primaryState, name: 'Tool 1' },
         { ...newTool, name: `Tool 2` },
       ])
+      targetIdx = 1
     } else {
-      setTools(prev => [...prev, { ...newTool, name: `Tool ${prev.length + 1}` }])
+      // Capture incoming activeToolIdx's state before we replace tools[],
+      // so the user's edits to the currently active tool aren't lost.
+      const currentState = saveCurrentToolState()
+      setTools(prev => {
+        const updated = [...prev]
+        if (activeToolIdx >= 0 && activeToolIdx < prev.length) {
+          updated[activeToolIdx] = { ...updated[activeToolIdx], ...currentState }
+        }
+        return [...updated, { ...newTool, name: `Tool ${prev.length + 1}` }]
+      })
+      targetIdx = tools.length
     }
+    // Restore the new tool's state into top-level (contours, image, dimensions, etc.)
+    // and switch the active tab. queueMicrotask defers this until after the setTools
+    // commit, matching the switchTool pattern that already exists.
+    queueMicrotask(() => {
+      restoreToolState(newTool)
+      setActiveToolIdx(targetIdx)
+    })
     setShowLibrary(false)
     setLibraryMsg('Added to project')
     setTimeout(() => setLibraryMsg(''), 2000)
@@ -1598,12 +1617,28 @@ export default function Editor() {
       minContourPct: cfg.minContourPct ?? 0.05,
       step: 2,
     }
+    let targetIdx
     if (tools.length === 0) {
       const primaryState = saveCurrentToolState()
       setTools([{ ...primaryState, name: 'Tool 1' }, { ...newTool, name: 'Tool 2' }])
+      targetIdx = 1
     } else {
-      setTools(prev => [...prev, { ...newTool, name: `Tool ${prev.length + 1}` }])
+      // Snapshot the currently active tool so we don't lose its edits when we switch.
+      const currentState = saveCurrentToolState()
+      setTools(prev => {
+        const updated = [...prev]
+        if (activeToolIdx >= 0 && activeToolIdx < prev.length) {
+          updated[activeToolIdx] = { ...updated[activeToolIdx], ...currentState }
+        }
+        return [...updated, { ...newTool, name: `Tool ${prev.length + 1}` }]
+      })
+      targetIdx = tools.length
     }
+    // Switch focus to the imported tool so the user actually sees it.
+    queueMicrotask(() => {
+      restoreToolState(newTool)
+      setActiveToolIdx(targetIdx)
+    })
     setShowLibrary(false)
     setLibraryMsg('Added from community')
     setTimeout(() => setLibraryMsg(''), 2000)
