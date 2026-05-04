@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react'
 import ReactDOM from 'react-dom'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import {
   Upload, Download, ChevronLeft, Pencil, MousePointer, Eye,
   Info, ZoomIn, ZoomOut, Save, FolderOpen, X, Camera, Sun, Contrast, Crop, FilePlus2, Copy,
@@ -1549,9 +1549,23 @@ export default function Editor() {
       step: 2, // already past Trace
     }
 
-    // If no project tools yet, snapshot current as Tool 1 first (same pattern as addTool)
+    // Three cases for where this loaded tool goes:
+    //  A) step 0 (empty editor, no upload yet): the loaded tool BECOMES the
+    //     active tool directly — no orphan "Tool 1" snapshot of empty state.
+    //  B) step >= 2 with no tools[] yet: snapshot current as Tool 1, add as Tool 2.
+    //  C) step >= 2 with existing tools[]: snapshot active, append as Tool N+1.
+    if (step === 0) {
+      // Case A: drop straight into top-level state. tools[] stays empty until
+      // the user adds a second tool, matching the single-tool-from-fresh-upload flow.
+      queueMicrotask(() => restoreToolState(newTool))
+      setShowLibrary(false)
+      setLibraryMsg('Loaded from library')
+      setTimeout(() => setLibraryMsg(''), 2000)
+      return
+    }
     let targetIdx
     if (tools.length === 0) {
+      // Case B
       const primaryState = saveCurrentToolState()
       setTools([
         { ...primaryState, name: 'Tool 1' },
@@ -1559,7 +1573,7 @@ export default function Editor() {
       ])
       targetIdx = 1
     } else {
-      // Capture incoming activeToolIdx's state before we replace tools[],
+      // Case C: capture incoming activeToolIdx's state before we replace tools[],
       // so the user's edits to the currently active tool aren't lost.
       const currentState = saveCurrentToolState()
       setTools(prev => {
@@ -1616,6 +1630,15 @@ export default function Editor() {
       simplification: cfg.simplification ?? 0.5,
       minContourPct: cfg.minContourPct ?? 0.05,
       step: 2,
+    }
+    // Same three-case structure as handleLoadFromLibrary above.
+    if (step === 0) {
+      // Fresh editor: drop straight into top-level state.
+      queueMicrotask(() => restoreToolState(newTool))
+      setShowLibrary(false)
+      setLibraryMsg('Loaded from community')
+      setTimeout(() => setLibraryMsg(''), 2000)
+      return
     }
     let targetIdx
     if (tools.length === 0) {
@@ -2673,6 +2696,32 @@ export default function Editor() {
                   ))}
                 </div>
             </div>
+
+            {/* Quick-load: visible only on the empty upload screen so users
+                with existing libraries / community find their way in without
+                having to upload a fresh photo first. */}
+            {step === 0 && (
+              <div>
+                <h3 className="text-xs font-semibold text-[#8888A0] uppercase tracking-wider mb-2">Or Load a Tool</h3>
+                <div className="space-y-1.5">
+                  <button
+                    onClick={() => { setShowLibrary(true); refreshLibrary() }}
+                    title="Open a tool you previously saved to your library"
+                    className="w-full flex items-center justify-center gap-2 py-2 rounded-md bg-[#1C1C24] hover:bg-blue-900/20 text-blue-400 text-xs font-bold transition-colors">
+                    <Library size={13} /> My Library
+                  </button>
+                  <Link
+                    to="/community"
+                    title="Browse traces shared by other users — free to use"
+                    className="w-full flex items-center justify-center gap-2 py-2 rounded-md bg-[#1C1C24] hover:bg-purple-900/20 text-purple-400 text-xs font-bold transition-colors">
+                    <Globe size={13} /> Community
+                  </Link>
+                </div>
+                {libraryMsg && (
+                  <p className="text-[11px] text-[#8888A0] mt-1.5">{libraryMsg}</p>
+                )}
+              </div>
+            )}
 
             {/* Actions */}
             {step >= 2 && (
