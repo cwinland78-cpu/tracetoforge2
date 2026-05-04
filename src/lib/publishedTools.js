@@ -232,11 +232,30 @@ export async function clearRating(toolId, userId) {
 
 // Cheap heuristic: checks credit_transactions for a 'purchase' row.
 // We use the same logic that the SQL is_paying_user() function uses.
+// Returns true if the user is allowed to publish/rate/upvote.
+// Mirrors the SQL is_paying_user() RLS function: anyone whose account has
+// either a positive current credit balance OR has ever received credits
+// (purchase, promo, or admin grant). RLS is the source of truth; this is
+// just for UX so we can show/hide controls without a 403 round-trip.
 export async function isPayingUser(userId) {
   if (!userId) return false
-  const url = `${SUPABASE_URL}/rest/v1/credit_transactions?select=id&user_id=eq.${userId}&type=eq.purchase&limit=1`
-  const res = await fetch(url, { headers: authHeaders() })
-  if (!res.ok) return false
-  const data = await res.json()
-  return Array.isArray(data) && data.length > 0
+  // 1) currently has credits?
+  const profileUrl = `${SUPABASE_URL}/rest/v1/profiles?select=credits&id=eq.${userId}&limit=1`
+  try {
+    const res = await fetch(profileUrl, { headers: authHeaders() })
+    if (res.ok) {
+      const data = await res.json()
+      if (Array.isArray(data) && data[0] && data[0].credits > 0) return true
+    }
+  } catch {}
+  // 2) ever received any positive transaction (purchase/promo/admin grant)?
+  const txUrl = `${SUPABASE_URL}/rest/v1/credit_transactions?select=id&user_id=eq.${userId}&amount=gt.0&limit=1`
+  try {
+    const res = await fetch(txUrl, { headers: authHeaders() })
+    if (!res.ok) return false
+    const data = await res.json()
+    return Array.isArray(data) && data.length > 0
+  } catch {
+    return false
+  }
 }
