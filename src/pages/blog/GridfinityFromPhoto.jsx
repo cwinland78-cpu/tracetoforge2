@@ -9,9 +9,19 @@ export default function GridfinityFromPhoto() {
       description="Generate custom Gridfinity bins with tool cutouts from a simple photo. No CAD software needed. Upload a photo, trace the outline, export STL."
       canonical="https://tracetoforge.com/blog/gridfinity-insert-from-photo/"
       date="2026-02-24"
+      updated="2026-05-07"
       readTime="5 min"
       tags={['Gridfinity', '3D Printing', 'Workshop Organization']}
     >
+      <div className="not-prose mb-8 p-5 rounded-lg border border-brand/30 bg-brand/5">
+        <p className="text-xs font-semibold text-brand uppercase tracking-wider mb-2">Quick Answer</p>
+        <p className="text-[#C8C8D0] leading-relaxed text-[15px]">
+          To generate a Gridfinity bin from a photo, place the tool flat on a plain sheet of paper, take a top-down photo, and upload it to TracetoForge.
+          The browser auto-traces the silhouette, you set the grid size (e.g. <strong>2×1×6u</strong>) and tolerance (1.5&nbsp;mm is a good default), and export STL or 3MF.
+          Print in PETG at 0.2&nbsp;mm layer height with 15-20% gyroid infill. The output drops onto any standard Gridfinity baseplate. End-to-end: under 2 minutes from photo to print-ready file.
+        </p>
+      </div>
+
       <p>
         Gridfinity, the open-source modular storage system created by Zack Freedman, has become the go-to
         solution for workshop organization. The standard 42mm grid, stackable bins, and magnetic baseplates

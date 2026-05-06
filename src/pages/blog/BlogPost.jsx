@@ -3,7 +3,9 @@ import { Link } from 'react-router-dom'
 import { ArrowLeft, Calendar, Clock } from 'lucide-react'
 import SEOHead from '../../components/SEOHead'
 
-export default function BlogPost({ title, description, canonical, date, readTime, tags, children }) {
+export default function BlogPost({ title, description, canonical, date, updated, readTime, tags, children }) {
+  // dateModified for the article schema falls back to date if not provided
+  const dateModified = updated || date
   return (
     <>
       <SEOHead
@@ -15,7 +17,7 @@ export default function BlogPost({ title, description, canonical, date, readTime
         article={{
           headline: title,
           datePublished: date,
-          dateModified: date,
+          dateModified,
           keywords: tags ? tags.join(', ') : undefined
         }}
       />
@@ -38,8 +40,11 @@ export default function BlogPost({ title, description, canonical, date, readTime
           </Link>
 
           <article>
-            <div className="flex items-center gap-3 text-xs text-[#666680] mb-4">
-              <span className="flex items-center gap-1"><Calendar size={12} /> {date}</span>
+            <div className="flex items-center gap-3 text-xs text-[#666680] mb-4 flex-wrap">
+              <span className="flex items-center gap-1"><Calendar size={12} /> Published {date}</span>
+              {updated && updated !== date && (
+                <span className="flex items-center gap-1 text-[#888899]"><Calendar size={12} /> Updated {updated}</span>
+              )}
               <span className="flex items-center gap-1"><Clock size={12} /> {readTime} read</span>
             </div>
 

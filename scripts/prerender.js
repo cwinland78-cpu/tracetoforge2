@@ -58,7 +58,14 @@ function makePage({ title, description, canonical, ogTitle, ogType = 'website', 
       logo: "https://tracetoforge.com/icon-512.png",
       description: "Photo-to-print tool insert generator for 3D printing.",
       sameAs: ["https://www.etsy.com/shop/TracetoForge"],
-      founder: { "@type": "Person", name: "Chris Winland" }
+      founder: {
+        "@type": "Person",
+        name: "Chris Winland",
+        jobTitle: "Founder",
+        worksFor: { "@type": "Organization", name: "TracetoForge" },
+        url: "https://tracetoforge.com/about/",
+        sameAs: ["https://www.etsy.com/shop/TracetoForge"]
+      }
     }
   ]
 
@@ -178,6 +185,22 @@ const landingHtml = makePage({
       <p>Create custom Gridfinity bins with precision tool cutouts from a simple photo. Snap a photo of any tool, auto-trace the outline, and export a Gridfinity-compatible insert as STL, 3MF, SVG, or DXF. Also works with Milwaukee Packout, DeWalt ToughSystem, and any custom tray. No CAD skills needed.</p>
       <h2>How It Works</h2>
       <p>Place your tool on a sheet of paper. Take a photo with your phone. Upload to TracetoForge and the edge detection finds the outline automatically. The app generates a Gridfinity bin with the correct 42mm grid spacing, standard base profile, and a cavity shaped exactly like your tool. Fine-tune with simple controls, preview in 3D, and export.</p>
+      <figure>
+        <img src="/flow-1-photo.jpeg" alt="Step 1: A pair of pliers laid flat on a sheet of white paper, ready to be photographed from directly above for tracing." width="800" height="500" loading="lazy" />
+        <figcaption>Step 1 — Photograph your tool flat on a plain sheet of paper.</figcaption>
+      </figure>
+      <figure>
+        <img src="/flow-2-trace.png" alt="Step 2: The TracetoForge editor shows the same pliers photo with a red contour line tracing the precise outline of the tool." width="800" height="500" loading="lazy" />
+        <figcaption>Step 2 — Auto-traced outline. Adjust contour points if you want, or accept the auto-trace.</figcaption>
+      </figure>
+      <figure>
+        <img src="/flow-3-preview.png" alt="Step 3: A 3D rendered preview of the generated Gridfinity bin showing the tool-shaped cavity cut into the standard 42mm grid base." width="800" height="500" loading="lazy" />
+        <figcaption>Step 3 — Live 3D preview of the generated insert. Confirm fit before exporting.</figcaption>
+      </figure>
+      <figure>
+        <img src="/flow-4-print.png" alt="Step 4: A 3D printed Gridfinity insert holding the pliers in its custom-shaped cavity, sitting in a tool drawer." width="800" height="500" loading="lazy" />
+        <figcaption>Step 4 — Export STL or 3MF, print in PETG, drop the insert into your drawer or Gridfinity grid.</figcaption>
+      </figure>
       <h2>Export Formats</h2>
       <p>TracetoForge exports Gridfinity-compatible STL files for 3D printing, 3MF for multi-material prints, SVG for laser cutting foam inserts, and DXF for CNC machining. Every export includes the proper Gridfinity base profile, stacking lip, and 42mm grid alignment.</p>
       <h2>Insert Modes</h2>
@@ -786,9 +809,10 @@ function extractMeta(jsxContent) {
   const desc = jsxContent.match(/description="([^"]*)"/)?.[1] || ''
   const canonical = jsxContent.match(/canonical="([^"]*)"/)?.[1] || ''
   const date = jsxContent.match(/date="([^"]*)"/)?.[1] || ''
+  const updated = jsxContent.match(/updated="([^"]*)"/)?.[1] || ''
   const tagsMatch = jsxContent.match(/tags=\{\[([^\]]*)\]\}/)
   const tags = tagsMatch ? tagsMatch[1].match(/'([^']+)'/g)?.map(t => t.replace(/'/g, '')) || [] : []
-  return { title, desc, canonical, date, tags }
+  return { title, desc, canonical, date, updated, tags }
 }
 
 function extractArticleContent(jsxContent) {
@@ -834,8 +858,15 @@ for (const post of postConfigs) {
     description: meta.desc,
     url: meta.canonical,
     datePublished: meta.date,
-    dateModified: meta.date,
-    author: { "@type": "Person", name: "Chris Winland", url: "https://tracetoforge.com" },
+    dateModified: meta.updated || meta.date,
+    author: {
+      "@type": "Person",
+      name: "Chris Winland",
+      url: "https://tracetoforge.com/about/",
+      jobTitle: "Founder",
+      worksFor: { "@type": "Organization", name: "TracetoForge" },
+      sameAs: ["https://www.etsy.com/shop/TracetoForge"]
+    },
     publisher: {
       "@type": "Organization",
       name: "TracetoForge",
@@ -861,7 +892,7 @@ for (const post of postConfigs) {
     ogType: 'article',
     h1: meta.title,
     bodyHtml: `
-      <p>Published ${meta.date} by <a href="/about/">Chris Winland</a></p>
+      <p>Published ${meta.date}${meta.updated && meta.updated !== meta.date ? ` · Updated ${meta.updated}` : ''} by <a href="/about/">Chris Winland</a></p>
       <article>
 ${articleContent}
       </article>

@@ -1,0 +1,42 @@
+# TracetoForge
+
+> Browser-based tool that converts photos of physical tools into 3D-printable
+> tray inserts and Gridfinity bins. No CAD experience required. Operated by
+> Qwikymart LLC, Northeast Ohio. Free tracing and previewing; export credits
+> from $9.99 for 20 credits.
+
+## Core
+- [Editor](https://tracetoforge.com/editor/): The browser-based photo-to-insert tool. Upload a photo of a tool on paper, auto-trace, export STL/3MF/SVG/DXF.
+- [Community Library](https://tracetoforge.com/community/): User-published traces you can drop into your own drawer trays, Gridfinity bins, or Packout inserts. Free to browse and use.
+- [Guide](https://tracetoforge.com/guide/): Getting-started workflow, photo tips, and troubleshooting.
+
+## Reference
+- [About](https://tracetoforge.com/about/): Company background, founder, what TracetoForge does and doesn't do.
+- [Contact](https://tracetoforge.com/contact/): support@tracetoforge.com — bug reports, feature requests, refund inquiries.
+- [Privacy](https://tracetoforge.com/privacy/): All photo processing runs in-browser; no images upload to any server.
+- [Terms](https://tracetoforge.com/terms/): Terms of service.
+
+## Blog
+- [How to make custom Milwaukee Packout inserts with a 3D printer](https://tracetoforge.com/blog/custom-milwaukee-packout-inserts-3d-print/)
+- [Create Gridfinity inserts from a photo](https://tracetoforge.com/blog/gridfinity-insert-from-photo/)
+- [Gridfinity vs Milwaukee Packout vs custom trays](https://tracetoforge.com/blog/gridfinity-vs-packout-vs-custom-tray/)
+- [3D printed inserts vs Kaizen foam](https://tracetoforge.com/blog/3d-printed-inserts-vs-kaizen-foam/)
+- [Trace once, use everywhere: build a reusable tool library](https://tracetoforge.com/blog/reusable-tool-library-drawer-trays/)
+- [How to organize a Milwaukee Packout](https://tracetoforge.com/blog/how-to-organize-milwaukee-packout/)
+- [Image to STL converter: free, no CAD needed](https://tracetoforge.com/blog/image-to-stl-converter-free/)
+- [Gridfinity custom cutouts without CAD](https://tracetoforge.com/blog/gridfinity-custom-cutout-no-cad/)
+- [3D printed tool organizer: complete guide](https://tracetoforge.com/blog/3d-printed-tool-organizer-guide/)
+- [Knipex pliers organizer: 3D printed inserts](https://tracetoforge.com/blog/knipex-pliers-organizer-3d-printed/)
+- [Gridfinity generator: photo-based vs parametric](https://tracetoforge.com/blog/gridfinity-generator-photo-vs-parametric/)
+- [Best 3D printed tool organizer ideas](https://tracetoforge.com/blog/best-3d-printed-tool-organizer-ideas/)
+- [Photo to STL tool organizer guide](https://tracetoforge.com/blog/tool-organizer-photo-to-stl/)
+- [Full blog index](https://tracetoforge.com/blog/)
+
+## Key facts
+- Output formats: STL, 3MF (multi-material), SVG (laser cut), DXF (CNC).
+- Recommended filament: PETG for tool inserts (heat-resistant to 80°C).
+- Compatible storage systems: Milwaukee Packout, Gridfinity (42mm grid), DeWalt ToughSystem, DeWalt TSTAK, Klein ModBox, Festool Systainer, Bosch L-Boxx, and custom-dimension trays.
+- All photo processing runs in-browser; no images upload to any server.
+- Pricing: 3 free credits on signup. 20 credits for $9.99. 100 credits for $34.99 (best value). One credit per export.
+- Founder: Chris Winland. Operated by Qwikymart LLC.
+- Etsy storefront: https://www.etsy.com/shop/TracetoForge
