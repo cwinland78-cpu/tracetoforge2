@@ -31,8 +31,8 @@ function escapeHtml(str) {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 }
 
-function makePage({ title, description, canonical, ogTitle, ogType = 'website', h1, bodyHtml, articleSchema }) {
-  const schemas = [
+function makePage({ title, description, canonical, ogTitle, ogType = 'website', h1, bodyHtml, articleSchema, noindex = false }) {
+  const schemas = noindex ? [] : [
     {
       "@context": "https://schema.org",
       "@type": "WebApplication",
@@ -62,7 +62,7 @@ function makePage({ title, description, canonical, ogTitle, ogType = 'website', 
     }
   ]
 
-  if (articleSchema) schemas.push(articleSchema)
+  if (articleSchema && !noindex) schemas.push(articleSchema)
 
   const schemaBlocks = schemas.map(s =>
     `    <script type="application/ld+json">\n    ${JSON.stringify(s, null, 2).split('\n').join('\n    ')}\n    </script>`
@@ -87,7 +87,7 @@ function makePage({ title, description, canonical, ogTitle, ogType = 'website', 
     <title>${escapeHtml(title)}</title>
     <meta name="description" content="${escapeHtml(description)}" />
     <meta name="author" content="TracetoForge" />
-    <meta name="robots" content="index, follow" />
+    <meta name="robots" content="${noindex ? 'noindex, nofollow' : 'index, follow'}" />
     <link rel="canonical" href="${canonical}" />
     <meta property="og:type" content="${ogType}" />
     <meta property="og:url" content="${canonical}" />
@@ -690,6 +690,43 @@ writePage('/contact', makePage({
       <p><strong>"Can I get a refund?"</strong> Yes, unspent credits are refundable within 14 days of purchase. Email with the order ID and we will process it. See the full policy in the <a href="/terms/">Terms of Service</a>.</p>
 
       <p><a href="/">Back to TracetoForge</a> | <a href="/about/">About TracetoForge</a></p>`
+}))
+
+// Auth/account routes — noindex shells so direct nav (reload, bookmark, password-reset email)
+// returns 200 with the React bundle, and Google doesn't index them as duplicates of /.
+// Body is just a loading message; React Router hydrates the real LoginPage / Dashboard / etc.
+function authShellBody(label) {
+  return `<p>Loading ${label}…</p><noscript><p>This page requires JavaScript. Please enable it to continue.</p></noscript>`
+}
+
+writePage('/login', makePage({
+  title: 'Sign in | TracetoForge',
+  description: 'Sign in to TracetoForge to access your saved tool traces and credit balance.',
+  canonical: 'https://tracetoforge.com/login',
+  ogTitle: 'Sign in to TracetoForge',
+  h1: 'Sign in',
+  bodyHtml: authShellBody('sign-in'),
+  noindex: true
+}))
+
+writePage('/reset-password', makePage({
+  title: 'Reset password | TracetoForge',
+  description: 'Reset your TracetoForge account password.',
+  canonical: 'https://tracetoforge.com/reset-password',
+  ogTitle: 'Reset your TracetoForge password',
+  h1: 'Reset password',
+  bodyHtml: authShellBody('password reset'),
+  noindex: true
+}))
+
+writePage('/dashboard', makePage({
+  title: 'Dashboard | TracetoForge',
+  description: 'Your TracetoForge dashboard: saved traces, credit balance, and account settings.',
+  canonical: 'https://tracetoforge.com/dashboard',
+  ogTitle: 'TracetoForge Dashboard',
+  h1: 'Dashboard',
+  bodyHtml: authShellBody('your dashboard'),
+  noindex: true
 }))
 
 // Blog Index
