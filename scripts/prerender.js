@@ -31,7 +31,7 @@ function escapeHtml(str) {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 }
 
-function makePage({ title, description, canonical, ogTitle, ogType = 'website', h1, bodyHtml, articleSchema, noindex = false }) {
+function makePage({ title, description, canonical, ogTitle, ogType = 'website', h1, bodyHtml, articleSchema, extraSchemas = [], noindex = false }) {
   const schemas = noindex ? [] : [
     {
       "@context": "https://schema.org",
@@ -54,15 +54,31 @@ function makePage({ title, description, canonical, ogTitle, ogType = 'website', 
       "@context": "https://schema.org",
       "@type": "Organization",
       name: "TracetoForge",
+      legalName: "Qwikymart LLC",
       url: "https://tracetoforge.com",
       logo: "https://tracetoforge.com/icon-512.png",
       description: "Photo-to-print tool insert generator for 3D printing.",
-      sameAs: ["https://www.etsy.com/shop/TracetoForge"],
+      foundingDate: "2025",
+      address: {
+        "@type": "PostalAddress",
+        addressRegion: "OH",
+        addressCountry: "US"
+      },
+      contactPoint: {
+        "@type": "ContactPoint",
+        email: "support@tracetoforge.com",
+        contactType: "customer service",
+        availableLanguage: "English"
+      },
+      sameAs: [
+        "https://www.etsy.com/shop/TracetoForge",
+        "https://www.amazon.com/s?k=TracetoForge+gridfinity+insert&rh=n%3A553240"
+      ],
       founder: {
         "@type": "Person",
         name: "Chris Winland",
         jobTitle: "Founder",
-        worksFor: { "@type": "Organization", name: "TracetoForge" },
+        worksFor: { "@type": "Organization", name: "Qwikymart LLC" },
         url: "https://tracetoforge.com/about/",
         sameAs: ["https://www.etsy.com/shop/TracetoForge"]
       }
@@ -70,6 +86,7 @@ function makePage({ title, description, canonical, ogTitle, ogType = 'website', 
   ]
 
   if (articleSchema && !noindex) schemas.push(articleSchema)
+  if (extraSchemas.length && !noindex) schemas.push(...extraSchemas)
 
   const schemaBlocks = schemas.map(s =>
     `    <script type="application/ld+json">\n    ${JSON.stringify(s, null, 2).split('\n').join('\n    ')}\n    </script>`
@@ -244,7 +261,20 @@ const landingHtml = makePage({
       <p>TracetoForge is a small maker project run out of Northeast Ohio, operated by Qwikymart LLC. It started as a personal fix for a messy tool drawer and turned into a browser-based editor that other makers could use. One person writes the code, answers the support email, and packs the physical inserts that ship from the shop. No venture capital, no outsourced copywriting, no bloat. Every feature in the editor exists because someone hit a wall trying to do it another way. <a href="/about/">Read the full story</a> or <a href="/contact/">get in touch</a>.</p>
 
       <p><a href="/editor/">Try the Editor Free</a> | <a href="/community/">Community Library</a> | <a href="/blog/">Read the Blog</a> | <a href="/guide/">Getting Started Guide</a> | <a href="/about/">About</a> | <a href="/contact/">Contact</a></p>`,
-  articleSchema: faqSchema
+  articleSchema: faqSchema,
+  extraSchemas: [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: "TracetoForge",
+      url: "https://tracetoforge.com",
+      publisher: {
+        "@type": "Organization",
+        name: "TracetoForge",
+        url: "https://tracetoforge.com"
+      }
+    }
+  ]
 })
 writeFileSync(join(DIST, 'index.html'), landingHtml)
 console.log('[prerender] /index.html (landing)')
@@ -479,7 +509,26 @@ writePage('/editor', makePage({
         <li><a href="/blog/custom-milwaukee-packout-inserts-3d-print/">Custom Milwaukee Packout Inserts</a></li>
       </ul>
 
-      <p><a href="/">Back to TracetoForge home</a> | <a href="/guide/">Getting Started Guide</a> | <a href="/blog/">Blog</a></p>`
+      <p><a href="/">Back to TracetoForge home</a> | <a href="/guide/">Getting Started Guide</a> | <a href="/blog/">Blog</a></p>`,
+  extraSchemas: [
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      name: "TracetoForge Editor",
+      url: "https://tracetoforge.com/editor/",
+      applicationCategory: "DesignApplication",
+      applicationSubCategory: "3D Modeling Software",
+      operatingSystem: "Web Browser",
+      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+      featureList: [
+        "Photo-based automatic tool outline detection",
+        "Custom tray insert generation",
+        "Gridfinity-compatible bin export (42mm grid)",
+        "STL, 3MF, SVG, DXF export formats",
+        "Real-time 3D preview"
+      ]
+    }
+  ]
 }))
 
 // Privacy Policy
@@ -857,6 +906,7 @@ for (const post of postConfigs) {
     headline: meta.title,
     description: meta.desc,
     url: meta.canonical,
+    image: "https://tracetoforge.com/og-twitter.jpg",
     datePublished: meta.date,
     dateModified: meta.updated || meta.date,
     author: {
@@ -864,7 +914,7 @@ for (const post of postConfigs) {
       name: "Chris Winland",
       url: "https://tracetoforge.com/about/",
       jobTitle: "Founder",
-      worksFor: { "@type": "Organization", name: "TracetoForge" },
+      worksFor: { "@type": "Organization", name: "Qwikymart LLC" },
       sameAs: ["https://www.etsy.com/shop/TracetoForge"]
     },
     publisher: {
@@ -875,6 +925,16 @@ for (const post of postConfigs) {
     },
     mainEntityOfPage: { "@type": "WebPage", "@id": meta.canonical },
     keywords: meta.tags.join(', ')
+  }
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://tracetoforge.com/" },
+      { "@type": "ListItem", position: 2, name: "Blog", item: "https://tracetoforge.com/blog/" },
+      { "@type": "ListItem", position: 3, name: meta.title }
+    ]
   }
 
   const authorBioHtml = `
@@ -898,7 +958,8 @@ ${articleContent}
       </article>
 ${authorBioHtml}
       <p><a href="/blog/">Back to Blog</a> | <a href="/editor/">Try TracetoForge Free</a></p>`,
-    articleSchema
+    articleSchema,
+    extraSchemas: [breadcrumbSchema]
   }))
 }
 
