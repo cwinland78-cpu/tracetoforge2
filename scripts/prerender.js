@@ -226,6 +226,52 @@ const landingHtml = makePage({
 writeFileSync(join(DIST, 'index.html'), landingHtml)
 console.log('[prerender] /index.html (landing)')
 
+// 404 page. Cloudflare Pages serves /404.html with status 404 for any path
+// that doesn't match a static file or _redirects rule. Without this, the SPA
+// fallback returned 200 + the homepage shell for any unknown URL, which Google
+// indexed as duplicates of the homepage. The page is noindex so even if Googlebot
+// somehow lands here it's filtered out, and the apologetic body sends the user
+// back to the working pages.
+const notFoundHtml = `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Page Not Found | TracetoForge</title>
+    <meta name="robots" content="noindex, follow" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <style>
+      body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0e0e14;color:#e4e4e7;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:2rem;line-height:1.6}
+      .wrap{max-width:560px;text-align:center}
+      h1{font-size:5rem;margin:0 0 .5rem;color:#f97316;font-weight:800;letter-spacing:-2px}
+      h2{font-size:1.5rem;margin:0 0 1rem;font-weight:600}
+      p{color:#a1a1aa;margin:0 0 2rem}
+      .links{display:flex;gap:.75rem;flex-wrap:wrap;justify-content:center}
+      a{display:inline-block;padding:.6rem 1.1rem;border-radius:.5rem;text-decoration:none;font-size:.9rem;font-weight:500;transition:background .15s}
+      a.primary{background:#f97316;color:#fff}
+      a.primary:hover{background:#ea580c}
+      a.secondary{background:#27272a;color:#e4e4e7;border:1px solid #3f3f46}
+      a.secondary:hover{background:#3f3f46}
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>404</h1>
+      <h2>That page slipped its tray</h2>
+      <p>The page you tried to reach isn't here. It may have moved, or the link may be stale. Try one of the spots below — most folks land in the editor or the community library.</p>
+      <div class="links">
+        <a class="primary" href="/editor/">Open the editor</a>
+        <a class="secondary" href="/community/">Community library</a>
+        <a class="secondary" href="/blog/">Read the blog</a>
+        <a class="secondary" href="/">Home</a>
+      </div>
+    </div>
+  </body>
+</html>`
+writeFileSync(join(DIST, '404.html'), notFoundHtml)
+console.log('[prerender] /404.html')
+
 // Guide
 writePage('/guide', makePage({
   title: 'Getting Started Guide | TracetoForge',
