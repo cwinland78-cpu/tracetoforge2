@@ -55,7 +55,7 @@ export default function PackoutInserts() {
       <h2>Step 2: Upload and Trace</h2>
 
       <p>
-        Upload your photo to <Link to="/editor">TracetoForge</Link>. The app automatically detects the paper
+        Upload your photo to <Link to="/editor/">TracetoForge</Link>. The app automatically detects the paper
         boundaries and the tool outline. You can fine-tune the trace with click-and-drag controls if needed.
         Set the real-world dimensions (the paper size handles scaling automatically).
       </p>
@@ -140,10 +140,10 @@ export default function PackoutInserts() {
 
       <h2>Related Guides</h2>
       <ul>
-        <li><Link to="/blog/gridfinity-insert-from-photo">Create Gridfinity Inserts from a Photo</Link> - Same photo-to-insert process for the Gridfinity ecosystem</li>
-        <li><Link to="/blog/gridfinity-vs-packout-vs-custom-tray">Gridfinity vs Packout vs Custom Trays</Link> - Which system fits your workflow best</li>
-        <li><Link to="/blog/tool-organizer-photo-to-stl">How Photo-to-STL Tool Organizers Work</Link> - The technology behind turning a photo into a printable file</li>
-        <li><Link to="/blog/best-3d-printed-tool-organizer-ideas">Best 3D Printed Tool Organizer Ideas</Link> - Inspiration for your next workshop project</li>
+        <li><Link to="/blog/gridfinity-insert-from-photo/">Create Gridfinity Inserts from a Photo</Link> - Same photo-to-insert process for the Gridfinity ecosystem</li>
+        <li><Link to="/blog/gridfinity-vs-packout-vs-custom-tray/">Gridfinity vs Packout vs Custom Trays</Link> - Which system fits your workflow best</li>
+        <li><Link to="/blog/tool-organizer-photo-to-stl/">How Photo-to-STL Tool Organizers Work</Link> - The technology behind turning a photo into a printable file</li>
+        <li><Link to="/blog/best-3d-printed-tool-organizer-ideas/">Best 3D Printed Tool Organizer Ideas</Link> - Inspiration for your next workshop project</li>
       </ul>
     </BlogPost>
   )

@@ -244,7 +244,7 @@ export default function LoginPage() {
 
         <div className="text-center mt-4">
           <Link
-            to="/editor"
+            to="/editor/"
             className="text-gray-500 hover:text-gray-300 text-sm transition-colors"
           >
             Continue as Guest (limited features)

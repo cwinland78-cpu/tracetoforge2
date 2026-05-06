@@ -921,7 +921,7 @@ export default function Landing() {
           </div>
 
           <div className="text-center">
-            <a href="/blog" className="inline-flex items-center gap-1.5 text-sm text-brand font-semibold hover:gap-2.5 transition-all">
+            <a href="/blog/" className="inline-flex items-center gap-1.5 text-sm text-brand font-semibold hover:gap-2.5 transition-all">
               View All Guides <ArrowRight size={14} />
             </a>
           </div>
@@ -1056,8 +1056,8 @@ export default function Landing() {
           </div>
           <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 text-xs text-[#555568] font-mono">
             <a href="/about" className="hover:text-white transition-colors">About</a>
-            <a href="/blog" className="hover:text-white transition-colors">Blog</a>
-            <a href="/guide" className="hover:text-white transition-colors">Guide & FAQ</a>
+            <a href="/blog/" className="hover:text-white transition-colors">Blog</a>
+            <a href="/guide/" className="hover:text-white transition-colors">Guide & FAQ</a>
             <a href="/contact" className="hover:text-white transition-colors">Contact</a>
             <a href="/privacy" className="hover:text-white transition-colors">Privacy</a>
             <a href="/terms" className="hover:text-white transition-colors">Terms</a>

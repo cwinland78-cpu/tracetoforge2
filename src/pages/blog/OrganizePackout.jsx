@@ -83,14 +83,14 @@ export default function OrganizePackout() {
 
       <p>
         If you own a 3D printer, you can make inserts for any Packout case in about 5 minutes per tool.
-        Photograph the tool on a sheet of paper, upload to <Link to="/editor">TracetoForge</Link>,
+        Photograph the tool on a sheet of paper, upload to <Link to="/editor/">TracetoForge</Link>,
         select your case dimensions, and export an STL file. Print overnight and drop it in the case
         the next morning. A full case conversion takes a weekend of printing.
       </p>
 
       <p>
         If you do not have a 3D printer, Kaizen foam works but
-        <Link to="/blog/3d-printed-inserts-vs-kaizen-foam"> costs significantly more per insert</Link> and
+        <Link to="/blog/3d-printed-inserts-vs-kaizen-foam/"> costs significantly more per insert</Link> and
         degrades over time. Pre-made STL files on Etsy or Printables are another option if someone has already
         made the insert for your specific tool.
       </p>
@@ -99,7 +99,7 @@ export default function OrganizePackout() {
 
       <p>
         The Packout Compact Organizer and 3-Drawer models are perfect candidates
-        for <Link to="/blog/gridfinity-insert-from-photo">Gridfinity bins</Link>. Print a baseplate
+        for <Link to="/blog/gridfinity-insert-from-photo/">Gridfinity bins</Link>. Print a baseplate
         sized to the drawer interior, then fill it with modular bins for:
       </p>
 
@@ -228,16 +228,16 @@ export default function OrganizePackout() {
       </p>
 
       <p>
-        <Link to="/editor">Start creating your first custom Packout insert here</Link>. 3 free credits, no credit card.
+        <Link to="/editor/">Start creating your first custom Packout insert here</Link>. 3 free credits, no credit card.
       </p>
 
       <h2>Related Guides</h2>
       <ul>
-        <li><Link to="/blog/custom-milwaukee-packout-inserts-3d-print">Custom Milwaukee Packout Inserts</Link> - Step-by-step photo-to-insert guide for Packout</li>
-        <li><Link to="/blog/3d-printed-inserts-vs-kaizen-foam">3D Printed Inserts vs Kaizen Foam</Link> - Full cost and durability comparison</li>
-        <li><Link to="/blog/gridfinity-insert-from-photo">Gridfinity Inserts from a Photo</Link> - Custom Gridfinity bins for Packout drawers</li>
-        <li><Link to="/blog/gridfinity-vs-packout-vs-custom-tray">Gridfinity vs Packout vs Custom Trays</Link> - Choosing the right insert system</li>
-        <li><Link to="/blog/best-3d-printed-tool-organizer-ideas">Best 3D Printed Tool Organizer Ideas</Link> - More workshop organization inspiration</li>
+        <li><Link to="/blog/custom-milwaukee-packout-inserts-3d-print/">Custom Milwaukee Packout Inserts</Link> - Step-by-step photo-to-insert guide for Packout</li>
+        <li><Link to="/blog/3d-printed-inserts-vs-kaizen-foam/">3D Printed Inserts vs Kaizen Foam</Link> - Full cost and durability comparison</li>
+        <li><Link to="/blog/gridfinity-insert-from-photo/">Gridfinity Inserts from a Photo</Link> - Custom Gridfinity bins for Packout drawers</li>
+        <li><Link to="/blog/gridfinity-vs-packout-vs-custom-tray/">Gridfinity vs Packout vs Custom Trays</Link> - Choosing the right insert system</li>
+        <li><Link to="/blog/best-3d-printed-tool-organizer-ideas/">Best 3D Printed Tool Organizer Ideas</Link> - More workshop organization inspiration</li>
       </ul>
     </BlogPost>
   )

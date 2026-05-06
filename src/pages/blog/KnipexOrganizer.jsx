@@ -100,7 +100,7 @@ export default function KnipexOrganizer() {
       <p>
         The fastest method for Knipex pliers is photo-based generation. Lay each
         plier on a white sheet of paper and take a top-down photo. Upload
-        to <Link to="/editor">TracetoForge</Link> and the app traces the exact
+        to <Link to="/editor/">TracetoForge</Link> and the app traces the exact
         outline, including the jaw shape, pivot bolt, and handle curves. You can
         combine up to 5 tools in a single tray and position each one independently.
       </p>
@@ -133,7 +133,7 @@ export default function KnipexOrganizer() {
       </p>
 
       <p>
-        Want to design your own? Open the <Link to="/editor">TracetoForge editor</Link> and
+        Want to design your own? Open the <Link to="/editor/">TracetoForge editor</Link> and
         create a custom Knipex insert in under 2 minutes. No CAD skills needed.
       </p>
     </BlogPost>

@@ -24,7 +24,7 @@ export default function OrganizerIdeas() {
         and makes it immediately obvious when something is missing. Traditionally made from foam,
         3D printed shadow boards are more durable and can be designed to exact specifications.
         You can generate these from a photo of your tools using tools
-        like <Link to="/editor">TracetoForge</Link> or Tooltrace.
+        like <Link to="/editor/">TracetoForge</Link> or Tooltrace.
       </p>
 
       <h2>2. Socket Organizer Rails</h2>
@@ -56,7 +56,7 @@ export default function OrganizerIdeas() {
         precision tool holder. Each tool gets its own cavity shaped to its exact outline. No more loose
         tools bouncing around in your truck. Companies like Vork Design and Indy Precision Printing
         sell pre-made inserts, but you can create your own
-        from a photo using <Link to="/editor">TracetoForge</Link> for a fraction of the cost.
+        from a photo using <Link to="/editor/">TracetoForge</Link> for a fraction of the cost.
       </p>
 
       <h2>6. Hex Key / Allen Wrench Holder</h2>
@@ -100,7 +100,7 @@ export default function OrganizerIdeas() {
         The fastest way to create custom organizers is to photograph your tools and generate inserts
         automatically. For generic bins and holders, browse community designs on Printables, MakerWorld,
         or Thingiverse. For tool-specific custom inserts, use a photo-to-insert
-        tool like <Link to="/editor">TracetoForge</Link> to generate the exact shapes you need.
+        tool like <Link to="/editor/">TracetoForge</Link> to generate the exact shapes you need.
       </p>
 
       <p>
@@ -110,10 +110,10 @@ export default function OrganizerIdeas() {
 
       <h2>Related Guides</h2>
       <ul>
-        <li><Link to="/blog/custom-milwaukee-packout-inserts-3d-print">Custom Milwaukee Packout Inserts</Link> - Photo-to-insert workflow for Packout cases</li>
-        <li><Link to="/blog/gridfinity-insert-from-photo">Gridfinity Inserts from a Photo</Link> - Custom Gridfinity bins from a smartphone photo</li>
-        <li><Link to="/blog/tool-organizer-photo-to-stl">Photo-to-STL: How It Works</Link> - The technology behind photo-based insert generation</li>
-        <li><Link to="/blog/gridfinity-vs-packout-vs-custom-tray">Gridfinity vs Packout vs Custom Trays</Link> - Compare the major insert systems</li>
+        <li><Link to="/blog/custom-milwaukee-packout-inserts-3d-print/">Custom Milwaukee Packout Inserts</Link> - Photo-to-insert workflow for Packout cases</li>
+        <li><Link to="/blog/gridfinity-insert-from-photo/">Gridfinity Inserts from a Photo</Link> - Custom Gridfinity bins from a smartphone photo</li>
+        <li><Link to="/blog/tool-organizer-photo-to-stl/">Photo-to-STL: How It Works</Link> - The technology behind photo-based insert generation</li>
+        <li><Link to="/blog/gridfinity-vs-packout-vs-custom-tray/">Gridfinity vs Packout vs Custom Trays</Link> - Compare the major insert systems</li>
       </ul>
     </BlogPost>
   )

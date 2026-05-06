@@ -108,7 +108,7 @@ export default function FoamAlternative() {
       </p>
 
       <p>
-        <Link to="/blog/gridfinity-vs-packout-vs-custom-tray">Gridfinity users</Link> often combine
+        <Link to="/blog/gridfinity-vs-packout-vs-custom-tray/">Gridfinity users</Link> often combine
         3D printed bins for hand tools with foam-lined drawers for power tools. The key is matching the
         method to the tool.
       </p>
@@ -121,14 +121,14 @@ export default function FoamAlternative() {
 
       <ol>
         <li>Photograph each tool on a sheet of paper</li>
-        <li>Upload to <Link to="/editor">TracetoForge</Link> and generate the insert</li>
+        <li>Upload to <Link to="/editor/">TracetoForge</Link> and generate the insert</li>
         <li>Select your case type (Packout, Gridfinity, custom tray, or standalone)</li>
         <li>Export STL or 3MF and slice with your preferred slicer</li>
         <li>Print at 0.2mm layer height, 15-20% infill, PETG for durability</li>
       </ol>
 
       <p>
-        Most inserts print in 1 to 4 hours. A full <Link to="/blog/custom-milwaukee-packout-inserts-3d-print">Packout
+        Most inserts print in 1 to 4 hours. A full <Link to="/blog/custom-milwaukee-packout-inserts-3d-print/">Packout
         case conversion</Link> takes a weekend of printing and results in inserts that will still be perfect
         5 years from now.
       </p>
@@ -182,11 +182,11 @@ export default function FoamAlternative() {
 
       <h2>Related Guides</h2>
       <ul>
-        <li><Link to="/blog/custom-milwaukee-packout-inserts-3d-print">Custom Milwaukee Packout Inserts</Link> - Step-by-step guide for Packout-specific inserts</li>
-        <li><Link to="/blog/gridfinity-insert-from-photo">Gridfinity Inserts from a Photo</Link> - Custom Gridfinity bins from a smartphone photo</li>
-        <li><Link to="/blog/tool-organizer-photo-to-stl">Photo-to-STL: How It Works</Link> - Technical breakdown of photo-based insert generation</li>
-        <li><Link to="/blog/gridfinity-vs-packout-vs-custom-tray">Gridfinity vs Packout vs Custom Trays</Link> - Compare the major insert systems</li>
-        <li><Link to="/blog/best-3d-printed-tool-organizer-ideas">Best 3D Printed Tool Organizer Ideas</Link> - Creative ideas for workshop organization</li>
+        <li><Link to="/blog/custom-milwaukee-packout-inserts-3d-print/">Custom Milwaukee Packout Inserts</Link> - Step-by-step guide for Packout-specific inserts</li>
+        <li><Link to="/blog/gridfinity-insert-from-photo/">Gridfinity Inserts from a Photo</Link> - Custom Gridfinity bins from a smartphone photo</li>
+        <li><Link to="/blog/tool-organizer-photo-to-stl/">Photo-to-STL: How It Works</Link> - Technical breakdown of photo-based insert generation</li>
+        <li><Link to="/blog/gridfinity-vs-packout-vs-custom-tray/">Gridfinity vs Packout vs Custom Trays</Link> - Compare the major insert systems</li>
+        <li><Link to="/blog/best-3d-printed-tool-organizer-ideas/">Best 3D Printed Tool Organizer Ideas</Link> - Creative ideas for workshop organization</li>
       </ul>
     </BlogPost>
   )

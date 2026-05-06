@@ -86,7 +86,7 @@ export default function PrintedToolOrganizer() {
       <p>
         The newest approach. Take a photo of your tool on a sheet of paper, upload it,
         and get an STL with the exact tool outline as a cutout. Tools
-        like <Link to="/editor">TracetoForge</Link> use computer vision to trace
+        like <Link to="/editor/">TracetoForge</Link> use computer vision to trace
         the outline and generate a Gridfinity or Packout-compatible insert in under
         2 minutes. Best for complex tool shapes where manual measurement would be tedious.
       </p>
@@ -167,7 +167,7 @@ export default function PrintedToolOrganizer() {
 
       <p>
         If you already own a 3D printer, the fastest path to a custom tool organizer
-        is the photo-based method. Open the <Link to="/editor">TracetoForge editor</Link>,
+        is the photo-based method. Open the <Link to="/editor/">TracetoForge editor</Link>,
         snap a photo of your tool, and have a printable STL in 2 minutes. No CAD
         skills, no parametric generators, no measuring with calipers.
       </p>

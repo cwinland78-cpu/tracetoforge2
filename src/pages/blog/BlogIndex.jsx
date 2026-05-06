@@ -137,9 +137,9 @@ export default function BlogIndex() {
           <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
             <Link to="/" className="text-lg font-bold text-brand">TracetoForge</Link>
             <nav className="flex items-center gap-4">
-              <Link to="/blog" className="text-sm text-white font-medium">Blog</Link>
-              <Link to="/guide" className="text-sm text-[#8888A0] hover:text-white transition-colors">Guide</Link>
-              <Link to="/editor" className="px-4 py-2 text-sm font-semibold bg-brand hover:bg-brand-light text-white rounded-lg transition-colors">
+              <Link to="/blog/" className="text-sm text-white font-medium">Blog</Link>
+              <Link to="/guide/" className="text-sm text-[#8888A0] hover:text-white transition-colors">Guide</Link>
+              <Link to="/editor/" className="px-4 py-2 text-sm font-semibold bg-brand hover:bg-brand-light text-white rounded-lg transition-colors">
                 Try Free
               </Link>
             </nav>

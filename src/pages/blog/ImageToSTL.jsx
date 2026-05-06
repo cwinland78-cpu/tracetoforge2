@@ -51,7 +51,7 @@ export default function ImageToSTL() {
 
       <h3>2. Upload to an Image-to-STL Tool</h3>
       <p>
-        Open <Link to="/editor">TracetoForge</Link> in your browser. No download, no account
+        Open <Link to="/editor/">TracetoForge</Link> in your browser. No download, no account
         required for your first export. Upload your photo and the app detects the paper corners
         and object outline automatically.
       </p>
@@ -119,7 +119,7 @@ export default function ImageToSTL() {
       <h2>Ready to Convert?</h2>
 
       <p>
-        Open the <Link to="/editor">TracetoForge editor</Link>, upload a photo, and have a
+        Open the <Link to="/editor/">TracetoForge editor</Link>, upload a photo, and have a
         print-ready STL in under two minutes. Works on any device with a browser. No software
         to install, no CAD skills required.
       </p>

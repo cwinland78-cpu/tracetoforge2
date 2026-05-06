@@ -56,7 +56,7 @@ export default function GridfinityFromPhoto() {
 
       <h3>3. Upload and Trace</h3>
       <p>
-        In <Link to="/editor">TracetoForge</Link>, upload your photo. The app detects the paper and
+        In <Link to="/editor/">TracetoForge</Link>, upload your photo. The app detects the paper and
         tool outlines automatically. You can adjust the trace if needed, for example removing shadows
         or refining edges around complex shapes. Set the paper size so the dimensions scale correctly.
       </p>
@@ -150,10 +150,10 @@ export default function GridfinityFromPhoto() {
 
       <h2>Related Guides</h2>
       <ul>
-        <li><Link to="/blog/custom-milwaukee-packout-inserts-3d-print">Custom Milwaukee Packout Inserts</Link> - Use the same photo-to-insert workflow for Packout cases</li>
-        <li><Link to="/blog/gridfinity-vs-packout-vs-custom-tray">Gridfinity vs Packout vs Custom Trays</Link> - Deciding which system to use and when</li>
-        <li><Link to="/blog/tool-organizer-photo-to-stl">Photo-to-STL: How It Works</Link> - Technical breakdown of photo-based insert generation</li>
-        <li><Link to="/blog/best-3d-printed-tool-organizer-ideas">Best 3D Printed Tool Organizer Ideas</Link> - More inspiration for workshop organization</li>
+        <li><Link to="/blog/custom-milwaukee-packout-inserts-3d-print/">Custom Milwaukee Packout Inserts</Link> - Use the same photo-to-insert workflow for Packout cases</li>
+        <li><Link to="/blog/gridfinity-vs-packout-vs-custom-tray/">Gridfinity vs Packout vs Custom Trays</Link> - Deciding which system to use and when</li>
+        <li><Link to="/blog/tool-organizer-photo-to-stl/">Photo-to-STL: How It Works</Link> - Technical breakdown of photo-based insert generation</li>
+        <li><Link to="/blog/best-3d-printed-tool-organizer-ideas/">Best 3D Printed Tool Organizer Ideas</Link> - More inspiration for workshop organization</li>
       </ul>
     </BlogPost>
   )

@@ -68,7 +68,7 @@ export default function GridfinityCustomCutout() {
 
       <h3>Step 2: Upload and Auto-Trace</h3>
       <p>
-        Open the <Link to="/editor">TracetoForge editor</Link> and upload your photo.
+        Open the <Link to="/editor/">TracetoForge editor</Link> and upload your photo.
         The app detects the paper, corrects perspective, and traces the tool outline
         automatically. You can adjust individual points if the trace picks up a shadow
         or misses a detail.
@@ -118,7 +118,7 @@ export default function GridfinityCustomCutout() {
 
       <p>
         No CAD software to learn. No measurements to take. Just a phone, a piece of paper,
-        and the <Link to="/editor">TracetoForge editor</Link>. Your first export is free.
+        and the <Link to="/editor/">TracetoForge editor</Link>. Your first export is free.
       </p>
     </BlogPost>
   )

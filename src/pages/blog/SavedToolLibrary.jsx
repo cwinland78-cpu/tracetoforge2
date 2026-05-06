@@ -140,7 +140,7 @@ export default function SavedToolLibrary() {
       <h2>Try It</h2>
 
       <p>
-        Both the library and the edit lock are live now. <Link to="/editor">
+        Both the library and the edit lock are live now. <Link to="/editor/">
         Open the editor</Link>, trace a tool you use a lot, and click Save. Next
         time you start a tray, the Library button is right next to the New Tool
         button. The first three credits are still on the house, so you can build

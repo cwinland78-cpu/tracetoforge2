@@ -170,7 +170,7 @@ const faqSchema = {
 const landingHtml = makePage({
   title: 'Custom Tool Drawer Organizer From a Photo | TracetoForge',
   description: 'Design custom wrench, plier, screwdriver, and hammer drawer trays from a photo of your tools. Auto-trace, export STL, 3MF, SVG, or DXF. Gridfinity supported. Free, no CAD needed.',
-  canonical: 'https://tracetoforge.com',
+  canonical: 'https://tracetoforge.com/',
   ogTitle: 'TracetoForge - Custom Tool Drawer Trays From a Photo',
   h1: 'Custom Gridfinity Inserts From a Photo — No CAD Needed',
   bodyHtml: `
@@ -190,19 +190,19 @@ const landingHtml = makePage({
       <p>Create precision-fit organizer inserts for pliers, screwdrivers, socket sets, ratchets, wrenches, utility knives, hex keys, wire strippers, multimeters, drill bits, tape measures, chisels, files, flashlights, and more. Works as a foam organizer alternative. Replace kaizen foam with 3D printed inserts for your tool drawer, tool chest, or garage storage.</p>
       <h2>Guides and Tutorials</h2>
       <ul>
-        <li><a href="/blog/reusable-tool-library-drawer-trays">Trace Once, Use Everywhere: Build a Reusable Tool Library</a></li>
-        <li><a href="/blog/image-to-stl-converter-free">Image to STL Converter: Free, No CAD Needed</a></li>
-        <li><a href="/blog/gridfinity-custom-cutout-no-cad">Gridfinity Custom Cutouts Without CAD</a></li>
-        <li><a href="/blog/3d-printed-tool-organizer-guide">3D Printed Tool Organizer: Complete Guide</a></li>
-        <li><a href="/blog/knipex-pliers-organizer-3d-printed">Knipex Pliers Organizer: 3D Printed Inserts</a></li>
-        <li><a href="/blog/gridfinity-insert-from-photo">Create Gridfinity Inserts from a Photo</a></li>
-        <li><a href="/blog/gridfinity-generator-photo-vs-parametric">Gridfinity Generator: Photo-Based vs Parametric</a></li>
-        <li><a href="/blog/custom-milwaukee-packout-inserts-3d-print">Custom Milwaukee Packout Inserts</a></li>
-        <li><a href="/blog/gridfinity-vs-packout-vs-custom-tray">Gridfinity vs Packout vs Custom Trays</a></li>
-        <li><a href="/blog/best-3d-printed-tool-organizer-ideas">Best 3D Printed Tool Organizer Ideas</a></li>
-        <li><a href="/blog/3d-printed-inserts-vs-kaizen-foam">3D Printed Inserts vs Kaizen Foam</a></li>
-        <li><a href="/blog/how-to-organize-milwaukee-packout">How to Organize a Milwaukee Packout</a></li>
-        <li><a href="/blog/tool-organizer-photo-to-stl">Photo to STL Tool Organizer Guide</a></li>
+        <li><a href="/blog/reusable-tool-library-drawer-trays/">Trace Once, Use Everywhere: Build a Reusable Tool Library</a></li>
+        <li><a href="/blog/image-to-stl-converter-free/">Image to STL Converter: Free, No CAD Needed</a></li>
+        <li><a href="/blog/gridfinity-custom-cutout-no-cad/">Gridfinity Custom Cutouts Without CAD</a></li>
+        <li><a href="/blog/3d-printed-tool-organizer-guide/">3D Printed Tool Organizer: Complete Guide</a></li>
+        <li><a href="/blog/knipex-pliers-organizer-3d-printed/">Knipex Pliers Organizer: 3D Printed Inserts</a></li>
+        <li><a href="/blog/gridfinity-insert-from-photo/">Create Gridfinity Inserts from a Photo</a></li>
+        <li><a href="/blog/gridfinity-generator-photo-vs-parametric/">Gridfinity Generator: Photo-Based vs Parametric</a></li>
+        <li><a href="/blog/custom-milwaukee-packout-inserts-3d-print/">Custom Milwaukee Packout Inserts</a></li>
+        <li><a href="/blog/gridfinity-vs-packout-vs-custom-tray/">Gridfinity vs Packout vs Custom Trays</a></li>
+        <li><a href="/blog/best-3d-printed-tool-organizer-ideas/">Best 3D Printed Tool Organizer Ideas</a></li>
+        <li><a href="/blog/3d-printed-inserts-vs-kaizen-foam/">3D Printed Inserts vs Kaizen Foam</a></li>
+        <li><a href="/blog/how-to-organize-milwaukee-packout/">How to Organize a Milwaukee Packout</a></li>
+        <li><a href="/blog/tool-organizer-photo-to-stl/">Photo to STL Tool Organizer Guide</a></li>
       </ul>
       <h2>Buy Ready-Made Inserts</h2>
       <p>No 3D printer? Buy precision-fit PETG tool inserts on <a href="https://www.amazon.com/s?k=TracetoForge+gridfinity+insert&rh=n%3A553240">Amazon</a> and <a href="https://www.etsy.com/shop/TracetoForge">Etsy</a>. Gridfinity and Milwaukee Packout compatible. Inserts for Knipex Cobra, Knipex Pliers Wrench, Klein wire strippers, Wera screwdrivers, Milwaukee hand tools, and more.</p>
@@ -220,7 +220,7 @@ const landingHtml = makePage({
       <h2>About TracetoForge</h2>
       <p>TracetoForge is a small maker project run out of Northeast Ohio, operated by Qwikymart LLC. It started as a personal fix for a messy tool drawer and turned into a browser-based editor that other makers could use. One person writes the code, answers the support email, and packs the physical inserts that ship from the shop. No venture capital, no outsourced copywriting, no bloat. Every feature in the editor exists because someone hit a wall trying to do it another way. <a href="/about/">Read the full story</a> or <a href="/contact/">get in touch</a>.</p>
 
-      <p><a href="/editor">Try the Editor Free</a> | <a href="/community/">Community Library</a> | <a href="/blog">Read the Blog</a> | <a href="/guide">Getting Started Guide</a> | <a href="/about/">About</a> | <a href="/contact/">Contact</a></p>`,
+      <p><a href="/editor/">Try the Editor Free</a> | <a href="/community/">Community Library</a> | <a href="/blog/">Read the Blog</a> | <a href="/guide/">Getting Started Guide</a> | <a href="/about/">About</a> | <a href="/contact/">Contact</a></p>`,
   articleSchema: faqSchema
 })
 writeFileSync(join(DIST, 'index.html'), landingHtml)
@@ -245,7 +245,7 @@ writePage('/guide', makePage({
       <p>Common photo problems and fixes: blurry photo (hold phone steadier or use a tripod); shadow falling across the tool (move the light source overhead); part of tool cut off (zoom out); shiny tool reflecting the camera (rotate the tool slightly or use diffuse light); paper edges cropped (zoom out and recompose).</p>
 
       <h2>Step 2: Upload and Auto-Trace</h2>
-      <p>Open the <a href="/editor">TracetoForge editor</a> and drag your photo onto the upload area. The editor loads OpenCV.js and processes the image entirely in your browser. After a moment, you will see your photo with a red outline showing the detected tool boundary.</p>
+      <p>Open the <a href="/editor/">TracetoForge editor</a> and drag your photo onto the upload area. The editor loads OpenCV.js and processes the image entirely in your browser. After a moment, you will see your photo with a red outline showing the detected tool boundary.</p>
       <p>If the trace looks right, move on. If it missed parts of the outline, included background noise, or picked up shadows, adjust the Sensitivity slider. Lower values (1-2) use Otsu thresholding, ideal when you have strong contrast (dark tool on white paper). Mid-range (3-8) uses Canny edge detection, the safe default. Higher values (9-10) use adaptive thresholding for low-contrast or shadowed photos.</p>
       <p>The Simplification slider controls how many anchor points the trace uses. Higher simplification means a smoother outline with fewer points, which prints faster and more reliably. Lower simplification preserves fine detail.</p>
 
@@ -309,7 +309,7 @@ writePage('/guide', makePage({
       <h3>Do I need to redo the trace if I want a different tray size?</h3>
       <p>No. The trace is independent of tray dimensions. Change the tray size and re-export.</p>
 
-      <p>Ready to start? <a href="/editor">Open the editor</a> and upload your first photo. Need inspiration? Browse the <a href="/blog">TracetoForge blog</a> for project ideas.</p>`
+      <p>Ready to start? <a href="/editor/">Open the editor</a> and upload your first photo. Need inspiration? Browse the <a href="/blog/">TracetoForge blog</a> for project ideas.</p>`
 }))
 
 // Editor
@@ -335,9 +335,9 @@ writePage('/community', makePage({
       <p>The default sort surfaces the most engaged-with tools by combining upvotes and rating count. Highest Rated sorts by average star rating among tools that have been rated at least once. Newest shows the most recent additions. Filter by category to narrow to pliers, wrenches, screwdrivers, ratchets, hammers, or any other category authors have used.</p>
 
       <h2>Publish Your Traces</h2>
-      <p>If you have a tool dialed in with the right tolerance and a clean contour, publish it. Open the tool in the <a href="/editor">editor</a>, click Publish, give it a name and category, and the next person organizing the same tool skips your work. Trademarks like Knipex, Klein, GearWrench, and Tekton are referenced for compatibility only. Authors are responsible for what they publish; abuse can be reported through the <a href="/contact/">contact page</a>.</p>
+      <p>If you have a tool dialed in with the right tolerance and a clean contour, publish it. Open the tool in the <a href="/editor/">editor</a>, click Publish, give it a name and category, and the next person organizing the same tool skips your work. Trademarks like Knipex, Klein, GearWrench, and Tekton are referenced for compatibility only. Authors are responsible for what they publish; abuse can be reported through the <a href="/contact/">contact page</a>.</p>
 
-      <p><a href="/editor">Open the editor</a> | <a href="/blog/reusable-tool-library-drawer-trays">Read about the saved tool library feature</a> | <a href="/about/">About TracetoForge</a></p>`
+      <p><a href="/editor/">Open the editor</a> | <a href="/blog/reusable-tool-library-drawer-trays/">Read about the saved tool library feature</a> | <a href="/about/">About TracetoForge</a></p>`
 }))
 
 writePage('/editor', makePage({
@@ -401,16 +401,16 @@ writePage('/editor', makePage({
       <p>Yes. You own the files you generate. There is no royalty or commercial-use restriction on your exports.</p>
 
       <h2>Tutorials and Guides</h2>
-      <p>For deeper walkthroughs, see the <a href="/guide">Getting Started Guide</a>, or browse practical guides on the <a href="/blog">TracetoForge blog</a>:</p>
+      <p>For deeper walkthroughs, see the <a href="/guide/">Getting Started Guide</a>, or browse practical guides on the <a href="/blog/">TracetoForge blog</a>:</p>
       <ul>
-        <li><a href="/blog/image-to-stl-converter-free">Image to STL Converter: Turn Any Photo into a 3D Printable File for Free</a></li>
-        <li><a href="/blog/gridfinity-custom-cutout-no-cad">Gridfinity Custom Cutouts Without CAD: The Photo-Based Method</a></li>
-        <li><a href="/blog/3d-printed-tool-organizer-guide">3D Printed Tool Organizer: The Complete Guide</a></li>
-        <li><a href="/blog/knipex-pliers-organizer-3d-printed">Knipex Pliers Organizer: 3D Printed Inserts</a></li>
-        <li><a href="/blog/custom-milwaukee-packout-inserts-3d-print">Custom Milwaukee Packout Inserts</a></li>
+        <li><a href="/blog/image-to-stl-converter-free/">Image to STL Converter: Turn Any Photo into a 3D Printable File for Free</a></li>
+        <li><a href="/blog/gridfinity-custom-cutout-no-cad/">Gridfinity Custom Cutouts Without CAD: The Photo-Based Method</a></li>
+        <li><a href="/blog/3d-printed-tool-organizer-guide/">3D Printed Tool Organizer: The Complete Guide</a></li>
+        <li><a href="/blog/knipex-pliers-organizer-3d-printed/">Knipex Pliers Organizer: 3D Printed Inserts</a></li>
+        <li><a href="/blog/custom-milwaukee-packout-inserts-3d-print/">Custom Milwaukee Packout Inserts</a></li>
       </ul>
 
-      <p><a href="/">Back to TracetoForge home</a> | <a href="/guide">Getting Started Guide</a> | <a href="/blog">Blog</a></p>`
+      <p><a href="/">Back to TracetoForge home</a> | <a href="/guide/">Getting Started Guide</a> | <a href="/blog/">Blog</a></p>`
 }))
 
 // Privacy Policy
@@ -664,7 +664,7 @@ const blogPosts = [
 ]
 
 const blogListHtml = blogPosts.map(p =>
-  `      <article><h3><a href="/blog/${p.slug}">${escapeHtml(p.title)}</a></h3><p>${escapeHtml(p.excerpt)}</p></article>`
+  `      <article><h3><a href="/blog/${p.slug}/">${escapeHtml(p.title)}</a></h3><p>${escapeHtml(p.excerpt)}</p></article>`
 ).join('\n')
 
 writePage('/blog', makePage({
@@ -783,7 +783,7 @@ for (const post of postConfigs) {
 ${articleContent}
       </article>
 ${authorBioHtml}
-      <p><a href="/blog">Back to Blog</a> | <a href="/editor">Try TracetoForge Free</a></p>`,
+      <p><a href="/blog/">Back to Blog</a> | <a href="/editor/">Try TracetoForge Free</a></p>`,
     articleSchema
   }))
 }

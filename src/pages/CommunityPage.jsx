@@ -28,8 +28,8 @@ export default function CommunityPage() {
           <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
             <Link to="/" className="text-lg font-bold text-brand">TracetoForge</Link>
             <nav className="flex items-center gap-4">
-              <Link to="/blog" className="text-sm text-[#8888A0] hover:text-white transition-colors">Blog</Link>
-              <Link to="/editor" className="px-4 py-2 text-sm font-semibold bg-brand hover:bg-brand-light text-white rounded-lg transition-colors">
+              <Link to="/blog/" className="text-sm text-[#8888A0] hover:text-white transition-colors">Blog</Link>
+              <Link to="/editor/" className="px-4 py-2 text-sm font-semibold bg-brand hover:bg-brand-light text-white rounded-lg transition-colors">
                 Open Editor
               </Link>
             </nav>
@@ -88,7 +88,7 @@ export default function CommunityPage() {
           <div className="text-center py-8 border-t border-[#2A2A35]/50">
             <h2 className="text-xl font-display font-bold mb-3">Trace your own tools and share them</h2>
             <p className="text-sm text-[#9999AD] mb-5 max-w-lg mx-auto">Open the editor, snap a photo, trace it, and click Publish. Help the next person who organizes a drawer skip the work.</p>
-            <Link to="/editor" className="inline-flex items-center gap-2 px-6 py-3 bg-brand hover:bg-brand-light text-white font-bold rounded-xl transition-colors">
+            <Link to="/editor/" className="inline-flex items-center gap-2 px-6 py-3 bg-brand hover:bg-brand-light text-white font-bold rounded-xl transition-colors">
               Open Editor <ArrowRight size={16} />
             </Link>
           </div>

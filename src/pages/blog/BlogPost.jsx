@@ -24,8 +24,8 @@ export default function BlogPost({ title, description, canonical, date, readTime
           <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
             <Link to="/" className="text-lg font-bold text-brand">TracetoForge</Link>
             <nav className="flex items-center gap-4">
-              <Link to="/blog" className="text-sm text-[#8888A0] hover:text-white transition-colors">Blog</Link>
-              <Link to="/editor" className="px-4 py-2 text-sm font-semibold bg-brand hover:bg-brand-light text-white rounded-lg transition-colors">
+              <Link to="/blog/" className="text-sm text-[#8888A0] hover:text-white transition-colors">Blog</Link>
+              <Link to="/editor/" className="px-4 py-2 text-sm font-semibold bg-brand hover:bg-brand-light text-white rounded-lg transition-colors">
                 Try Free
               </Link>
             </nav>
@@ -33,7 +33,7 @@ export default function BlogPost({ title, description, canonical, date, readTime
         </header>
 
         <main className="max-w-3xl mx-auto px-6 py-12">
-          <Link to="/blog" className="inline-flex items-center gap-1.5 text-sm text-[#8888A0] hover:text-white transition-colors mb-8">
+          <Link to="/blog/" className="inline-flex items-center gap-1.5 text-sm text-[#8888A0] hover:text-white transition-colors mb-8">
             <ArrowLeft size={14} /> All Posts
           </Link>
 
@@ -79,7 +79,7 @@ export default function BlogPost({ title, description, canonical, date, readTime
               Snap a photo, trace, preview, and export. 3 free credits on signup, no credit card required.
             </p>
             <Link
-              to="/editor"
+              to="/editor/"
               className="inline-block px-6 py-3 bg-brand hover:bg-brand-light text-white font-bold rounded-xl transition-colors"
             >
               Try TracetoForge Free

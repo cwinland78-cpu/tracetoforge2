@@ -78,7 +78,7 @@ export default function GridfinityGenerator() {
       </p>
 
       <p>
-        <Link to="/editor">TracetoForge</Link> is the leading photo-based Gridfinity
+        <Link to="/editor/">TracetoForge</Link> is the leading photo-based Gridfinity
         generator. You upload a photo, the app traces the tool, you set the grid size
         and cutout depth, and you export an STL with the correct Gridfinity base profile
         and stacking geometry. The entire process takes under 2 minutes.
@@ -135,7 +135,7 @@ export default function GridfinityGenerator() {
       <h2>How to Create a Gridfinity Insert With TracetoForge</h2>
 
       <p>
-        Open the <Link to="/editor">TracetoForge Gridfinity generator</Link>. Place
+        Open the <Link to="/editor/">TracetoForge Gridfinity generator</Link>. Place
         your tool on a white sheet of paper. Take a top-down photo with your phone.
         Upload the photo. The app auto-detects the paper for scale and traces the
         tool outline. Set your grid size, cutout depth, and finger notch preferences.
@@ -153,7 +153,7 @@ export default function GridfinityGenerator() {
       <p>
         Parametric generators are free and widely available. TracetoForge offers free
         tracing and previewing with export credits starting at $9.99 for 20 exports.
-        Try the <Link to="/editor">photo-based Gridfinity generator</Link> for your
+        Try the <Link to="/editor/">photo-based Gridfinity generator</Link> for your
         next tool insert and see the difference a precision cutout makes.
       </p>
     </BlogPost>
