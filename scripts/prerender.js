@@ -702,7 +702,7 @@ function authShellBody(label) {
 writePage('/login', makePage({
   title: 'Sign in | TracetoForge',
   description: 'Sign in to TracetoForge to access your saved tool traces and credit balance.',
-  canonical: 'https://tracetoforge.com/login',
+  canonical: 'https://tracetoforge.com/login/',
   ogTitle: 'Sign in to TracetoForge',
   h1: 'Sign in',
   bodyHtml: authShellBody('sign-in'),
@@ -712,7 +712,7 @@ writePage('/login', makePage({
 writePage('/reset-password', makePage({
   title: 'Reset password | TracetoForge',
   description: 'Reset your TracetoForge account password.',
-  canonical: 'https://tracetoforge.com/reset-password',
+  canonical: 'https://tracetoforge.com/reset-password/',
   ogTitle: 'Reset your TracetoForge password',
   h1: 'Reset password',
   bodyHtml: authShellBody('password reset'),
@@ -722,7 +722,7 @@ writePage('/reset-password', makePage({
 writePage('/dashboard', makePage({
   title: 'Dashboard | TracetoForge',
   description: 'Your TracetoForge dashboard: saved traces, credit balance, and account settings.',
-  canonical: 'https://tracetoforge.com/dashboard',
+  canonical: 'https://tracetoforge.com/dashboard/',
   ogTitle: 'TracetoForge Dashboard',
   h1: 'Dashboard',
   bodyHtml: authShellBody('your dashboard'),
