@@ -16,8 +16,7 @@ export default function WrenchSetBin() {
       <div className="not-prose mb-8 p-5 rounded-lg border border-brand/30 bg-brand/5">
         <p className="text-xs font-semibold text-brand uppercase tracking-wider mb-2">Quick Answer</p>
         <p className="text-[#C8C8D0] leading-relaxed text-[15px]">
-          A typical 12-piece SAE or metric combination wrench set fits a <strong>6×3 Gridfinity bin (252×126&nbsp;mm
-          interior)</strong>. Lay all wrenches flat on a sheet of A3 paper (or two A4 sheets butted edge-to-edge),
+          A typical 12-piece SAE or metric combination wrench set fits a <strong>6×3 Gridfinity bin (252×126&nbsp;mm footprint)</strong>. Lay all wrenches flat on a sheet of A3 paper (or two A4 sheets butted edge-to-edge),
           photograph from directly above, and trace each wrench into its own cavity using multi-tool mode. Set wall
           height to 12-15&nbsp;mm (wrenches are thin) and tolerance to 0.4&nbsp;mm. Print in PETG at 0.2&nbsp;mm
           layer height — total time ~5-7 hours, ~$3-5 in filament. The same approach works for ratcheting, stubby,

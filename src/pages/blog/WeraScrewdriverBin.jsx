@@ -16,7 +16,7 @@ export default function WeraScrewdriverBin() {
       <div className="not-prose mb-8 p-5 rounded-lg border border-brand/30 bg-brand/5">
         <p className="text-xs font-semibold text-brand uppercase tracking-wider mb-2">Quick Answer</p>
         <p className="text-[#C8C8D0] leading-relaxed text-[15px]">
-          A 12-piece Wera Kraftform screwdriver set fits a <strong>6×3 Gridfinity bin (252×126&nbsp;mm interior)</strong>.
+          A 12-piece Wera Kraftform screwdriver set fits a <strong>6×3 Gridfinity bin (252×126&nbsp;mm footprint)</strong>.
           Photograph the set arranged in your preferred order on a sheet of A4 paper. Trace each handle into a
           precision-fit cavity using <Link to="/editor/">TracetoForge</Link> multi-tool mode. Set wall height to
           25-30&nbsp;mm so the handles are easy to grab. Print in PETG at 0.2&nbsp;mm layer height — total print
