@@ -265,7 +265,7 @@ export default function PhotoToGridfinityGuide() {
         (which combines parametric and photo modes). All four take a photo, trace the silhouette, and produce
         Gridfinity-compatible STLs. They differ in workflow, output formats, free-tier limits, and a few specific
         capabilities. The full feature-by-feature comparison lives in{' '}
-        <span className="text-[#8888A0] italic">TracetoForge vs Tooltrace vs GridPilot <span className="text-[10px] uppercase tracking-wider">(coming soon)</span></span>.
+        <Link to="/blog/tracetoforge-vs-tooltrace-vs-gridpilot/">TracetoForge vs Tooltrace vs GridPilot</Link>.
       </p>
 
       <p>
@@ -341,7 +341,7 @@ export default function PhotoToGridfinityGuide() {
         Tracing and 3D-previewing on TracetoForge are free with no account required. Exporting a file (STL, 3MF,
         SVG, DXF) costs one credit. New accounts get three free credits on signup. Additional credits are $9.99
         for 20 or $34.99 for 100. Tooltrace and GridPilot have their own pricing — see the{' '}
-        <span className="text-[#8888A0] italic">comparison post <span className="text-[10px] uppercase tracking-wider">(coming soon)</span></span>.
+        <Link to="/blog/tracetoforge-vs-tooltrace-vs-gridpilot/">comparison post</Link>.
       </p>
 
       <h3>Does this work on a phone?</h3>
@@ -399,7 +399,7 @@ export default function PhotoToGridfinityGuide() {
       <ul>
         <li><Link to="/blog/gridfinity-generator-photo-vs-parametric/">Photo-Based vs Parametric Gridfinity Generators</Link></li>
         <li><Link to="/blog/gridfinity-vs-packout-vs-custom-tray/">Gridfinity vs Packout vs Custom Trays</Link></li>
-        <li><span className="text-[#8888A0] italic">TracetoForge vs Tooltrace vs GridPilot <span className="text-[10px] uppercase tracking-wider">(coming soon)</span></span></li>
+        <li><Link to="/blog/tracetoforge-vs-tooltrace-vs-gridpilot/">TracetoForge vs Tooltrace vs GridPilot</Link></li>
       </ul>
 
       <p>Tool-specific builds:</p>
