@@ -58,7 +58,7 @@ function makePage({ title, description, canonical, ogTitle, ogType = 'website', 
       url: "https://tracetoforge.com",
       logo: "https://tracetoforge.com/icon-512.png",
       description: "Photo-to-print tool insert generator for 3D printing.",
-      foundingDate: "2025",
+      foundingDate: "2024",
       address: {
         "@type": "PostalAddress",
         addressRegion: "OH",
