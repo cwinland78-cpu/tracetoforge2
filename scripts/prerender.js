@@ -804,6 +804,7 @@ writePage('/dashboard', makePage({
 // Blog Index
 const blogPosts = [
   { slug: 'photo-to-gridfinity-guide', title: 'The Complete Guide to Custom Gridfinity Bins from a Photo', excerpt: 'The canonical reference for photo-to-Gridfinity. Workflow, when photo beats parametric, tool examples, print settings, comparison with Tooltrace and GridPilot. No CAD required.' },
+  { slug: 'tracetoforge-vs-tooltrace-vs-gridpilot', title: 'TracetoForge vs Tooltrace vs GridPilot: Photo-to-Gridfinity Tools Compared', excerpt: 'Honest side-by-side of the four photo-based Gridfinity generators. Workflow, formats, free tiers, when to pick each. Plus the open-source outlier (tracefinity).' },
   { slug: 'reusable-tool-library-drawer-trays', title: 'Trace Once, Use Everywhere: Build a Reusable Tool Library for Custom Drawer Trays', excerpt: 'Save your traced tools and reuse them across any Gridfinity bin, Packout insert, or drawer tray without re-tracing.' },
   { slug: 'custom-milwaukee-packout-inserts-3d-print', title: 'How to Make Custom Milwaukee Packout Inserts with a 3D Printer', excerpt: 'Stop buying $40 generic inserts. Learn how to create perfectly fitted, custom Packout inserts from a photo.' },
   { slug: 'gridfinity-insert-from-photo', title: 'Create Gridfinity Inserts from a Photo: The Fastest Way in 2026', excerpt: 'Forget hours of CAD work. Snap a photo and generate a perfectly fitted Gridfinity insert in minutes.' },
@@ -840,6 +841,7 @@ import { readdirSync } from 'fs'
 
 const postConfigs = [
   { slug: 'photo-to-gridfinity-guide', file: 'PhotoToGridfinityGuide.jsx' },
+  { slug: 'tracetoforge-vs-tooltrace-vs-gridpilot', file: 'CompetitorComparison.jsx' },
   { slug: 'custom-milwaukee-packout-inserts-3d-print', file: 'PackoutInserts.jsx' },
   { slug: 'gridfinity-insert-from-photo', file: 'GridfinityFromPhoto.jsx' },
   { slug: 'tool-organizer-photo-to-stl', file: 'PhotoToSTL.jsx' },

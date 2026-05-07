@@ -21,6 +21,7 @@ import KnipexOrganizer from './pages/blog/KnipexOrganizer'
 import GridfinityGenerator from './pages/blog/GridfinityGenerator'
 import SavedToolLibrary from './pages/blog/SavedToolLibrary'
 import PhotoToGridfinityGuide from './pages/blog/PhotoToGridfinityGuide'
+import CompetitorComparison from './pages/blog/CompetitorComparison'
 import CommunityPage from './pages/CommunityPage'
 import PrivacyPage from './pages/PrivacyPage'
 import TermsPage from './pages/TermsPage'
@@ -53,6 +54,7 @@ function App() {
           <Route path="/blog/gridfinity-generator-photo-vs-parametric" element={<GridfinityGenerator />} />
           <Route path="/blog/reusable-tool-library-drawer-trays" element={<SavedToolLibrary />} />
           <Route path="/blog/photo-to-gridfinity-guide" element={<PhotoToGridfinityGuide />} />
+          <Route path="/blog/tracetoforge-vs-tooltrace-vs-gridpilot" element={<CompetitorComparison />} />
           <Route path="/community" element={<CommunityPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/terms" element={<TermsPage />} />
