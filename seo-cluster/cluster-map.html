@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Gridfinity Cluster Map — TracetoForge</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: #0e0e14;
+    color: #e4e4e7;
+    line-height: 1.5;
+  }
+  header {
+    padding: 1.5rem 2rem 0.5rem;
+    border-bottom: 1px solid #27272a;
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  header h1 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin: 0;
+    color: #f97316;
+  }
+  header .meta {
+    color: #a1a1aa;
+    font-size: 0.85rem;
+  }
+  .stats {
+    display: flex;
+    gap: 1.5rem;
+    margin-left: auto;
+    font-size: 0.85rem;
+    color: #a1a1aa;
+  }
+  .stats strong { color: #e4e4e7; }
+  main {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 0;
+    height: calc(100vh - 60px);
+  }
+  .canvas-wrap {
+    overflow: hidden;
+    position: relative;
+    background:
+      radial-gradient(circle at 50% 50%, #15151c 0%, #0e0e14 60%);
+  }
+  svg { width: 100%; height: 100%; display: block; }
+  .legend {
+    position: absolute;
+    top: 1rem; left: 1rem;
+    background: rgba(20, 20, 30, 0.85);
+    border: 1px solid #27272a;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    backdrop-filter: blur(4px);
+  }
+  .legend h3 { margin: 0 0 0.5rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: #a1a1aa; font-weight: 600; }
+  .legend-item { display: flex; align-items: center; gap: 0.5rem; margin: 0.25rem 0; }
+  .legend-swatch { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .legend-line { width: 18px; height: 2px; flex-shrink: 0; }
+
+  /* SVG nodes */
+  .node { cursor: pointer; transition: transform 0.15s; }
+  .node:hover { transform: scale(1.08); }
+  .node circle { transition: stroke-width 0.15s; }
+  .node:hover circle { stroke-width: 3; }
+  .node.pillar circle { fill: #f97316; stroke: #fbbf24; stroke-width: 3; }
+  .node.cluster-A circle { fill: #f97316; stroke: #ea580c; stroke-width: 2; }
+  .node.cluster-B circle { fill: #3b82f6; stroke: #2563eb; stroke-width: 2; }
+  .node.cluster-C circle { fill: #10b981; stroke: #059669; stroke-width: 2; }
+  .node.cluster-D circle { fill: #a855f7; stroke: #9333ea; stroke-width: 2; }
+  .node.planned circle { fill: none; stroke-dasharray: 4 3; }
+  .node text { fill: #e4e4e7; font-size: 11px; pointer-events: none; text-anchor: middle; font-weight: 500; }
+  .node.pillar text { font-size: 13px; font-weight: 700; }
+  .node text.id-tag { font-size: 9px; fill: #fbbf24; font-weight: 700; }
+  .node.selected circle { stroke: #fbbf24 !important; stroke-width: 4 !important; }
+
+  /* Lines */
+  .link { stroke-opacity: 0.5; fill: none; }
+  .link.mandatory { stroke: #71717a; stroke-width: 1.2; }
+  .link.intra-cluster { stroke: #52525b; stroke-width: 0.8; stroke-dasharray: 3 2; }
+  .link.cross-cluster { stroke: #3f3f46; stroke-width: 0.6; stroke-dasharray: 1 3; opacity: 0.4; }
+  .link.highlighted { stroke: #fbbf24 !important; stroke-opacity: 1 !important; stroke-width: 2 !important; }
+
+  /* Sidebar */
+  aside {
+    border-left: 1px solid #27272a;
+    padding: 1.5rem;
+    overflow-y: auto;
+    background: #15151c;
+  }
+  aside h2 { font-size: 1rem; margin: 0 0 0.5rem; color: #fbbf24; }
+  aside .placeholder { color: #71717a; font-style: italic; font-size: 0.9rem; }
+  aside .badge {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border-radius: 0.3rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-right: 0.4rem;
+  }
+  .badge.existing { background: #14532d; color: #86efac; }
+  .badge.planned { background: #422006; color: #fbbf24; }
+  aside dl { margin: 1rem 0 0; }
+  aside dt { color: #a1a1aa; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.75rem; }
+  aside dd { margin: 0.15rem 0 0; font-size: 0.9rem; }
+  aside dd a { color: #fbbf24; text-decoration: none; word-break: break-all; }
+  aside dd a:hover { text-decoration: underline; }
+  aside .keyword { background: #1f2937; padding: 0.1rem 0.4rem; border-radius: 0.25rem; font-family: ui-monospace, monospace; font-size: 0.8rem; color: #93c5fd; }
+  aside .links-list { list-style: none; padding: 0; margin: 0.5rem 0 0; font-size: 0.85rem; }
+  aside .links-list li { padding: 0.25rem 0; border-bottom: 1px solid #27272a; }
+  aside .links-list li:last-child { border: none; }
+  aside .outline-list { font-size: 0.85rem; padding-left: 1.2rem; }
+
+  @media (max-width: 900px) {
+    main { grid-template-columns: 1fr; height: auto; }
+    .canvas-wrap { height: 70vh; }
+    aside { border-left: none; border-top: 1px solid #27272a; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Gridfinity Cluster Map</h1>
+  <span class="meta">Seed: <em>gridfinity</em> · Pillar: <em>photo-to-gridfinity</em></span>
+  <div class="stats">
+    <span><strong>14</strong> posts</span>
+    <span><strong>4</strong> clusters</span>
+    <span><strong>56</strong> links</span>
+    <span><strong>7</strong> existing · <strong>7</strong> planned</span>
+  </div>
+</header>
+
+<main>
+  <div class="canvas-wrap">
+    <div class="legend">
+      <h3>Clusters</h3>
+      <div class="legend-item"><span class="legend-swatch" style="background:#f97316;border:2px solid #fbbf24"></span>Pillar</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:#f97316"></span>A — How-to</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:#3b82f6"></span>B — Comparison</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:#10b981"></span>C — Tool builds</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:#a855f7"></span>D — Workshop</div>
+      <h3 style="margin-top:0.75rem">Status</h3>
+      <div class="legend-item"><span class="legend-swatch" style="background:#10b981"></span>Existing (filled)</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:transparent;border:2px dashed #10b981"></span>Planned (dashed)</div>
+      <h3 style="margin-top:0.75rem">Links</h3>
+      <div class="legend-item"><span class="legend-line" style="background:#71717a"></span>Pillar ↔ spoke</div>
+      <div class="legend-item"><span class="legend-line" style="background:#52525b;border-top:1px dashed #52525b"></span>Within cluster</div>
+      <div class="legend-item"><span class="legend-line" style="background:#3f3f46;opacity:0.4"></span>Cross-cluster</div>
+    </div>
+    <svg id="map" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+
+  <aside id="details">
+    <h2>Click a node to inspect</h2>
+    <p class="placeholder">Hover or click any post to see its keyword, status, links, and outline.</p>
+    <dl>
+      <dt>Pillar URL</dt>
+      <dd><a href="https://tracetoforge.com/blog/photo-to-gridfinity-guide/" target="_blank">/blog/photo-to-gridfinity-guide/</a></dd>
+      <dt>Strategy</dt>
+      <dd style="font-size:0.85rem;color:#a1a1aa">Skip the head term <code class="keyword">gridfinity</code> (locked by gridfinity.xyz, gridfinitygenerator.com, printables). Win the differentiated angle: <code class="keyword">custom gridfinity bin from photo</code>. Already ranking #2 and #7 — pillar lifts to #1.</dd>
+    </dl>
+  </aside>
+</main>
+
+<script>
+const PLAN = {
+  pillar: {
+    id: 'pillar',
+    label: 'Photo-to-Gridfinity\nComplete Guide',
+    title: 'The Complete Guide to Custom Gridfinity Bins from a Photo',
+    url: '/blog/photo-to-gridfinity-guide/',
+    status: 'planned',
+    cluster: 'pillar',
+    primaryKeyword: 'custom gridfinity bin from photo',
+    template: 'ultimate-guide',
+    wordCount: 3500,
+    secondaryKeywords: ['photo-based gridfinity generator', 'gridfinity custom cutout from photo', 'image to gridfinity stl']
+  },
+  clusters: [
+    {
+      id: 'A', name: 'How-to & Tutorials', color: '#f97316',
+      posts: [
+        { id: 'A1', label: 'Gridfinity Inserts\nfrom a Photo', title: 'Create Gridfinity Inserts from a Photo', url: '/blog/gridfinity-insert-from-photo/', status: 'existing', primaryKeyword: 'gridfinity insert from photo', wordCount: 1500 },
+        { id: 'A2', label: 'Gridfinity Custom\nCutouts (No CAD)', title: 'Gridfinity Custom Cutouts Without CAD', url: '/blog/gridfinity-custom-cutout-no-cad/', status: 'existing', primaryKeyword: 'gridfinity custom cutout', wordCount: 1200 },
+        { id: 'A3', label: 'Trace Once,\nUse Everywhere', title: 'Trace Once, Use Everywhere: Reusable Tool Library', url: '/blog/reusable-tool-library-drawer-trays/', status: 'existing', primaryKeyword: 'reusable tool library', wordCount: 1000 },
+        { id: 'A4', label: 'Photo Tips for\nClean Trace', title: 'Photo Tips for a Clean Gridfinity Trace', url: '/blog/photo-tips-for-gridfinity-trace/', status: 'planned', primaryKeyword: 'photo tips for gridfinity trace', wordCount: 1500 }
+      ]
+    },
+    {
+      id: 'B', name: 'Comparison & Tool Choice', color: '#3b82f6',
+      posts: [
+        { id: 'B1', label: 'Photo vs\nParametric', title: 'Photo-Based vs Parametric Gridfinity Generators', url: '/blog/gridfinity-generator-photo-vs-parametric/', status: 'existing', primaryKeyword: 'gridfinity generator photo vs parametric', wordCount: 1200 },
+        { id: 'B2', label: 'Gridfinity vs\nPackout vs Trays', title: 'Gridfinity vs Packout vs Custom Trays', url: '/blog/gridfinity-vs-packout-vs-custom-tray/', status: 'existing', primaryKeyword: 'gridfinity vs packout', wordCount: 1000 },
+        { id: 'B3', label: 'TtF vs Tooltrace\nvs GridPilot', title: 'TracetoForge vs Tooltrace vs GridPilot: Photo-to-Gridfinity Tools Compared', url: '/blog/tracetoforge-vs-tooltrace-vs-gridpilot/', status: 'planned', primaryKeyword: 'tooltrace alternative', wordCount: 1800 }
+      ]
+    },
+    {
+      id: 'C', name: 'Tool-Specific Builds', color: '#10b981',
+      posts: [
+        { id: 'C1', label: 'Knipex Pliers\nOrganizer', title: 'Knipex Pliers Organizer: 3D Printed Inserts', url: '/blog/knipex-pliers-organizer-3d-printed/', status: 'existing', primaryKeyword: 'knipex pliers organizer 3d printed', wordCount: 1200 },
+        { id: 'C2', label: 'Wera Screwdriver\nGridfinity Bin', title: 'Wera Screwdriver Gridfinity Bin: Photo-to-Print Walkthrough', url: '/blog/wera-screwdriver-gridfinity-bin/', status: 'planned', primaryKeyword: 'wera screwdriver gridfinity', wordCount: 1500 },
+        { id: 'C3', label: 'Wrench Set\nGridfinity Bin', title: 'Wrench Set Gridfinity Bin from a Photo', url: '/blog/wrench-set-gridfinity-bin/', status: 'planned', primaryKeyword: 'wrench gridfinity bin', wordCount: 1500 },
+        { id: 'C4', label: 'Drill Bit\nStorage', title: 'Drill Bit Storage in Gridfinity: Custom Bin Layouts', url: '/blog/drill-bit-gridfinity-storage/', status: 'planned', primaryKeyword: 'drill bit gridfinity', wordCount: 1500 }
+      ]
+    },
+    {
+      id: 'D', name: 'Workshop Integration', color: '#a855f7',
+      posts: [
+        { id: 'D1', label: 'Organize a\nMilwaukee Packout', title: 'How to Organize a Milwaukee Packout', url: '/blog/how-to-organize-milwaukee-packout/', status: 'existing', primaryKeyword: 'how to organize milwaukee packout', wordCount: 1200 },
+        { id: 'D2', label: 'Gridfinity in\nPackout Drawers', title: 'Gridfinity in Milwaukee Packout Drawers: Setup Guide', url: '/blog/gridfinity-in-packout-drawer/', status: 'planned', primaryKeyword: 'gridfinity packout drawer', wordCount: 1800 }
+      ]
+    }
+  ],
+  links: [
+    /* Pillar to spokes (mandatory, both directions implied) */
+    { from: 'pillar', to: 'A1', type: 'mandatory' }, { from: 'pillar', to: 'A2', type: 'mandatory' },
+    { from: 'pillar', to: 'A3', type: 'mandatory' }, { from: 'pillar', to: 'A4', type: 'mandatory' },
+    { from: 'pillar', to: 'B1', type: 'mandatory' }, { from: 'pillar', to: 'B2', type: 'mandatory' },
+    { from: 'pillar', to: 'B3', type: 'mandatory' },
+    { from: 'pillar', to: 'C1', type: 'mandatory' }, { from: 'pillar', to: 'C2', type: 'mandatory' },
+    { from: 'pillar', to: 'C3', type: 'mandatory' }, { from: 'pillar', to: 'C4', type: 'mandatory' },
+    { from: 'pillar', to: 'D1', type: 'mandatory' }, { from: 'pillar', to: 'D2', type: 'mandatory' },
+    /* Intra-cluster A */
+    { from: 'A1', to: 'A2', type: 'intra-cluster' }, { from: 'A1', to: 'A3', type: 'intra-cluster' },
+    { from: 'A1', to: 'A4', type: 'intra-cluster' }, { from: 'A2', to: 'A4', type: 'intra-cluster' },
+    /* Intra-cluster B */
+    { from: 'B1', to: 'B2', type: 'intra-cluster' }, { from: 'B1', to: 'B3', type: 'intra-cluster' },
+    { from: 'B2', to: 'B3', type: 'intra-cluster' },
+    /* Intra-cluster C */
+    { from: 'C1', to: 'C2', type: 'intra-cluster' }, { from: 'C1', to: 'C3', type: 'intra-cluster' },
+    { from: 'C2', to: 'C3', type: 'intra-cluster' }, { from: 'C3', to: 'C4', type: 'intra-cluster' },
+    /* Intra-cluster D */
+    { from: 'D1', to: 'D2', type: 'intra-cluster' },
+    /* Cross-cluster */
+    { from: 'B2', to: 'D2', type: 'cross-cluster' }, { from: 'C1', to: 'A4', type: 'cross-cluster' },
+    { from: 'C2', to: 'A4', type: 'cross-cluster' }, { from: 'C3', to: 'A4', type: 'cross-cluster' },
+    { from: 'C4', to: 'D2', type: 'cross-cluster' }, { from: 'D2', to: 'B2', type: 'cross-cluster' },
+    { from: 'D2', to: 'C1', type: 'cross-cluster' }, { from: 'B3', to: 'A1', type: 'cross-cluster' }
+  ]
+};
+
+// Compute positions: pillar in center; clusters at 4 quadrants
+const W = 1200, H = 800;
+const CX = W / 2, CY = H / 2;
+const CLUSTER_RADIUS = 280;   // distance from pillar to cluster anchor
+const POST_RADIUS = 110;      // spread of posts within cluster
+
+// Cluster anchor angles (rad): A=top (270deg), B=right (0deg), C=bottom (90deg), D=left (180deg)
+const CLUSTER_ANCHORS = {
+  A: { angle: -Math.PI / 2 },  // top
+  B: { angle: 0 },             // right
+  C: { angle: Math.PI / 2 },   // bottom
+  D: { angle: Math.PI }        // left
+};
+
+// Build node lookup with positions
+const nodes = {};
+nodes.pillar = { ...PLAN.pillar, x: CX, y: CY };
+
+PLAN.clusters.forEach(cluster => {
+  const anchor = CLUSTER_ANCHORS[cluster.id];
+  const anchorX = CX + Math.cos(anchor.angle) * CLUSTER_RADIUS;
+  const anchorY = CY + Math.sin(anchor.angle) * CLUSTER_RADIUS;
+  const n = cluster.posts.length;
+  // Spread posts in a small arc around the anchor, perpendicular to the radial axis
+  cluster.posts.forEach((post, i) => {
+    // offset perpendicular to anchor angle
+    const offsetAngle = anchor.angle + Math.PI / 2;
+    const t = n === 1 ? 0 : (i - (n - 1) / 2) / ((n - 1) / 2);  // -1..1
+    const dist = t * POST_RADIUS;
+    // also push outward slightly so they don't overlap pillar
+    const outwardPush = 60;
+    const x = anchorX + Math.cos(offsetAngle) * dist + Math.cos(anchor.angle) * outwardPush;
+    const y = anchorY + Math.sin(offsetAngle) * dist + Math.sin(anchor.angle) * outwardPush;
+    nodes[post.id] = { ...post, cluster: cluster.id, x, y };
+  });
+});
+
+// Render
+const svg = document.getElementById('map');
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+// Draw links
+PLAN.links.forEach(link => {
+  const a = nodes[link.from], b = nodes[link.to];
+  if (!a || !b) return;
+  const line = document.createElementNS(SVG_NS, 'line');
+  line.setAttribute('x1', a.x); line.setAttribute('y1', a.y);
+  line.setAttribute('x2', b.x); line.setAttribute('y2', b.y);
+  line.classList.add('link', link.type);
+  line.dataset.from = link.from;
+  line.dataset.to = link.to;
+  svg.appendChild(line);
+});
+
+// Draw nodes
+Object.values(nodes).forEach(n => {
+  const g = document.createElementNS(SVG_NS, 'g');
+  g.classList.add('node');
+  if (n.id === 'pillar') g.classList.add('pillar');
+  else g.classList.add(`cluster-${n.cluster}`);
+  if (n.status === 'planned') g.classList.add('planned');
+  g.setAttribute('transform', `translate(${n.x}, ${n.y})`);
+  g.dataset.id = n.id;
+
+  const r = n.id === 'pillar' ? 48 : 32;
+  const c = document.createElementNS(SVG_NS, 'circle');
+  c.setAttribute('r', r);
+  g.appendChild(c);
+
+  // ID tag (top of circle)
+  if (n.id !== 'pillar') {
+    const id = document.createElementNS(SVG_NS, 'text');
+    id.classList.add('id-tag');
+    id.setAttribute('y', -r - 6);
+    id.textContent = n.id;
+    g.appendChild(id);
+  }
+
+  // Label (below circle)
+  const lines = n.label.split('\n');
+  lines.forEach((line, i) => {
+    const t = document.createElementNS(SVG_NS, 'text');
+    t.setAttribute('y', r + 16 + i * 13);
+    t.textContent = line;
+    g.appendChild(t);
+  });
+
+  g.addEventListener('click', () => selectNode(n.id));
+  g.addEventListener('mouseenter', () => highlightLinks(n.id));
+  g.addEventListener('mouseleave', () => clearHighlight());
+  svg.appendChild(g);
+});
+
+function highlightLinks(id) {
+  document.querySelectorAll('.link').forEach(l => {
+    if (l.dataset.from === id || l.dataset.to === id) l.classList.add('highlighted');
+  });
+}
+function clearHighlight() {
+  document.querySelectorAll('.link.highlighted').forEach(l => l.classList.remove('highlighted'));
+}
+
+function selectNode(id) {
+  document.querySelectorAll('.node.selected').forEach(n => n.classList.remove('selected'));
+  const el = document.querySelector(`.node[data-id="${id}"]`);
+  if (el) el.classList.add('selected');
+
+  const n = nodes[id];
+  const aside = document.getElementById('details');
+
+  // Find linked posts
+  const incoming = PLAN.links.filter(l => l.to === id).map(l => l.from);
+  const outgoing = PLAN.links.filter(l => l.from === id).map(l => l.to);
+
+  let html = `
+    <h2>${n.title || n.id}</h2>
+    <span class="badge ${n.status}">${n.status}</span>
+    ${n.id === 'pillar' ? '<span class="badge" style="background:#7c2d12;color:#fed7aa">Pillar</span>' : `<span class="badge" style="background:${PLAN.clusters.find(c=>c.id===n.cluster)?.color || '#27272a'};color:#fff">Cluster ${n.cluster}</span>`}
+    <dl>
+      <dt>URL</dt>
+      <dd><a href="https://tracetoforge.com${n.url}" target="_blank">${n.url}</a></dd>
+      <dt>Primary keyword</dt>
+      <dd><span class="keyword">${n.primaryKeyword}</span></dd>
+      ${n.secondaryKeywords ? `<dt>Secondary keywords</dt><dd>${n.secondaryKeywords.map(k => `<span class="keyword">${k}</span>`).join(' ')}</dd>` : ''}
+      <dt>Word count target</dt>
+      <dd>${n.wordCount.toLocaleString()}</dd>
+      ${n.template ? `<dt>Template</dt><dd>${n.template}</dd>` : ''}
+      <dt>Incoming links (${incoming.length})</dt>
+      <dd><ul class="links-list">${incoming.map(i => `<li><strong>${i}</strong> · ${nodes[i]?.title || i}</li>`).join('') || '<li class="placeholder">none</li>'}</ul></dd>
+      <dt>Outgoing links (${outgoing.length})</dt>
+      <dd><ul class="links-list">${outgoing.map(o => `<li><strong>${o}</strong> · ${nodes[o]?.title || o}</li>`).join('') || '<li class="placeholder">none</li>'}</ul></dd>
+    </dl>
+  `;
+  aside.innerHTML = html;
+
+  clearHighlight();
+  highlightLinks(id);
+}
+
+// Auto-select pillar on load
+selectNode('pillar');
+</script>
+</body>
+</html>

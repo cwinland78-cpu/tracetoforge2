@@ -1,0 +1,171 @@
+{
+  "meta": {
+    "seedKeyword": "gridfinity",
+    "createdAt": "2026-05-06",
+    "site": "https://tracetoforge.com",
+    "totalPosts": 14,
+    "totalClusters": 4,
+    "newPosts": 7,
+    "existingPosts": 7,
+    "estimatedNewWords": 14400,
+    "strategicNote": "Pillar focuses on differentiated angle 'photo-to-gridfinity' instead of head term 'gridfinity'. Head SERP is locked by gridfinity.xyz wiki, gridfinitygenerator.com, printables.com — too entrenched to displace. TracetoForge already ranks #2 and #7 for 'gridfinity from photo custom'; cluster lifts it to #1 and captures surrounding semantic space."
+  },
+  "competitors": [
+    { "name": "gridfinity.tools", "threat": "high", "notes": "Appears in 4 of 6 sampled SERPs. Photo + parametric in one tool." },
+    { "name": "tooltrace.ai", "threat": "high", "notes": "#1 for 'gridfinity from photo custom'. Direct value-prop overlap." },
+    { "name": "gridpilot.us", "threat": "medium", "notes": "AI-powered tool detection. Newer entrant." },
+    { "name": "tracefinity (GitHub)", "threat": "low", "notes": "Open-source. Different acquisition path." },
+    { "name": "Hackaday article", "threat": "n/a", "notes": "Authoritative third-party coverage in this niche. Backlink/mention target." }
+  ],
+  "pillar": {
+    "id": "pillar",
+    "title": "The Complete Guide to Custom Gridfinity Bins from a Photo",
+    "url": "/blog/photo-to-gridfinity-guide/",
+    "primaryKeyword": "custom gridfinity bin from photo",
+    "secondaryKeywords": [
+      "photo-based gridfinity generator",
+      "gridfinity custom cutout from photo",
+      "image to gridfinity stl"
+    ],
+    "template": "ultimate-guide",
+    "wordCount": 3500,
+    "intent": "informational",
+    "status": "planned",
+    "outline": [
+      "What is photo-to-gridfinity (definition + 1-paragraph answer-first block)",
+      "How it works (workflow: paper → photo → trace → export → print)",
+      "Why photo beats parametric for tool-shaped cutouts",
+      "What you can make: tool inserts, drill bit holders, hardware trays, irregular shapes",
+      "Step-by-step from your first trace to your first printed bin",
+      "Tool-specific examples (Knipex, Wera, wrenches, drill bits)",
+      "Multi-tool layouts and the reusable tool library",
+      "Comparison vs parametric generators (when to use which)",
+      "Comparison vs other photo tools (TracetoForge, Tooltrace, GridPilot)",
+      "Workshop integration: Gridfinity in Packout, drawer setups",
+      "FAQ + further reading"
+    ]
+  },
+  "clusters": [
+    {
+      "id": "A",
+      "name": "How-to & Tutorials",
+      "color": "#f97316",
+      "intent": "informational",
+      "posts": [
+        { "id": "A1", "title": "Create Gridfinity Inserts from a Photo", "url": "/blog/gridfinity-insert-from-photo/", "primaryKeyword": "gridfinity insert from photo", "template": "how-to", "wordCount": 1500, "status": "existing" },
+        { "id": "A2", "title": "Gridfinity Custom Cutouts Without CAD", "url": "/blog/gridfinity-custom-cutout-no-cad/", "primaryKeyword": "gridfinity custom cutout", "template": "how-to", "wordCount": 1200, "status": "existing" },
+        { "id": "A3", "title": "Trace Once, Use Everywhere: Reusable Tool Library", "url": "/blog/reusable-tool-library-drawer-trays/", "primaryKeyword": "reusable tool library", "template": "explainer", "wordCount": 1000, "status": "existing" },
+        { "id": "A4", "title": "Photo Tips for a Clean Gridfinity Trace", "url": "/blog/photo-tips-for-gridfinity-trace/", "primaryKeyword": "photo tips for gridfinity trace", "secondaryKeywords": ["best photo for stl tracing", "lighting for tool trace"], "template": "how-to", "wordCount": 1500, "status": "planned" }
+      ]
+    },
+    {
+      "id": "B",
+      "name": "Comparison & Tool Choice",
+      "color": "#3b82f6",
+      "intent": "commercial",
+      "posts": [
+        { "id": "B1", "title": "Photo-Based vs Parametric Gridfinity Generators", "url": "/blog/gridfinity-generator-photo-vs-parametric/", "primaryKeyword": "gridfinity generator photo vs parametric", "template": "comparison", "wordCount": 1200, "status": "existing" },
+        { "id": "B2", "title": "Gridfinity vs Packout vs Custom Trays", "url": "/blog/gridfinity-vs-packout-vs-custom-tray/", "primaryKeyword": "gridfinity vs packout", "template": "comparison", "wordCount": 1000, "status": "existing" },
+        { "id": "B3", "title": "TracetoForge vs Tooltrace vs GridPilot: Photo-to-Gridfinity Tools Compared", "url": "/blog/tracetoforge-vs-tooltrace-vs-gridpilot/", "primaryKeyword": "tooltrace alternative", "secondaryKeywords": ["gridpilot alternative", "best gridfinity photo tool"], "template": "comparison", "wordCount": 1800, "status": "planned" }
+      ]
+    },
+    {
+      "id": "C",
+      "name": "Tool-Specific Builds",
+      "color": "#10b981",
+      "intent": "commercial-informational",
+      "posts": [
+        { "id": "C1", "title": "Knipex Pliers Organizer: 3D Printed Inserts", "url": "/blog/knipex-pliers-organizer-3d-printed/", "primaryKeyword": "knipex pliers organizer 3d printed", "template": "how-to", "wordCount": 1200, "status": "existing" },
+        { "id": "C2", "title": "Wera Screwdriver Gridfinity Bin: Photo-to-Print Walkthrough", "url": "/blog/wera-screwdriver-gridfinity-bin/", "primaryKeyword": "wera screwdriver gridfinity", "secondaryKeywords": ["wera kraftform organizer"], "template": "how-to", "wordCount": 1500, "status": "planned" },
+        { "id": "C3", "title": "Wrench Set Gridfinity Bin from a Photo", "url": "/blog/wrench-set-gridfinity-bin/", "primaryKeyword": "wrench gridfinity bin", "secondaryKeywords": ["combination wrench organizer"], "template": "how-to", "wordCount": 1500, "status": "planned" },
+        { "id": "C4", "title": "Drill Bit Storage in Gridfinity: Custom Bin Layouts", "url": "/blog/drill-bit-gridfinity-storage/", "primaryKeyword": "drill bit gridfinity", "secondaryKeywords": ["drill index gridfinity"], "template": "how-to", "wordCount": 1500, "status": "planned" }
+      ]
+    },
+    {
+      "id": "D",
+      "name": "Workshop Integration",
+      "color": "#a855f7",
+      "intent": "commercial-informational",
+      "posts": [
+        { "id": "D1", "title": "How to Organize a Milwaukee Packout", "url": "/blog/how-to-organize-milwaukee-packout/", "primaryKeyword": "how to organize milwaukee packout", "template": "how-to", "wordCount": 1200, "status": "existing" },
+        { "id": "D2", "title": "Gridfinity in Milwaukee Packout Drawers: Setup Guide", "url": "/blog/gridfinity-in-packout-drawer/", "primaryKeyword": "gridfinity packout drawer", "secondaryKeywords": ["packout gridfinity baseplate"], "template": "ultimate-guide", "wordCount": 1800, "status": "planned" }
+      ]
+    }
+  ],
+  "links": [
+    { "from": "pillar", "to": "A1", "type": "mandatory", "anchor": "how to create gridfinity inserts from a photo" },
+    { "from": "pillar", "to": "A2", "type": "mandatory", "anchor": "gridfinity custom cutouts without CAD" },
+    { "from": "pillar", "to": "A3", "type": "mandatory", "anchor": "build a reusable tool library" },
+    { "from": "pillar", "to": "A4", "type": "mandatory", "anchor": "photo tips for a clean gridfinity trace" },
+    { "from": "pillar", "to": "B1", "type": "mandatory", "anchor": "photo-based vs parametric generators" },
+    { "from": "pillar", "to": "B2", "type": "mandatory", "anchor": "gridfinity vs Packout vs custom trays" },
+    { "from": "pillar", "to": "B3", "type": "mandatory", "anchor": "TracetoForge vs Tooltrace vs GridPilot" },
+    { "from": "pillar", "to": "C1", "type": "mandatory", "anchor": "Knipex pliers organizer build" },
+    { "from": "pillar", "to": "C2", "type": "mandatory", "anchor": "Wera screwdriver gridfinity bin" },
+    { "from": "pillar", "to": "C3", "type": "mandatory", "anchor": "wrench set gridfinity bin" },
+    { "from": "pillar", "to": "C4", "type": "mandatory", "anchor": "drill bit storage in gridfinity" },
+    { "from": "pillar", "to": "D1", "type": "mandatory", "anchor": "how to organize a Milwaukee Packout" },
+    { "from": "pillar", "to": "D2", "type": "mandatory", "anchor": "gridfinity in Packout drawers setup guide" },
+    { "from": "A1", "to": "pillar", "type": "mandatory", "anchor": "complete guide to custom gridfinity bins from a photo" },
+    { "from": "A2", "to": "pillar", "type": "mandatory", "anchor": "complete guide to custom gridfinity bins from a photo" },
+    { "from": "A3", "to": "pillar", "type": "mandatory", "anchor": "complete guide to custom gridfinity bins from a photo" },
+    { "from": "A4", "to": "pillar", "type": "mandatory", "anchor": "complete guide to custom gridfinity bins from a photo" },
+    { "from": "B1", "to": "pillar", "type": "mandatory", "anchor": "complete guide to custom gridfinity bins from a photo" },
+    { "from": "B2", "to": "pillar", "type": "mandatory", "anchor": "complete guide to custom gridfinity bins from a photo" },
+    { "from": "B3", "to": "pillar", "type": "mandatory", "anchor": "complete guide to custom gridfinity bins from a photo" },
+    { "from": "C1", "to": "pillar", "type": "mandatory", "anchor": "complete guide to custom gridfinity bins from a photo" },
+    { "from": "C2", "to": "pillar", "type": "mandatory", "anchor": "complete guide to custom gridfinity bins from a photo" },
+    { "from": "C3", "to": "pillar", "type": "mandatory", "anchor": "complete guide to custom gridfinity bins from a photo" },
+    { "from": "C4", "to": "pillar", "type": "mandatory", "anchor": "complete guide to custom gridfinity bins from a photo" },
+    { "from": "D1", "to": "pillar", "type": "mandatory", "anchor": "complete guide to custom gridfinity bins from a photo" },
+    { "from": "D2", "to": "pillar", "type": "mandatory", "anchor": "complete guide to custom gridfinity bins from a photo" },
+    { "from": "A1", "to": "A2", "type": "intra-cluster", "anchor": "gridfinity custom cutouts without CAD" },
+    { "from": "A1", "to": "A3", "type": "intra-cluster", "anchor": "build a reusable tool library" },
+    { "from": "A1", "to": "A4", "type": "intra-cluster", "anchor": "photo tips for a clean trace" },
+    { "from": "A2", "to": "A1", "type": "intra-cluster", "anchor": "create gridfinity inserts from a photo" },
+    { "from": "A2", "to": "A4", "type": "intra-cluster", "anchor": "photo tips for a clean trace" },
+    { "from": "A3", "to": "A1", "type": "intra-cluster", "anchor": "create gridfinity inserts from a photo" },
+    { "from": "A4", "to": "A1", "type": "intra-cluster", "anchor": "create gridfinity inserts from a photo" },
+    { "from": "A4", "to": "A2", "type": "intra-cluster", "anchor": "gridfinity custom cutouts without CAD" },
+    { "from": "B1", "to": "B2", "type": "intra-cluster", "anchor": "gridfinity vs Packout vs custom trays" },
+    { "from": "B1", "to": "B3", "type": "intra-cluster", "anchor": "TracetoForge vs Tooltrace vs GridPilot" },
+    { "from": "B2", "to": "B1", "type": "intra-cluster", "anchor": "photo-based vs parametric generators" },
+    { "from": "B2", "to": "B3", "type": "intra-cluster", "anchor": "TracetoForge vs Tooltrace vs GridPilot" },
+    { "from": "B3", "to": "B1", "type": "intra-cluster", "anchor": "photo-based vs parametric generators" },
+    { "from": "B3", "to": "B2", "type": "intra-cluster", "anchor": "gridfinity vs Packout vs custom trays" },
+    { "from": "C1", "to": "C2", "type": "intra-cluster", "anchor": "Wera screwdriver gridfinity bin" },
+    { "from": "C1", "to": "C3", "type": "intra-cluster", "anchor": "wrench set gridfinity bin" },
+    { "from": "C2", "to": "C1", "type": "intra-cluster", "anchor": "Knipex pliers organizer build" },
+    { "from": "C2", "to": "C3", "type": "intra-cluster", "anchor": "wrench set gridfinity bin" },
+    { "from": "C3", "to": "C2", "type": "intra-cluster", "anchor": "Wera screwdriver gridfinity bin" },
+    { "from": "C3", "to": "C4", "type": "intra-cluster", "anchor": "drill bit storage in gridfinity" },
+    { "from": "C4", "to": "C3", "type": "intra-cluster", "anchor": "wrench set gridfinity bin" },
+    { "from": "D1", "to": "D2", "type": "intra-cluster", "anchor": "gridfinity in Packout drawers setup guide" },
+    { "from": "D2", "to": "D1", "type": "intra-cluster", "anchor": "how to organize a Milwaukee Packout" },
+    { "from": "B2", "to": "D2", "type": "cross-cluster", "anchor": "gridfinity in Packout drawers setup guide" },
+    { "from": "C1", "to": "A4", "type": "cross-cluster", "anchor": "photo tips for a clean trace" },
+    { "from": "C2", "to": "A4", "type": "cross-cluster", "anchor": "photo tips for a clean trace" },
+    { "from": "C3", "to": "A4", "type": "cross-cluster", "anchor": "photo tips for a clean trace" },
+    { "from": "C4", "to": "D2", "type": "cross-cluster", "anchor": "gridfinity in Packout drawers setup guide" },
+    { "from": "D2", "to": "B2", "type": "cross-cluster", "anchor": "gridfinity vs Packout vs custom trays" },
+    { "from": "D2", "to": "C1", "type": "cross-cluster", "anchor": "Knipex pliers organizer build" },
+    { "from": "B3", "to": "A1", "type": "cross-cluster", "anchor": "create gridfinity inserts from a photo" }
+  ],
+  "scorecard": {
+    "coverageTarget": "14/14 (1 pillar + 13 spokes)",
+    "linkDensityTarget": "≥3 incoming links per post",
+    "orphanTarget": 0,
+    "cannibalizationConflicts": 0,
+    "imagePerPostTarget": "≥1 (currently 0 on every blog post — see /seo content H1)",
+    "schemaTarget": "BlogPosting + BreadcrumbList on every spoke (already wired in prerender.js)"
+  },
+  "executionPriority": [
+    { "order": 1, "id": "pillar", "rationale": "Keystone — every spoke links here. Writing it first lifts existing spokes within 4-6 weeks via internal link concentration." },
+    { "order": 2, "id": "B3", "rationale": "Highest commercial intent. Captures branded competitor queries (Tooltrace, GridPilot)." },
+    { "order": 3, "id": "D2", "rationale": "Zero authoritative competition for 'gridfinity packout drawer'. Audience-overlap goldmine." },
+    { "order": 4, "id": "A4", "rationale": "Reduces support tickets while capturing long-tail. Easy to write from existing knowledge." },
+    { "order": 5, "id": "C2", "rationale": "Wera is high-prestige brand; you mention it in About. Pair with Etsy listing." },
+    { "order": 6, "id": "C3", "rationale": "Wrenches are mass-market. Broadest C-cluster appeal." },
+    { "order": 7, "id": "C4", "rationale": "Drill bits add a non-pliers/non-wrench category. Round out the cluster." }
+  ]
+}
