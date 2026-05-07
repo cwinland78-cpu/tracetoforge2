@@ -98,7 +98,7 @@ export default function PhotoToGridfinityGuide() {
         ten to fifteen minutes while you learn the tools. After a half-dozen traces, the workflow becomes muscle
         memory — phone in hand, paper on the bench, app already open in a browser tab. For step-by-step photo
         technique (lighting, paper, angle, what to do with chrome and reflective tools), see the dedicated{' '}
-        <span className="text-[#8888A0] italic">photo tips for a clean Gridfinity trace <span className="text-[10px] uppercase tracking-wider">(coming soon)</span></span> guide.
+        <Link to="/blog/photo-tips-for-gridfinity-trace/">photo tips for a clean Gridfinity trace</Link> guide.
       </p>
 
       <h2>Why Photo Beats Parametric for Tool-Shaped Cutouts</h2>
@@ -139,13 +139,13 @@ export default function PhotoToGridfinityGuide() {
           <strong>Hand tool inserts</strong> — pliers, wrenches, screwdrivers, hex keys, multimeters, wire strippers.
           The strongest case for the workflow. Parametric generators cannot meaningfully shape these. Brand- and
           model-specific posts: <Link to="/blog/knipex-pliers-organizer-3d-printed/">Knipex pliers organizer</Link>,{' '}
-          <span className="text-[#8888A0] italic">Wera screwdriver bin <span className="text-[10px] uppercase tracking-wider">(coming soon)</span></span>, and{' '}
-          <span className="text-[#8888A0] italic">wrench set Gridfinity bin <span className="text-[10px] uppercase tracking-wider">(coming soon)</span></span>.
+          <Link to="/blog/wera-screwdriver-gridfinity-bin/">Wera screwdriver bin</Link>, and{' '}
+          <Link to="/blog/wrench-set-gridfinity-bin/">wrench set Gridfinity bin</Link>.
         </li>
         <li>
           <strong>Drill bit and bit-driver storage</strong> — for non-standard sets (mixed brands, missing sizes,
           Forstner bits, step drills) where off-the-shelf bin generators do not have a preset. See{' '}
-          <span className="text-[#8888A0] italic">drill bit storage in Gridfinity <span className="text-[10px] uppercase tracking-wider">(coming soon)</span></span>.
+          <Link to="/blog/drill-bit-gridfinity-storage/">drill bit storage in Gridfinity</Link>.
         </li>
         <li>
           <strong>Hardware trays</strong> — irregular fasteners (toggle bolts, anchors, hex bushings) where each
@@ -289,7 +289,7 @@ export default function PhotoToGridfinityGuide() {
           <strong>Drawer baseplate.</strong> Print a Gridfinity baseplate sized to your drawer interior, drop it
           in, and fill with bins. Works for tool chests, rolling cabinets, and Milwaukee Packout drawers (the
           48-22-8443 3-Drawer fits a 9×6 baseplate cleanly). Full setup walkthrough:{' '}
-          <span className="text-[#8888A0] italic">Gridfinity in Milwaukee Packout drawers <span className="text-[10px] uppercase tracking-wider">(coming soon)</span></span>.
+          <Link to="/blog/gridfinity-in-packout-drawer/">Gridfinity in Milwaukee Packout drawers</Link>.
         </li>
         <li>
           <strong>Benchtop or wall mount.</strong> A magnetic baseplate (M3 magnets pressed into the print)
@@ -363,7 +363,7 @@ export default function PhotoToGridfinityGuide() {
         Polished steel and chrome tools cause reflections that confuse edge detection. Two fixes: drape a piece
         of tissue paper over the tool to soften reflections (the silhouette still traces cleanly), or raise the
         sensitivity slider to 8-9. Detailed photo guidance lives in{' '}
-        <span className="text-[#8888A0] italic">photo tips for a clean Gridfinity trace <span className="text-[10px] uppercase tracking-wider">(coming soon)</span></span>.
+        <Link to="/blog/photo-tips-for-gridfinity-trace/">photo tips for a clean Gridfinity trace</Link>.
       </p>
 
       <h3>Can I sell prints I make with TracetoForge?</h3>
@@ -392,7 +392,7 @@ export default function PhotoToGridfinityGuide() {
         <li><Link to="/blog/gridfinity-insert-from-photo/">Create Gridfinity Inserts from a Photo</Link> — the focused walkthrough</li>
         <li><Link to="/blog/gridfinity-custom-cutout-no-cad/">Gridfinity Custom Cutouts Without CAD</Link> — the photo-based method explained</li>
         <li><Link to="/blog/reusable-tool-library-drawer-trays/">Trace Once, Use Everywhere</Link> — the reusable tool library workflow</li>
-        <li><span className="text-[#8888A0] italic">Photo Tips for a Clean Gridfinity Trace <span className="text-[10px] uppercase tracking-wider">(coming soon)</span></span> — lighting, paper, and sensitivity</li>
+        <li><Link to="/blog/photo-tips-for-gridfinity-trace/">Photo Tips for a Clean Gridfinity Trace</Link> — lighting, paper, and sensitivity</li>
       </ul>
 
       <p>Comparisons and tool choice:</p>
@@ -405,15 +405,15 @@ export default function PhotoToGridfinityGuide() {
       <p>Tool-specific builds:</p>
       <ul>
         <li><Link to="/blog/knipex-pliers-organizer-3d-printed/">Knipex Pliers Organizer</Link></li>
-        <li><span className="text-[#8888A0] italic">Wera Screwdriver Gridfinity Bin <span className="text-[10px] uppercase tracking-wider">(coming soon)</span></span></li>
-        <li><span className="text-[#8888A0] italic">Wrench Set Gridfinity Bin <span className="text-[10px] uppercase tracking-wider">(coming soon)</span></span></li>
-        <li><span className="text-[#8888A0] italic">Drill Bit Storage in Gridfinity <span className="text-[10px] uppercase tracking-wider">(coming soon)</span></span></li>
+        <li><Link to="/blog/wera-screwdriver-gridfinity-bin/">Wera Screwdriver Gridfinity Bin</Link></li>
+        <li><Link to="/blog/wrench-set-gridfinity-bin/">Wrench Set Gridfinity Bin</Link></li>
+        <li><Link to="/blog/drill-bit-gridfinity-storage/">Drill Bit Storage in Gridfinity</Link></li>
       </ul>
 
       <p>Workshop integration:</p>
       <ul>
         <li><Link to="/blog/how-to-organize-milwaukee-packout/">How to Organize a Milwaukee Packout</Link></li>
-        <li><span className="text-[#8888A0] italic">Gridfinity in Milwaukee Packout Drawers: Setup Guide <span className="text-[10px] uppercase tracking-wider">(coming soon)</span></span></li>
+        <li><Link to="/blog/gridfinity-in-packout-drawer/">Gridfinity in Milwaukee Packout Drawers: Setup Guide</Link></li>
       </ul>
 
       <p>

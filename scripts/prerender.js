@@ -805,6 +805,11 @@ writePage('/dashboard', makePage({
 const blogPosts = [
   { slug: 'photo-to-gridfinity-guide', title: 'The Complete Guide to Custom Gridfinity Bins from a Photo', excerpt: 'The canonical reference for photo-to-Gridfinity. Workflow, when photo beats parametric, tool examples, print settings, comparison with Tooltrace and GridPilot. No CAD required.' },
   { slug: 'tracetoforge-vs-tooltrace-vs-gridpilot', title: 'TracetoForge vs Tooltrace vs GridPilot: Photo-to-Gridfinity Tools Compared', excerpt: 'Honest side-by-side of the four photo-based Gridfinity generators. Workflow, formats, free tiers, when to pick each. Plus the open-source outlier (tracefinity).' },
+  { slug: 'gridfinity-in-packout-drawer', title: 'Gridfinity in Milwaukee Packout Drawers: Setup Guide', excerpt: 'Install a 9×6 Gridfinity baseplate in a Packout drawer. Drawer dimensions, baseplate sizing, mounting, and custom tool inserts. Works with the 48-22-8443 3-Drawer and 48-22-8442 2-Drawer.' },
+  { slug: 'photo-tips-for-gridfinity-trace', title: 'Photo Tips for a Clean Gridfinity Trace: Lighting, Paper, and Angle', excerpt: 'Five things that matter for a clean trace: paper, lighting, camera angle, tool prep, and Sensitivity slider tuning. Common failure modes and fixes.' },
+  { slug: 'wera-screwdriver-gridfinity-bin', title: 'Wera Screwdriver Gridfinity Bin: Photo-to-Print Walkthrough', excerpt: 'Build a 6×3 Gridfinity bin for a 12-piece Wera Kraftform set from a phone photo. Sizing, cavity depth, finger notches, print settings.' },
+  { slug: 'wrench-set-gridfinity-bin', title: 'Wrench Set Gridfinity Bin from a Photo', excerpt: 'Custom Gridfinity bins for combination, ratcheting, stubby, and ignition wrenches. SAE, metric, and combined-set layouts. Per-brand tolerance notes.' },
+  { slug: 'drill-bit-gridfinity-storage', title: 'Drill Bit Storage in Gridfinity: Custom Bin Layouts', excerpt: 'Tip-up vs tip-down, parametric vs photo-trace, single-set vs multi-set. Twist drills, brad-point, Forstner, step drills, hole saws, spade bits.' },
   { slug: 'reusable-tool-library-drawer-trays', title: 'Trace Once, Use Everywhere: Build a Reusable Tool Library for Custom Drawer Trays', excerpt: 'Save your traced tools and reuse them across any Gridfinity bin, Packout insert, or drawer tray without re-tracing.' },
   { slug: 'custom-milwaukee-packout-inserts-3d-print', title: 'How to Make Custom Milwaukee Packout Inserts with a 3D Printer', excerpt: 'Stop buying $40 generic inserts. Learn how to create perfectly fitted, custom Packout inserts from a photo.' },
   { slug: 'gridfinity-insert-from-photo', title: 'Create Gridfinity Inserts from a Photo: The Fastest Way in 2026', excerpt: 'Forget hours of CAD work. Snap a photo and generate a perfectly fitted Gridfinity insert in minutes.' },
@@ -842,6 +847,11 @@ import { readdirSync } from 'fs'
 const postConfigs = [
   { slug: 'photo-to-gridfinity-guide', file: 'PhotoToGridfinityGuide.jsx' },
   { slug: 'tracetoforge-vs-tooltrace-vs-gridpilot', file: 'CompetitorComparison.jsx' },
+  { slug: 'gridfinity-in-packout-drawer', file: 'GridfinityPackoutDrawer.jsx' },
+  { slug: 'photo-tips-for-gridfinity-trace', file: 'PhotoTipsForTrace.jsx' },
+  { slug: 'wera-screwdriver-gridfinity-bin', file: 'WeraScrewdriverBin.jsx' },
+  { slug: 'wrench-set-gridfinity-bin', file: 'WrenchSetBin.jsx' },
+  { slug: 'drill-bit-gridfinity-storage', file: 'DrillBitStorage.jsx' },
   { slug: 'custom-milwaukee-packout-inserts-3d-print', file: 'PackoutInserts.jsx' },
   { slug: 'gridfinity-insert-from-photo', file: 'GridfinityFromPhoto.jsx' },
   { slug: 'tool-organizer-photo-to-stl', file: 'PhotoToSTL.jsx' },

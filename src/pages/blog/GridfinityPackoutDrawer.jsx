@@ -1,0 +1,274 @@
+import React from 'react'
+import { Link } from 'react-router-dom'
+import BlogPost from './BlogPost'
+
+export default function GridfinityPackoutDrawer() {
+  return (
+    <BlogPost
+      title="Gridfinity in Milwaukee Packout Drawers: Setup Guide"
+      description="How to install a Gridfinity baseplate inside a Milwaukee Packout drawer. Drawer dimensions, baseplate sizing, mounting, and custom tool inserts. Works with the 48-22-8443 3-Drawer and 48-22-8442 2-Drawer."
+      canonical="https://tracetoforge.com/blog/gridfinity-in-packout-drawer/"
+      date="2026-05-07"
+      updated="2026-05-07"
+      readTime="9 min"
+      tags={['Gridfinity', 'Milwaukee Packout', 'Tool Organization']}
+    >
+      <div className="not-prose mb-8 p-5 rounded-lg border border-brand/30 bg-brand/5">
+        <p className="text-xs font-semibold text-brand uppercase tracking-wider mb-2">Quick Answer</p>
+        <p className="text-[#C8C8D0] leading-relaxed text-[15px]">
+          To install Gridfinity in a Milwaukee Packout drawer, print a <strong>9×6 Gridfinity baseplate</strong> sized
+          to fit the drawer interior (~390×245&nbsp;mm for the 48-22-8443 3-Drawer model), drop it in, and add Gridfinity
+          bins designed for your tools. For the 48-22-8442 2-Drawer (~390×245×100&nbsp;mm internal), use the same
+          baseplate footprint with deeper bins. Custom tool-shaped bins traced from photos work better than generic
+          Gridfinity bins for hand tools. Total print time: ~6-8 hours per drawer; total cost: <strong>~$8-14 in PETG</strong>.
+        </p>
+      </div>
+
+      <p>
+        Milwaukee Packout solves the transport-and-stackability problem better than any toolbox in its price range.
+        Gridfinity solves the in-drawer-modularity problem better than any insert system, period. Combine them and
+        you get tools that ride to the jobsite without rattling and pop out into a known location when you arrive.
+        The setup is not complicated, but every step has a specific dimension or part choice that the Facebook posts
+        and MakerWorld models tend to assume you already know. This guide consolidates the workflow.
+      </p>
+
+      <h2>Why Combine Packout and Gridfinity</h2>
+
+      <p>
+        Packout's strength is the modular case ecosystem — drawers stack on toolboxes stack on rolling bases, all with
+        the same footprint and locking interface. The weakness is the inside of those drawers: a single rectangular
+        cavity with a thin foam mat, where tools shift in transit and you cannot find what you need at the jobsite.
+        Gridfinity solves the inside-the-drawer problem: a 42&nbsp;mm grid with snap-in bins for any tool. Together
+        they give you a Packout that opens to a planned, modular layout instead of a jumble.
+      </p>
+
+      <p>
+        Generic Gridfinity bins from Printables or MakerWorld work fine for loose hardware (bolts, nuts, hex keys),
+        but for hand tools — pliers, wrenches, screwdrivers, multimeters — generic bins waste space and let tools
+        roll. Tool-shaped cavities, traced from photos, make the most of every drawer cell. See the{' '}
+        <Link to="/blog/photo-to-gridfinity-guide/">complete guide to custom Gridfinity bins from a photo</Link>{' '}
+        for the trace workflow itself; this post focuses on installation and sizing.
+      </p>
+
+      <h2>Compatible Packout Drawer Models</h2>
+
+      <p>
+        Approximate interior dimensions for current drawer-equipped Packout SKUs. Measure your specific unit before
+        printing — Milwaukee tolerances vary by production run. All dimensions in millimeters, width × depth × height
+        per drawer.
+      </p>
+
+      <ul>
+        <li><strong>48-22-8443 3-Drawer Toolbox:</strong> ~390 × 245 × 50&nbsp;mm per drawer. Fits a 9×6 Gridfinity
+          baseplate (378×252&nbsp;mm) with ~6&nbsp;mm clearance to the front. Three drawers, identical footprint.</li>
+        <li><strong>48-22-8442 2-Drawer Toolbox:</strong> ~390 × 245 × 100&nbsp;mm per drawer. Same 9×6 baseplate,
+          taller bins available (50&nbsp;mm or 75&nbsp;mm tall versus the standard 42&nbsp;mm).</li>
+        <li><strong>48-22-8444 Large with Drawer (verify before printing):</strong> deeper interior; check your unit's
+          actual dimensions and choose baseplate width to match.</li>
+      </ul>
+
+      <p>
+        For Packout cases without drawers (the 48-22-8424 Tool Box, the Compact Organizer, the 48-22-8450 Large
+        Organizer), the better approach is a custom one-piece tray sized to the case interior. See{' '}
+        <Link to="/blog/custom-milwaukee-packout-inserts-3d-print/">how to make custom Milwaukee Packout inserts</Link>.
+        Gridfinity in undivided cases is possible but wastes vertical space.
+      </p>
+
+      <h2>Step 1: Measure Your Drawer</h2>
+
+      <p>
+        Open a drawer. Measure the interior width, depth, and height with calipers or a folding rule. Measure both
+        diagonals to confirm the drawer is square — Packout drawers are usually within 1&nbsp;mm but not always.
+        Photograph the drawer interior with a tape measure laid along the long edge for reference.
+      </p>
+
+      <p>
+        The Gridfinity grid is 42&nbsp;mm. A 9×6 baseplate is 378×252&nbsp;mm — fits the standard 48-22-8443
+        drawer with margin to spare. If your drawer measures differently (a 2-Drawer with slightly tighter
+        tolerances, or a non-US-market Packout variant), pick a baseplate that leaves 5-10&nbsp;mm of clearance
+        on each side. The clearance prevents binding when the baseplate expands or contracts with temperature.
+      </p>
+
+      <h2>Step 2: Print the Baseplate</h2>
+
+      <p>
+        For a Packout drawer, the lightweight Gridfinity baseplate variant is the right choice. You do not need
+        magnets — the drawer floor and walls hold the baseplate in place, and magnets just add print time and
+        filament cost. Recommended source: any 9×6 lightweight baseplate from Printables or MakerWorld that
+        leaves you the option to add rubber feet later if needed.
+      </p>
+
+      <ul>
+        <li><strong>Material:</strong> PETG. The drawer rides in a vehicle or on a worksite — heat is a concern.
+          PLA warps above 60&nbsp;°C; PETG handles 80&nbsp;°C cleanly.</li>
+        <li><strong>Layer height:</strong> 0.2&nbsp;mm.</li>
+        <li><strong>Infill:</strong> 15% gyroid or grid. The baseplate is not load-bearing in this application
+          (the drawer floor takes the load); infill mainly resists warping.</li>
+        <li><strong>Walls:</strong> 3 perimeters.</li>
+        <li><strong>Supports:</strong> none.</li>
+        <li><strong>Print time:</strong> 6-8 hours on a stock Bambu P1S or Prusa MK4.</li>
+        <li><strong>Filament cost:</strong> ~$5-8 in PETG.</li>
+      </ul>
+
+      <h2>Step 3: Choose Your Bin Style</h2>
+
+      <p>
+        Two paths from here, and the right choice depends on what tools you are storing.
+      </p>
+
+      <p>
+        <strong>Generic Gridfinity bins.</strong> Fast, lots of free models on Printables and MakerWorld. Best for
+        small parts, hardware, fasteners, or any item that does not need a precision cavity. A 1×1 cell holds a
+        small handful of M6 bolts; a 2×1 cell holds a tap-and-die set.
+      </p>
+
+      <p>
+        <strong>Custom tool-shaped bins from a photo.</strong> Traced via{' '}
+        <Link to="/editor/">TracetoForge</Link> or another photo-based generator. Best for hand tools that lie
+        flat — pliers, wrenches, screwdrivers, multimeters. The cavity is shaped exactly like the tool, so it
+        does not roll, does not rattle, and pops out cleanly with a finger notch. Walkthrough:{' '}
+        <Link to="/blog/gridfinity-insert-from-photo/">create Gridfinity inserts from a photo</Link>.
+      </p>
+
+      <p>
+        Most well-organized Packout drawers use both — generic bins for hardware and consumables, tool-shaped bins
+        for the actual tools.
+      </p>
+
+      <h2>Step 4: Print the Bins</h2>
+
+      <p>
+        Sizing notes for common tools in a 9×6 drawer baseplate (54 cells total):
+      </p>
+
+      <ul>
+        <li><strong>1×1 (42&nbsp;mm cell):</strong> small parts — hex keys, drill bits, bits, fasteners.</li>
+        <li><strong>2×1 (84×42&nbsp;mm):</strong> small hand tools — utility knife, multimeter probe leads,
+          a single Knipex Pliers Wrench. Also {' '}
+          <Link to="/blog/wrench-set-gridfinity-bin/">stubby wrench sets</Link>.</li>
+        <li><strong>3×1 (126×42&nbsp;mm):</strong> standard pliers, mid-sized hand tools. The canonical bin for
+          a pair of <Link to="/blog/knipex-pliers-organizer-3d-printed/">Knipex Cobras</Link>.</li>
+        <li><strong>3×2 (126×84&nbsp;mm):</strong> a small set of screwdrivers, a multimeter, or a pair of pliers
+          plus accessory.</li>
+        <li><strong>6×1 (252×42&nbsp;mm):</strong> long tools. Combination wrenches up to ~250&nbsp;mm fit, but
+          anything longer overhangs the cell — see the{' '}
+          <Link to="/blog/wrench-set-gridfinity-bin/">wrench set Gridfinity bin</Link> guide for full-set
+          layouts.</li>
+        <li><strong>6×3 (252×126&nbsp;mm):</strong> a 12-piece combination wrench set or a Wera screwdriver set.</li>
+      </ul>
+
+      <p>
+        Keep the standard Gridfinity stacking lip on. You may want to swap a setup across drawers identically, and
+        the lip is what allows that.
+      </p>
+
+      <h2>Step 5: Drop In and Test</h2>
+
+      <p>
+        The baseplate sits flat on the drawer floor; bins drop into the baseplate. No glue, no screws, no fasteners.
+        The baseplate's weight plus the slight rubber friction lining inside Packout drawers holds it during transport.
+      </p>
+
+      <p>
+        Stress-test: close the drawer, tilt the case 90 degrees, give it a sharp nudge. Bins should stay seated.
+        If they pop out, your tolerance is off (bins printed too small) — reprint the offending bins with smaller
+        tolerance values. If the baseplate slides forward when the drawer slams shut, you have either a 2-Drawer
+        with deeper bins (more momentum) or worn drawer rubber. The fix is rubber feet.
+      </p>
+
+      <h2>Anti-Slip for Heavy Setups</h2>
+
+      <p>
+        For the 2-Drawer model with full-height bins (heavier load, more momentum at speed), four 6&nbsp;mm rubber
+        feet on the underside of the baseplate stop forward sliding. M3 self-tap screws with rubber tips work too.
+        For most users with the standard 3-Drawer and 50&nbsp;mm-or-shorter bins, no anti-slip is needed.
+      </p>
+
+      <h2>Print Time and Cost Worked Example</h2>
+
+      <p>
+        A typical first-pass setup: one 9×6 baseplate, eight bins (mix of 2×1 and 3×1 sizes), rough breakdown:
+      </p>
+
+      <ul>
+        <li>9×6 lightweight baseplate: 6-8 hours, ~$5-8 PETG</li>
+        <li>Eight bins (~1 hour each in parallel where possible): 8 hours total wall-clock, ~$3-6 PETG</li>
+        <li><strong>Total: 14-16 hours print time, ~$8-14 in filament</strong></li>
+      </ul>
+
+      <p>
+        For three drawers (full 48-22-8443 setup), multiply by three. ~$25-40 total filament for the entire
+        toolbox interior. Compare to the cost of foam custom-cut by a service ($40-80 per drawer) or the time
+        cost of cutting Kaizen foam by hand (a half-day per drawer): photo-traced custom bins win on cost,
+        durability, and modularity.{' '}
+        <Link to="/blog/3d-printed-inserts-vs-kaizen-foam/">3D printed inserts vs Kaizen foam</Link> covers the
+        comparison in detail.
+      </p>
+
+      <h2>Buy Pre-Made If You Do Not Print</h2>
+
+      <p>
+        TracetoForge sells precision-fit PETG inserts for common Packout drawer setups on{' '}
+        <a href="https://www.amazon.com/s?k=TracetoForge+gridfinity+insert&rh=n%3A553240" target="_blank" rel="noopener noreferrer">Amazon</a>{' '}
+        and{' '}
+        <a href="https://www.etsy.com/shop/TracetoForge" target="_blank" rel="noopener noreferrer">Etsy</a>.
+        Inserts ship from a small workshop in Northeast Ohio. Common Knipex, Wera, and Klein tool-set inserts are
+        in stock; for your specific tool set, the photo-trace path is the only way to get a custom fit.
+      </p>
+
+      <h2>FAQ</h2>
+
+      <h3>Will a Gridfinity baseplate fit the 48-22-8424 Toolbox?</h3>
+      <p>
+        No, not directly — the toolbox has a single deep cavity (~480×295&nbsp;mm), much larger than a standard 9×6
+        baseplate. Options: print a 12×8 baseplate sized to the cavity (long print, ~12-16 hours), or use a custom
+        tray instead. For the toolbox specifically, the custom-tray path is usually the better trade.
+      </p>
+
+      <h3>Can I use a magnetic baseplate?</h3>
+      <p>
+        Possible, but unnecessary in a drawer. Magnets are useful for benchtop or wall-mount setups where the
+        baseplate sits on a steel surface. Inside a Packout drawer, gravity and friction handle the job.
+      </p>
+
+      <h3>How do I stop bins from popping out when the drawer slams shut?</h3>
+      <p>
+        Most users do not have this problem with the 3-Drawer. If it happens: check that bins are printed at
+        proper Gridfinity tolerance (42×42&nbsp;mm cells, 41.6&nbsp;mm bin footprint is the spec). Some downloaded
+        bin models are slightly oversized — reprint at -0.4&nbsp;mm scale.
+      </p>
+
+      <h3>Can I mix Gridfinity bins with non-Gridfinity inserts in the same drawer?</h3>
+      <p>
+        Yes. Cover part of the drawer with a 6×6 baseplate (252×252&nbsp;mm) and leave the remaining 138&nbsp;mm
+        for a custom tray. Useful when half your drawer is small parts (Gridfinity bins) and half is one large
+        tool (custom tray with a tool-shaped cavity).
+      </p>
+
+      <h3>Does this work in a non-Milwaukee toolbox?</h3>
+      <p>
+        Yes — the Gridfinity baseplate does not care about brand. DeWalt ToughSystem 2.0 drawers, Ridgid Pro Gear
+        2.0, Klein ModBox, Festool Systainer drawer modules, and any rolling cabinet drawer all accept a baseplate
+        sized to their interior. Measure the drawer; pick a baseplate that fits. The rest of the workflow is
+        identical.
+      </p>
+
+      <h3>How long does the printed plastic last?</h3>
+      <p>
+        PETG bins in a Packout drawer last indefinitely under normal use. The failure mode after years of heavy
+        use is fatigue around the stacking lip if you frequently lift bins out by gripping the lip. Easy reprint
+        if it ever happens.
+      </p>
+
+      <h2>Related Reading</h2>
+
+      <ul>
+        <li><Link to="/blog/photo-to-gridfinity-guide/">The Complete Guide to Custom Gridfinity Bins from a Photo</Link> — the pillar workflow guide</li>
+        <li><Link to="/blog/how-to-organize-milwaukee-packout/">How to Organize a Milwaukee Packout</Link> — broader Packout organization</li>
+        <li><Link to="/blog/custom-milwaukee-packout-inserts-3d-print/">Custom Milwaukee Packout Inserts</Link> — non-drawer Packout cases</li>
+        <li><Link to="/blog/gridfinity-vs-packout-vs-custom-tray/">Gridfinity vs Packout vs Custom Trays</Link> — system comparison</li>
+        <li><Link to="/blog/knipex-pliers-organizer-3d-printed/">Knipex Pliers Organizer</Link> — worked example with photo-traced bins</li>
+      </ul>
+    </BlogPost>
+  )
+}
