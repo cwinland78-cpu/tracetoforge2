@@ -20,6 +20,7 @@ import PrintedToolOrganizer from './pages/blog/PrintedToolOrganizer'
 import KnipexOrganizer from './pages/blog/KnipexOrganizer'
 import GridfinityGenerator from './pages/blog/GridfinityGenerator'
 import SavedToolLibrary from './pages/blog/SavedToolLibrary'
+import PhotoToGridfinityGuide from './pages/blog/PhotoToGridfinityGuide'
 import CommunityPage from './pages/CommunityPage'
 import PrivacyPage from './pages/PrivacyPage'
 import TermsPage from './pages/TermsPage'
@@ -51,6 +52,7 @@ function App() {
           <Route path="/blog/knipex-pliers-organizer-3d-printed" element={<KnipexOrganizer />} />
           <Route path="/blog/gridfinity-generator-photo-vs-parametric" element={<GridfinityGenerator />} />
           <Route path="/blog/reusable-tool-library-drawer-trays" element={<SavedToolLibrary />} />
+          <Route path="/blog/photo-to-gridfinity-guide" element={<PhotoToGridfinityGuide />} />
           <Route path="/community" element={<CommunityPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/terms" element={<TermsPage />} />
