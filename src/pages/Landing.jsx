@@ -284,12 +284,12 @@ export default function Landing() {
           {/* New feature announcement - community library */}
           <Link
             to="/community"
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-500/10 hover:bg-purple-500/15 text-purple-200 hover:text-purple-100 text-[11px] font-semibold mb-4 border border-purple-500/30 font-mono tracking-wide transition-colors group"
+            className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-purple-500/15 hover:bg-purple-500/25 text-purple-100 hover:text-white text-sm font-semibold mb-4 border border-purple-500/40 hover:border-purple-400/70 font-mono tracking-wide transition-all hover:shadow-lg hover:shadow-purple-500/20 group"
           >
-            <Globe size={11} className="text-purple-300" />
+            <Globe size={16} className="text-purple-300 group-hover:text-purple-200 transition-colors" />
             <span className="uppercase">New:</span>
             <span className="normal-case font-medium">Community tool library — browse and use traces shared by other users</span>
-            <ArrowRight size={11} className="opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+            <ArrowRight size={16} className="opacity-70 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
           </Link>
 
           {/* Eyebrow */}
