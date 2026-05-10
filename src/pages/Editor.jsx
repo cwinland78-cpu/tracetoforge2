@@ -3015,15 +3015,15 @@ export default function Editor() {
 
           {/* Upload */}
           {step === 0 && (
-            <div className="flex flex-col items-center justify-center h-full gap-4 p-8"
+            <div className="flex flex-col items-center justify-center h-full gap-6 p-8"
               onDragOver={e => e.preventDefault()} onDrop={handleDrop}>
-              <div className="w-24 h-24 rounded-2xl bg-[#131318] border-2 border-dashed border-[#2A2A35] flex items-center justify-center hover:border-brand/50 transition-colors cursor-pointer"
+              <div className="w-72 h-72 sm:w-80 sm:h-80 rounded-3xl bg-[#131318] border-2 border-dashed border-[#2A2A35] flex flex-col items-center justify-center gap-4 hover:border-brand hover:bg-[#16161E] transition-all cursor-pointer group"
                 onClick={() => setShowPhotoTips(true)}>
-                <Upload className="text-[#8888A0]" size={32} />
-              </div>
-              <div className="text-center">
-                <p className="text-[#C8C8D0] font-medium mb-1">Upload a photo of your tool</p>
-                <p className="text-sm text-[#8888A0]">Drag and drop or click to browse</p>
+                <Upload className="text-[#8888A0] group-hover:text-brand transition-colors" size={72} />
+                <div className="text-center px-6">
+                  <p className="text-[#C8C8D0] font-semibold text-lg mb-1 group-hover:text-white transition-colors">Upload a photo of your tool</p>
+                  <p className="text-sm text-[#8888A0]">Drag and drop or click to browse</p>
+                </div>
               </div>
               <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
 
