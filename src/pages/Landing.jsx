@@ -323,6 +323,12 @@ export default function Landing() {
               Start Building
               <ArrowRight size={18} />
             </button>
+            <button
+              onClick={() => navigate('/editor?sample=1')}
+              className="px-6 py-4 rounded-xl border border-surface-lighter/80 text-[#C8C8D0] hover:text-white hover:border-brand font-semibold text-base transition-all"
+            >
+              Try a Live Demo
+            </button>
             <span className="text-xs text-[#666680] font-mono">
               100% browser-based &bull; Nothing to install
             </span>

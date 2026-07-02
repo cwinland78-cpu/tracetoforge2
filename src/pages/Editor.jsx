@@ -87,6 +87,8 @@ export default function Editor() {
   /* ── State ── */
   const [step, setStep] = useState(0)
   const [image, setImage] = useState(null)
+  const [sampleLoading, setSampleLoading] = useState(false)
+  const [pendingAutoDetect, setPendingAutoDetect] = useState(false)
   const [showPaywall, setShowPaywall] = useState(false)
   const [credits, setCredits] = useState(0)
   const [projectId, setProjectId] = useState(null)
@@ -540,6 +542,55 @@ export default function Editor() {
     if (!file || !file.type.startsWith('image/')) return
     handleImageUpload({ target: { files: [file] } })
   }, [handleImageUpload])
+
+  /* ── Sample tool (instant demo, no photo needed) ── */
+  const loadSampleImage = useCallback(async () => {
+    if (sampleLoading) return
+    setSampleLoading(true)
+    try {
+      const res = await fetch('/flow-1-photo.jpeg')
+      const blob = await res.blob()
+      const dataUrl = await new Promise((resolve, reject) => {
+        const r = new FileReader()
+        r.onload = () => resolve(r.result)
+        r.onerror = () => reject(new Error('sample read failed'))
+        r.readAsDataURL(blob)
+      })
+      const img = new Image()
+      img.onload = () => {
+        setImage(dataUrl)
+        setImageSize({ w: img.width, h: img.height })
+        imageRef.current = img
+        setStep(1)
+        setZoom(0.4)
+        setContours([])
+        setShowPreview(false)
+        setPendingAutoDetect(true)
+        setSampleLoading(false)
+      }
+      img.onerror = () => setSampleLoading(false)
+      img.src = dataUrl
+    } catch (err) {
+      console.error('Sample load error:', err)
+      setSampleLoading(false)
+    }
+  }, [sampleLoading])
+
+  // Auto-run detection once the sample image and OpenCV are both ready,
+  // so first-time users see the trace happen without hunting for the button.
+  useEffect(() => {
+    if (!pendingAutoDetect || !cvReady || step !== 1 || !imageRef.current) return
+    setPendingAutoDetect(false)
+    runEdgeDetection()
+  }, [pendingAutoDetect, cvReady, step])
+
+  // /editor?sample=1 deep link (used by the landing page CTA)
+  useEffect(() => {
+    if (searchParams.get('sample') && step === 0 && !imageRef.current) {
+      loadSampleImage()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams])
 
   /* ── Crop ── */
   const applyCrop = useCallback(() => {
@@ -3026,6 +3077,18 @@ export default function Editor() {
                 </div>
               </div>
               <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+
+              {/* Instant demo: lets brand-new users watch a successful trace
+                  before risking their own photo's lighting or background. */}
+              <div className="flex flex-col items-center gap-1.5 -mt-1">
+                <button
+                  onClick={loadSampleImage}
+                  disabled={sampleLoading}
+                  className="px-5 py-2.5 rounded-lg border border-[#2A2A35] bg-[#16161E] hover:border-brand hover:text-white text-[#C8C8D0] text-sm font-semibold transition-all disabled:opacity-60">
+                  {sampleLoading ? 'Loading sample...' : 'No tool handy? Try a sample photo'}
+                </button>
+                <p className="text-[11px] text-[#666680]">Watch the auto-trace work on a real pair of pliers</p>
+              </div>
 
               {/* Photo Tips Popup */}
               {showPhotoTips && (
