@@ -50,11 +50,10 @@ export default function PaywallModal({ isOpen, onClose, onCreditsChanged, userId
     try {
       const result = await purchasePackage(pkg, userId);
       if (result.success) {
-        // Grant credits client-side after successful purchase
-        if (result.credits > 0 && userId) {
-          const { addCredits } = await import('../lib/purchases');
-          await addCredits(result.credits, userId, 'purchase', { productId: pkg.rcBillingProduct?.identifier });
-        }
+        // Credits are granted server-side by the RevenueCat webhook (single
+        // source of truth, deduped by event_id). Client-side granting was
+        // removed Jul 2026: it silently failed in practice and would have
+        // double-granted if it ever started working.
         // Google Ads conversion tracking
         const product = pkg.rcBillingProduct;
         const price = product?.currentPrice?.amountMicros
@@ -68,7 +67,15 @@ export default function PaywallModal({ isOpen, onClose, onCreditsChanged, userId
             'transaction_id': result.transactionId || ''
           });
         }
-        const credits = await getCredits(userId || null);
+        // Poll briefly so the webhook has time to land before we refresh
+        // the balance. Stops early as soon as credits increase.
+        const before = currentCredits;
+        let credits = before;
+        for (let i = 0; i < 6; i++) {
+          await new Promise(r => setTimeout(r, 1500));
+          credits = await getCredits(userId || null);
+          if (credits > before) break;
+        }
         onCreditsChanged?.(credits);
         onClose();
       } else if (result.cancelled) {
