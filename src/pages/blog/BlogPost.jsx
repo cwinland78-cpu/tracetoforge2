@@ -82,13 +82,22 @@ export default function BlogPost({ title, description, canonical, date, updated,
             <h2 className="text-xl font-bold mb-2">Ready to create your own custom inserts?</h2>
             <p className="text-[#8888A0] mb-5 max-w-md mx-auto">
               Snap a photo, trace, preview, and export. 3 free credits on signup, no credit card required.
+              Everything you export is yours to sell.
             </p>
-            <Link
-              to="/editor/"
-              className="inline-block px-6 py-3 bg-brand hover:bg-brand-light text-white font-bold rounded-xl transition-colors"
-            >
-              Try TracetoForge Free
-            </Link>
+            <div className="flex items-center justify-center gap-3 flex-wrap">
+              <Link
+                to="/editor/?sample=1"
+                className="inline-block px-6 py-3 bg-brand hover:bg-brand-light text-white font-bold rounded-xl transition-colors"
+              >
+                Watch It Trace a Tool (Live Demo)
+              </Link>
+              <Link
+                to="/editor/"
+                className="inline-block px-6 py-3 rounded-xl border border-[#2A2A35] hover:border-brand text-[#C8C8D0] hover:text-white font-bold transition-colors"
+              >
+                Upload Your Own Photo
+              </Link>
+            </div>
           </div>
         </main>
 

@@ -986,7 +986,7 @@ export default function Landing() {
 
       {/* Privacy / Trust */}
       <section className="px-6 py-16">
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-6">
           <div className="p-6 rounded-xl bg-surface border border-surface-lighter/40 flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
             <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center flex-shrink-0">
               <ShieldCheck size={24} className="text-green-400" />
@@ -996,6 +996,18 @@ export default function Landing() {
               <p className="text-sm text-[#8888A0] leading-relaxed">
                 All processing happens locally on your device using OpenCV.js. No uploads, no cloud processing, no accounts required. 
                 Your tool photos and designs stay on your machine.
+              </p>
+            </div>
+          </div>
+          <div className="p-6 rounded-xl bg-surface border border-surface-lighter/40 flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
+            <div className="w-12 h-12 rounded-xl bg-brand/10 flex items-center justify-center flex-shrink-0">
+              <ShieldCheck size={24} className="text-brand" />
+            </div>
+            <div>
+              <h3 className="font-display font-bold mb-1">Sell what you make. No commercial license needed</h3>
+              <p className="text-sm text-[#8888A0] leading-relaxed">
+                Every file you export is yours, full stop. Print inserts for your own shop, sell them on Etsy,
+                or run a print farm with them. No royalties, no per-unit fees, no extra license to buy.
               </p>
             </div>
           </div>
