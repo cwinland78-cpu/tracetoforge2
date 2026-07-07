@@ -344,7 +344,7 @@ export default function Editor() {
   async function handleSaveProject() {
     if (!isAuthenticated || !user?.id) {
       console.warn('[Save] Not authenticated or no user ID', { isAuthenticated, userId: user?.id })
-      navigate('/login')
+      navigate('/login/')
       return
     }
     setSaving(true)
@@ -383,7 +383,7 @@ export default function Editor() {
   }
 
   async function handleSaveAsProject() {
-    if (!isAuthenticated || !user?.id) { navigate('/login'); return }
+    if (!isAuthenticated || !user?.id) { navigate('/login/'); return }
     const input = prompt('Save as new project name:', projectName + ' (copy)')
     if (!input) return
     setSaving(true)
@@ -420,7 +420,7 @@ export default function Editor() {
 
     try {
       // Deduct credit (server-side, login required)
-      if (!user?.id) { navigate('/login'); return }
+      if (!user?.id) { navigate('/login/'); return }
       const spent = await useCredit(user.id, { outputMode })
       if (!spent) {
         setShowPaywall(true)
@@ -1931,7 +1931,7 @@ export default function Editor() {
     const pts = tool0?.contours?.[tool0?.selectedContour ?? 0]
     if (!pts || pts.length < 3) return
     // Login required for all exports
-    if (!isAuthenticated) { navigate('/login'); return }
+    if (!isAuthenticated) { navigate('/login/'); return }
     if (credits <= 0) {
       setShowPaywall(true)
       return
@@ -2017,7 +2017,7 @@ export default function Editor() {
               {saveMsg && <span className={`text-xs ${saveMsg.includes('failed') ? 'text-red-400 font-bold' : 'text-green-400'}`}>{saveMsg}</span>}
               <button onClick={() => {
                 if (isDirty) { pendingNavigationRef.current = '/dashboard'; setShowUnsavedModal(true) }
-                else navigate('/dashboard')
+                else navigate('/dashboard/')
               }}
                 className="flex items-center gap-1 px-2 py-1.5 text-xs text-[#8888A0] hover:text-white transition-colors">
                 <FolderOpen size={13} /> Projects
@@ -2030,7 +2030,7 @@ export default function Editor() {
             </>
           ) : (
             <>
-              <button onClick={() => navigate('/login')}
+              <button onClick={() => navigate('/login/')}
                 className="px-3 py-1.5 text-xs text-[#C8C8D0] hover:text-white border border-[#444] rounded-lg transition-colors">
                 Sign In
               </button>
@@ -2762,7 +2762,7 @@ export default function Editor() {
                     <Library size={13} /> My Library
                   </button>
                   <Link
-                    to="/community"
+                    to="/community/"
                     title="Browse traces shared by other users — free to use"
                     className="w-full flex items-center justify-center gap-2 py-2 rounded-md bg-[#1C1C24] hover:bg-purple-900/20 text-purple-400 text-xs font-bold transition-colors">
                     <Globe size={13} /> Community

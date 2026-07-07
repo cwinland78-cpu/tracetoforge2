@@ -34,7 +34,7 @@ export default function LoginPage() {
     try {
       if (mode === 'login') {
         await signIn(email, password)
-        navigate('/editor')
+        navigate('/editor/')
       } else if (mode === 'signup') {
         if (password.length < 6) {
           setError('Password must be at least 6 characters')
@@ -48,7 +48,7 @@ export default function LoginPage() {
           setSuccess('Check your email for a confirmation link! If you don\'t see it, check spam or click Resend below.')
           setShowResend(true)
         } else {
-          navigate('/editor')
+          navigate('/editor/')
         }
       } else if (mode === 'forgot') {
         await resetPassword(email)

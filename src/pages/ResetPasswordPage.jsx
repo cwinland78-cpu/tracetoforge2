@@ -41,7 +41,7 @@ export default function ResetPasswordPage() {
       const { error } = await supabase.auth.updateUser({ password })
       if (error) throw error
       setSuccess('Password updated! Redirecting to editor...')
-      setTimeout(() => navigate('/editor'), 2000)
+      setTimeout(() => navigate('/editor/'), 2000)
     } catch (err) {
       setError(err.message || 'Failed to update password')
     }

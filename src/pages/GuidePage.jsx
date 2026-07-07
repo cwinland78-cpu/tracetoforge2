@@ -162,7 +162,7 @@ export default function GuidePage() {
         </Link>
         <div className="flex items-center gap-3">
           <Link to="/" className="text-xs text-[#8888A0] hover:text-white transition-colors">Home</Link>
-          <button onClick={() => navigate('/editor')}
+          <button onClick={() => navigate('/editor/')}
             className="px-4 py-2 rounded-lg bg-brand hover:bg-brand-hover text-white text-xs font-semibold transition-colors">
             Open Editor
           </button>
@@ -255,7 +255,7 @@ export default function GuidePage() {
         <div className="max-w-3xl mx-auto text-center bg-surface/40 border border-[#2A2A35]/50 rounded-xl p-10">
           <h2 className="text-2xl font-bold mb-3">Ready to Get Started?</h2>
           <p className="text-[#999AAB] text-sm mb-6">No signup needed. Upload a photo and get a print-ready file in minutes.</p>
-          <button onClick={() => navigate('/editor')}
+          <button onClick={() => navigate('/editor/')}
             className="px-8 py-3 rounded-lg bg-brand hover:bg-brand-hover text-white font-semibold transition-colors">
             Open the Editor
           </button>

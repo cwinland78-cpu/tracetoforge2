@@ -233,7 +233,7 @@ export default function Landing() {
           <img src="/logo-nav.png" alt="TracetoForge" className="h-20 object-contain" />
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate('/guide')}
+          <button onClick={() => navigate('/guide/')}
             className="px-4 py-2 text-sm font-semibold text-brand border border-brand/40 hover:bg-brand/10 hover:border-brand rounded-lg transition-all hidden sm:flex items-center gap-1.5">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
             Guide & FAQ
@@ -241,7 +241,7 @@ export default function Landing() {
           {isAuthenticated ? (
             <>
               <span className="hidden sm:inline text-xs text-[#8888A0]">{profile?.credits || 0} credits</span>
-              <button onClick={() => navigate('/dashboard')}
+              <button onClick={() => navigate('/dashboard/')}
                 className="px-3 py-2 text-sm text-[#C8C8D0] hover:text-white transition-colors flex items-center gap-1.5">
                 <FolderOpen size={14} /> My Projects
               </button>
@@ -251,13 +251,13 @@ export default function Landing() {
               </button>
             </>
           ) : (
-            <button onClick={() => navigate('/login')}
+            <button onClick={() => navigate('/login/')}
               className="px-4 py-2 text-sm text-[#C8C8D0] hover:text-white border border-[#444] rounded-lg transition-colors">
               Sign In
             </button>
           )}
           <button
-            onClick={() => navigate('/editor')}
+            onClick={() => navigate('/editor/')}
             className="px-5 py-2 bg-brand hover:bg-brand-light text-white font-semibold rounded-lg transition-all text-sm hover:shadow-lg hover:shadow-brand/20"
           >
             Open Editor
@@ -283,7 +283,7 @@ export default function Landing() {
         <div className="max-w-4xl mx-auto text-center">
           {/* New feature announcement - community library */}
           <Link
-            to="/community"
+            to="/community/"
             className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-purple-500/15 hover:bg-purple-500/25 text-purple-100 hover:text-white text-sm font-semibold mb-4 border border-purple-500/40 hover:border-purple-400/70 font-mono tracking-wide transition-all hover:shadow-lg hover:shadow-purple-500/20 group"
           >
             <Globe size={16} className="text-purple-300 group-hover:text-purple-200 transition-colors" />
@@ -317,14 +317,14 @@ export default function Landing() {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <button
-              onClick={() => navigate('/editor')}
+              onClick={() => navigate('/editor/')}
               className="cta-glow px-8 py-4 bg-brand hover:bg-brand-light text-white font-bold rounded-xl transition-all text-base shadow-xl shadow-brand/15 hover:shadow-brand/25 hover:scale-[1.02] active:scale-[0.98] flex items-center gap-2"
             >
               Start Building
               <ArrowRight size={18} />
             </button>
             <button
-              onClick={() => navigate('/editor?sample=1')}
+              onClick={() => navigate('/editor/?sample=1')}
               className="px-6 py-4 rounded-xl border border-surface-lighter/80 text-[#C8C8D0] hover:text-white hover:border-brand font-semibold text-base transition-all"
             >
               Try a Live Demo
@@ -446,7 +446,7 @@ export default function Landing() {
                 ))}
               </ul>
               <button
-                onClick={() => navigate('/login')}
+                onClick={() => navigate('/login/')}
                 className="w-full py-3 rounded-lg border border-surface-lighter/60 text-sm font-semibold text-[#CCCCDD] hover:border-brand/40 hover:text-white transition-all"
               >
                 Create Free Account
@@ -478,7 +478,7 @@ export default function Landing() {
                 ))}
               </ul>
               <button
-                onClick={() => navigate('/editor')}
+                onClick={() => navigate('/editor/')}
                 className="w-full py-3 rounded-lg border border-brand/40 text-sm font-semibold text-brand hover:bg-brand/10 transition-all"
               >
                 Get Started
@@ -514,7 +514,7 @@ export default function Landing() {
                 ))}
               </ul>
               <button
-                onClick={() => navigate('/editor')}
+                onClick={() => navigate('/editor/')}
                 className="w-full py-3 rounded-xl bg-brand hover:bg-brand-light text-white text-sm font-bold transition-all shadow-lg shadow-brand/20"
               >
                 Get 100 Credits
@@ -1056,7 +1056,7 @@ export default function Landing() {
             3D print, laser cut, or CNC machine. No sign-up required.
           </p>
           <button
-            onClick={() => navigate('/editor')}
+            onClick={() => navigate('/editor/')}
             className="cta-glow px-10 py-4 bg-brand hover:bg-brand-light text-white font-bold rounded-xl transition-all text-lg shadow-xl shadow-brand/20 hover:shadow-brand/30 hover:scale-[1.02] active:scale-[0.98] flex items-center gap-2 mx-auto"
           >
             Open Editor

@@ -62,7 +62,7 @@ export default function CommunityPage() {
                 try {
                   sessionStorage.setItem('ttf:loadCommunityTool', JSON.stringify(tool))
                 } catch {}
-                navigate('/editor')
+                navigate('/editor/')
               }}
             />
           </div>

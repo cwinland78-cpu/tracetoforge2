@@ -91,7 +91,7 @@ export default function Dashboard() {
   useEffect(() => {
     if (!loading) {
       if (!isAuthenticated) {
-        navigate('/login')
+        navigate('/login/')
         return
       }
       loadProjects()
@@ -150,7 +150,7 @@ export default function Dashboard() {
             </span>
             <span className="text-sm text-gray-500">{user?.email}</span>
             <button
-              onClick={() => navigate('/editor')}
+              onClick={() => navigate('/editor/')}
               className="bg-orange-600 hover:bg-orange-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
             >
               New Project
@@ -183,7 +183,7 @@ export default function Dashboard() {
               Create your first tray insert to get started
             </p>
             <button
-              onClick={() => navigate('/editor')}
+              onClick={() => navigate('/editor/')}
               className="bg-orange-600 hover:bg-orange-500 text-white font-medium px-6 py-3 rounded-lg transition-colors"
             >
               Start New Project
