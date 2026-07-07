@@ -85,6 +85,21 @@ export default function CommunityPage() {
             </div>
           </div>
 
+          <div className="max-w-3xl mx-auto py-10 border-t border-[#2A2A35]/50 space-y-8 text-[#AAABB8] leading-relaxed">
+            <div>
+              <h2 className="text-xl font-display font-bold text-white mb-3">How the library works</h2>
+              <p className="text-sm">Every tool here was traced and published by another user. Each entry shows a clean silhouette, the real-world dimensions used, the tolerance setting, the category, and ratings from other users. Click any tool and it loads straight into the editor as a new tool in your project. From there you can arrange it into a tray, combine it with other tools or your own traces, and export STL, 3MF, SVG, or DXF for printing.</p>
+            </div>
+            <div>
+              <h2 className="text-xl font-display font-bold text-white mb-3">What gets shared, what stays private</h2>
+              <p className="text-sm">When a user publishes a tool, only the geometric data goes public: contour points, dimensions, tolerance, and a small thumbnail rendered from the contour itself. The original photograph is stripped out entirely. You never see the photo someone uploaded, and they never see yours.</p>
+            </div>
+            <div>
+              <h2 className="text-xl font-display font-bold text-white mb-3">Browse free, contribute with credits</h2>
+              <p className="text-sm">Anyone can browse and use any published tool in their own projects at no charge. Publishing, rating, and upvoting are features for users who have purchased a credit pack. That gate exists for moderation: keeping contributions behind any payment at all eliminates the spam that kills open libraries. And like everything you make with TracetoForge, inserts you print from community traces are yours to use or sell, with no commercial license needed.</p>
+            </div>
+          </div>
+
           <div className="text-center py-8 border-t border-[#2A2A35]/50">
             <h2 className="text-xl font-display font-bold mb-3">Trace your own tools and share them</h2>
             <p className="text-sm text-[#9999AD] mb-5 max-w-lg mx-auto">Open the editor, snap a photo, trace it, and click Publish. Help the next person who organizes a drawer skip the work.</p>
