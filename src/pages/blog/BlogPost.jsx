@@ -1,9 +1,41 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, Calendar, Clock } from 'lucide-react'
 import SEOHead from '../../components/SEOHead'
 
+function AdUnit() {
+  return (
+    <div className="my-8">
+      <ins className="adsbygoogle"
+        style={{ display: 'block', minHeight: '100px' }}
+        data-ad-client="ca-pub-5879329589086028"
+        data-ad-slot="auto"
+        data-ad-format="auto"
+        data-full-width-responsive="true" />
+    </div>
+  )
+}
+
 export default function BlogPost({ title, description, canonical, date, updated, readTime, tags, children }) {
+  useEffect(() => {
+    const initAds = () => {
+      try {
+        document.querySelectorAll('.adsbygoogle').forEach((ad) => {
+          if (!ad.getAttribute('data-adsbygoogle-status')) {
+            (window.adsbygoogle = window.adsbygoogle || []).push({})
+          }
+        })
+      } catch (e) {
+        console.error('AdSense init error:', e)
+      }
+    }
+    if (window.adsbygoogle) {
+      initAds()
+    } else {
+      const timer = setTimeout(initAds, 1500)
+      return () => clearTimeout(timer)
+    }
+  }, [])
   // dateModified for the article schema falls back to date if not provided
   const dateModified = updated || date
   return (
@@ -62,6 +94,8 @@ export default function BlogPost({ title, description, canonical, date, updated,
               </div>
             )}
 
+            <AdUnit />
+
             <div className="prose prose-invert prose-orange max-w-none
               [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mt-10 [&_h2]:mb-4
               [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:mt-8 [&_h3]:mb-3
@@ -76,6 +110,8 @@ export default function BlogPost({ title, description, canonical, date, updated,
               {children}
             </div>
           </article>
+
+          <AdUnit />
 
           {/* CTA */}
           <div className="mt-16 p-8 rounded-2xl bg-brand/5 border border-brand/20 text-center">
