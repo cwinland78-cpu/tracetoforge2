@@ -971,7 +971,8 @@ for (const post of postConfigs) {
 ${articleContent}
       </article>
 ${authorBioHtml}
-      <p><a href="/blog/">Back to Blog</a> | <a href="/editor/">Try TracetoForge Free</a></p>`,
+      <p><a href="/blog/">Back to Blog</a> | <a href="/editor/?sample=1">Watch It Trace a Tool (Live Demo)</a> | <a href="/editor/">Upload Your Own Photo</a></p>
+      <p>Everything you export from TracetoForge is yours to sell. No commercial license needed.</p>`,
     articleSchema,
     extraSchemas: [breadcrumbSchema]
   }))
