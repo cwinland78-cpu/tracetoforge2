@@ -91,6 +91,10 @@ export default function PrintedToolOrganizer() {
         2 minutes. Best for complex tool shapes where manual measurement would be tedious.
       </p>
 
+
+      <div className="my-8 p-5 rounded-xl bg-brand/5 border border-brand/20">
+        <p className="!my-0 text-sm"><strong>See it before you try it:</strong> <a href="/editor/?sample=1">watch TracetoForge trace a pair of pliers</a> right now, no photo or signup needed. It takes about ten seconds.</p>
+      </div>
       <h2>Choosing the Right Filament</h2>
 
       <h3>PLA</h3>

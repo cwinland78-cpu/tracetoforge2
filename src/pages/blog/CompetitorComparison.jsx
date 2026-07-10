@@ -106,6 +106,10 @@ export default function CompetitorComparison() {
         axis. Pick by the use case, not by a perceived overall ranking.
       </p>
 
+
+      <div className="my-8 p-5 rounded-xl bg-brand/5 border border-brand/20">
+        <p className="!my-0 text-sm"><strong>See it before you try it:</strong> <a href="/editor/?sample=1">watch TracetoForge trace a pair of pliers</a> right now, no photo or signup needed. It takes about ten seconds.</p>
+      </div>
       <h2>When to Pick TracetoForge</h2>
 
       <p>
