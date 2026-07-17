@@ -152,6 +152,16 @@ export default function PrintedToolOrganizer() {
         alignment automatically as long as your bins are the correct grid multiple.
       </p>
 
+
+      <div className="my-8 p-5 rounded-xl bg-[#16161E] border border-[#2A2A35]">
+        <p className="!mt-0 !mb-2 font-bold text-white">Gear mentioned in this guide</p>
+        <ul className="!my-0">
+          <li><a href="https://www.amazon.com/s?k=digital+calipers&tag=tracetoforge-20" rel="sponsored nofollow noopener" target="_blank">Digital calipers</a> - the one measuring tool every insert project needs</li>
+          <li><a href="https://www.amazon.com/s?k=petg+filament+1.75mm&tag=tracetoforge-20" rel="sponsored nofollow noopener" target="_blank">PETG filament</a> - our pick for oil and impact resistance in shop drawers</li>
+          <li><a href="https://www.amazon.com/s?k=milwaukee+packout+organizer&tag=tracetoforge-20" rel="sponsored nofollow noopener" target="_blank">Milwaukee Packout organizers</a></li>
+        </ul>
+        <p className="!mb-0 !mt-3 text-xs text-[#666680]">Amazon affiliate links. As an Amazon Associate we earn from qualifying purchases at no extra cost to you.</p>
+      </div>
       <h2>Cost Comparison</h2>
 
       <p>
