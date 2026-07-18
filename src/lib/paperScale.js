@@ -58,35 +58,55 @@ export function detectPaperAndRectify(cv, imgEl) {
     cv.findContours(bin, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
 
     const imgArea = dw * dh
+    // For each large bright region: take its convex hull (immune to shadow
+    // dents and glare merges), then relax the polygon fit until it collapses
+    // to 4 corners. Real photos with uneven light need eps well above 2%.
     let best = null
     for (let i = 0; i < contours.size(); i++) {
       const c = contours.get(i)
       const area = cv.contourArea(c)
-      if (area < imgArea * 0.12) { c.delete(); continue } // paper should dominate the frame
-      const peri = cv.arcLength(c, true)
-      const approx = new cv.Mat()
-      cv.approxPolyDP(c, approx, 0.02 * peri, true)
-      if (approx.rows === 4 && cv.isContourConvex(approx)) {
-        if (!best || area > best.area) {
-          if (best) best.approx.delete()
-          const pts = []
+      if (area < imgArea * 0.10) { c.delete(); continue } // paper should dominate the frame
+      const hull = new cv.Mat()
+      cv.convexHull(c, hull)
+      const peri = cv.arcLength(hull, true)
+      let pts = null
+      for (const eps of [0.02, 0.03, 0.05, 0.08]) {
+        const approx = new cv.Mat()
+        cv.approxPolyDP(hull, approx, eps * peri, true)
+        if (approx.rows === 4) {
+          pts = []
           for (let r = 0; r < 4; r++) {
             pts.push({ x: approx.data32S[r * 2], y: approx.data32S[r * 2 + 1] })
           }
-          best = { area, approx, pts }
-        } else {
           approx.delete()
+          break
         }
-      } else {
         approx.delete()
       }
+      hull.delete()
       c.delete()
+      if (pts && (!best || area > best.area)) best = { area, pts }
     }
 
     if (!best) return { found: false, reason: 'no bright 4-cornered sheet found' }
 
+    // Sanity: inside of the quad must be brighter than the rest of the frame,
+    // so a dark rectangle can never masquerade as paper.
+    {
+      const mask = new cv.Mat.zeros(dh, dw, cv.CV_8UC1)
+      const quad = cv.matFromArray(4, 1, cv.CV_32SC2, best.pts.flatMap(p => [p.x, p.y]))
+      const mv = new cv.MatVector(); mv.push_back(quad)
+      cv.fillPoly(mask, mv, new cv.Scalar(255))
+      const inMean = cv.mean(gray, mask)[0]
+      cv.bitwise_not(mask, mask)
+      const outMean = cv.mean(gray, mask)[0]
+      mask.delete(); quad.delete(); mv.delete()
+      if (inMean < outMean + 15) {
+        return { found: false, reason: `region not bright enough (in ${inMean.toFixed(0)} vs out ${outMean.toFixed(0)})` }
+      }
+    }
+
     const [tl, tr, br, bl] = orderCorners(best.pts)
-    best.approx.delete()
 
     // Side lengths in the photo
     const top = dist(tl, tr), bottom = dist(bl, br)
