@@ -58,69 +58,106 @@ export function detectPaperAndRectify(cv, imgEl) {
     cv.findContours(bin, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
 
     const imgArea = dw * dh
-    // For each large bright region: take its convex hull (immune to shadow
-    // dents and glare merges), then relax the polygon fit until it collapses
-    // to 4 corners. Real photos with uneven light need eps well above 2%.
-    let best = null
-    for (let i = 0; i < contours.size(); i++) {
-      const c = contours.get(i)
-      const area = cv.contourArea(c)
-      if (area < imgArea * 0.10) { c.delete(); continue } // paper should dominate the frame
-      const hull = new cv.Mat()
-      cv.convexHull(c, hull)
-      const peri = cv.arcLength(hull, true)
-      let pts = null
-      for (const eps of [0.02, 0.03, 0.05, 0.08]) {
-        const approx = new cv.Mat()
-        cv.approxPolyDP(hull, approx, eps * peri, true)
-        if (approx.rows === 4) {
-          pts = []
-          for (let r = 0; r < 4; r++) {
-            pts.push({ x: approx.data32S[r * 2], y: approx.data32S[r * 2 + 1] })
+
+    // ---- v3: multi-strategy candidate masks with strict validation ----
+    // Paper is bright AND colorless; surfaces vary, so we try three masks:
+    // whiteness (bright + unsaturated), pure brightness, and low saturation.
+    const hsv = track(new cv.Mat())
+    cv.cvtColor(src, hsv, cv.COLOR_RGB2HSV)
+    const hsvCh = track(new cv.MatVector())
+    cv.split(hsv, hsvCh)
+    const sat = hsvCh.get(1)
+
+    const otsuProbe = track(new cv.Mat())
+    const otsuT = cv.threshold(blurred, otsuProbe, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
+
+    const brightMask = track(new cv.Mat())
+    cv.threshold(blurred, brightMask, otsuT, 255, cv.THRESH_BINARY)
+    const sat25 = track(new cv.Mat())
+    cv.threshold(sat, sat25, 25, 255, cv.THRESH_BINARY_INV)
+    const whiteMask = track(new cv.Mat())
+    cv.bitwise_and(brightMask, sat25, whiteMask)
+    const lowSatMask = track(new cv.Mat())
+    cv.threshold(sat, lowSatMask, 40, 255, cv.THRESH_BINARY_INV)
+    sat.delete()
+
+    const evaluateMask = (mask) => {
+      const m = new cv.Mat()
+      cv.morphologyEx(mask, m, cv.MORPH_CLOSE, kernel)
+      const cnts = new cv.MatVector()
+      const hier = new cv.Mat()
+      cv.findContours(m, cnts, hier, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+      const out = []
+      for (let i = 0; i < cnts.size(); i++) {
+        const c = cnts.get(i)
+        const area = cv.contourArea(c)
+        // must dominate the frame but can NEVER be (nearly) the whole frame
+        if (area < imgArea * 0.12 || area > imgArea * 0.90) { c.delete(); continue }
+        const hull = new cv.Mat()
+        cv.convexHull(c, hull)
+        const peri = cv.arcLength(hull, true)
+        let pts = null
+        for (const eps of [0.02, 0.03, 0.05, 0.08]) {
+          const approx = new cv.Mat()
+          cv.approxPolyDP(hull, approx, eps * peri, true)
+          if (approx.rows === 4) {
+            pts = []
+            for (let r = 0; r < 4; r++) pts.push({ x: approx.data32S[r * 2], y: approx.data32S[r * 2 + 1] })
+            approx.delete()
+            break
           }
           approx.delete()
-          break
         }
-        approx.delete()
+        hull.delete()
+        c.delete()
+        if (!pts) continue
+        const side = (a, b) => Math.hypot(pts[a].x - pts[b].x, pts[a].y - pts[b].y)
+        const s02 = (side(0, 1) + side(2, 3)) / 2
+        const s13 = (side(1, 2) + side(3, 0)) / 2
+        const long = Math.max(s02, s13), short = Math.min(s02, s13)
+        const aspect = long / short
+        if (aspect < 1.15 || aspect > 1.6) continue
+        out.push({ pts, area, aspect })
       }
-      hull.delete()
-      c.delete()
-      if (pts && (!best || area > best.area)) best = { area, pts }
+      m.delete(); cnts.delete(); hier.delete()
+      return out
     }
 
-    if (!best) return { found: false, reason: 'no bright 4-cornered sheet found' }
+    const candidates = [
+      ...evaluateMask(whiteMask),
+      ...evaluateMask(brightMask),
+      ...evaluateMask(lowSatMask),
+    ]
 
-    // Sanity: inside of the quad must be brighter than the rest of the frame,
-    // so a dark rectangle can never masquerade as paper.
-    {
-      const mask = new cv.Mat.zeros(dh, dw, cv.CV_8UC1)
-      const quad = cv.matFromArray(4, 1, cv.CV_32SC2, best.pts.flatMap(p => [p.x, p.y]))
+    let best = null
+    for (const cand of candidates) {
+      // interior must be clearly brighter than a meaningful exterior sample
+      const qmask = new cv.Mat.zeros(dh, dw, cv.CV_8UC1)
+      const quad = cv.matFromArray(4, 1, cv.CV_32SC2, cand.pts.flatMap(p => [p.x, p.y]))
       const mv = new cv.MatVector(); mv.push_back(quad)
-      cv.fillPoly(mask, mv, new cv.Scalar(255))
-      const inMean = cv.mean(gray, mask)[0]
-      cv.bitwise_not(mask, mask)
-      const outMean = cv.mean(gray, mask)[0]
-      mask.delete(); quad.delete(); mv.delete()
-      if (inMean < outMean + 15) {
-        return { found: false, reason: `region not bright enough (in ${inMean.toFixed(0)} vs out ${outMean.toFixed(0)})` }
-      }
+      cv.fillPoly(qmask, mv, new cv.Scalar(255))
+      const inMean = cv.mean(gray, qmask)[0]
+      const outsideCount = imgArea - cv.countNonZero(qmask)
+      cv.bitwise_not(qmask, qmask)
+      const outMean = cv.mean(gray, qmask)[0]
+      qmask.delete(); quad.delete(); mv.delete()
+      if (outsideCount < imgArea * 0.08) continue
+      if (inMean < outMean + 15) continue
+      const score = -Math.min(Math.abs(cand.aspect - 1.294), Math.abs(cand.aspect - 1.414)) * 10
+        + (inMean - outMean) / 50
+      if (!best || score > best.score) best = { ...cand, score }
     }
 
+    if (!best) return { found: false, reason: 'no valid paper sheet found' }
+
+    const aspect = best.aspect
     const [tl, tr, br, bl] = orderCorners(best.pts)
 
-    // Side lengths in the photo
+    // Orientation from actual side lengths (validation already done upstream)
     const top = dist(tl, tr), bottom = dist(bl, br)
     const left = dist(tl, bl), right = dist(tr, br)
     const wPx = (top + bottom) / 2
     const hPx = (left + right) / 2
-    const longPx = Math.max(wPx, hPx)
-    const shortPx = Math.min(wPx, hPx)
-    const aspect = longPx / shortPx
-
-    // Letter = 1.294, A4 = 1.414. Reject anything not paper-shaped.
-    if (aspect < 1.15 || aspect > 1.6) {
-      return { found: false, reason: `quad aspect ${aspect.toFixed(2)} not paper-like` }
-    }
     const paper = Math.abs(aspect - 279.4 / 215.9) <= Math.abs(aspect - 297 / 210) ? 'letter' : 'a4'
     const size = PAPER_SIZES[paper]
 
