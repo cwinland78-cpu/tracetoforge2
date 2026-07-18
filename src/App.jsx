@@ -9,6 +9,8 @@ import GuidePage from './pages/GuidePage'
 import BlogIndex from './pages/blog/BlogIndex'
 import PackoutInserts from './pages/blog/PackoutInserts'
 import GridfinityFromPhoto from './pages/blog/GridfinityFromPhoto'
+import GasketMaker from './pages/blog/GasketMaker'
+import PaperMeasure from './pages/blog/PaperMeasure'
 import PhotoToSTL from './pages/blog/PhotoToSTL'
 import ComparisonPost from './pages/blog/ComparisonPost'
 import OrganizerIdeas from './pages/blog/OrganizerIdeas'
@@ -47,6 +49,8 @@ function App() {
           <Route path="/blog" element={<BlogIndex />} />
           <Route path="/blog/custom-milwaukee-packout-inserts-3d-print" element={<PackoutInserts />} />
           <Route path="/blog/gridfinity-insert-from-photo" element={<GridfinityFromPhoto />} />
+          <Route path="/blog/gasket-maker-from-photo" element={<GasketMaker />} />
+          <Route path="/blog/measure-tool-from-photo-paper" element={<PaperMeasure />} />
           <Route path="/blog/tool-organizer-photo-to-stl" element={<PhotoToSTL />} />
           <Route path="/blog/gridfinity-vs-packout-vs-custom-tray" element={<ComparisonPost />} />
           <Route path="/blog/best-3d-printed-tool-organizer-ideas" element={<OrganizerIdeas />} />
