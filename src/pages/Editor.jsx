@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import ThreePreview from '../components/ThreePreview'
 import PaywallModal from '../components/PaywallModal'
+import { detectPaperAndRectify } from '../lib/paperScale'
 import packoutCompact from '../data/packout_compact_profile.json'
 import packoutSlim from '../data/packout_slim_profile.json'
 import packoutShockwave from '../data/packout_shockwave_profile.json'
@@ -89,6 +90,13 @@ export default function Editor() {
   const [image, setImage] = useState(null)
   const [sampleLoading, setSampleLoading] = useState(false)
   const [pendingAutoDetect, setPendingAutoDetect] = useState(false)
+  // Paper auto-size (opt-in): when on, we look for a Letter/A4 sheet, rectify
+  // perspective, and set exact tool dimensions. Off = zero change to the flow.
+  const [paperMode, setPaperMode] = useState(false)
+  const [paperScale, setPaperScale] = useState(null) // {mmPerPx, paperLabel}
+  const [paperStatus, setPaperStatus] = useState('') // '' | 'searching' | 'found' | 'notfound'
+  const pendingPaperRef = useRef(null)
+  const dimsAutoFilledRef = useRef(false)
   const [showPaywall, setShowPaywall] = useState(false)
   const [credits, setCredits] = useState(0)
   const [projectId, setProjectId] = useState(null)
@@ -523,6 +531,10 @@ export default function Editor() {
     reader.onload = (ev) => {
       const img = new Image()
       img.onload = () => {
+        if (paperMode) {
+          beginPaperProcess(img, ev.target.result)
+          return
+        }
         setImage(ev.target.result)
         setImageSize({ w: img.width, h: img.height })
         imageRef.current = img
@@ -534,7 +546,7 @@ export default function Editor() {
       img.src = ev.target.result
     }
     reader.readAsDataURL(file)
-  }, [])
+  }, [paperMode])
 
   const handleDrop = useCallback((e) => {
     e.preventDefault()
@@ -575,6 +587,89 @@ export default function Editor() {
       setSampleLoading(false)
     }
   }, [sampleLoading])
+
+  /* ── Paper auto-size (opt-in) ── */
+  const commitEditorImage = useCallback((dataUrl, img) => {
+    setImage(dataUrl)
+    setImageSize({ w: img.width, h: img.height })
+    imageRef.current = img
+    setStep(1)
+    setZoom(0.4)
+    setContours([])
+    setShowPreview(false)
+  }, [])
+
+  const runPaperDetection = useCallback((img, originalDataUrl) => {
+    const result = detectPaperAndRectify(window.cv, img)
+    if (result.found) {
+      const rectified = new Image()
+      rectified.onload = () => {
+        commitEditorImage(result.dataUrl, rectified)
+        setPaperScale({ mmPerPx: result.mmPerPx, paperLabel: result.paperLabel })
+        setPaperStatus('found')
+        dimsAutoFilledRef.current = false
+        setPendingAutoDetect(true)
+      }
+      rectified.src = result.dataUrl
+    } else {
+      console.warn('[paperScale] not found:', result.reason)
+      setPaperScale(null)
+      setPaperStatus('notfound')
+      commitEditorImage(originalDataUrl, img)
+    }
+  }, [commitEditorImage])
+
+  const beginPaperProcess = useCallback((img, dataUrl) => {
+    setPaperStatus('searching')
+    setPaperScale(null)
+    if (window.cv && window.cv.Mat) {
+      // slight delay lets the UI paint the searching state
+      setTimeout(() => runPaperDetection(img, dataUrl), 30)
+    } else {
+      pendingPaperRef.current = { img, dataUrl }
+    }
+  }, [runPaperDetection])
+
+  // If the photo arrived before OpenCV finished loading, process once ready
+  useEffect(() => {
+    if (cvReady && pendingPaperRef.current) {
+      const { img, dataUrl } = pendingPaperRef.current
+      pendingPaperRef.current = null
+      runPaperDetection(img, dataUrl)
+    }
+  }, [cvReady, runPaperDetection])
+
+  // Auto-fill real dimensions from the paper scale once contours exist
+  useEffect(() => {
+    if (!paperScale || dimsAutoFilledRef.current) return
+    if (step < 2 || !contours.length) return
+    const pts = contours[selectedContour] || contours[0]
+    if (!pts || pts.length < 3) return
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
+    for (const p of pts) {
+      if (p.x < minX) minX = p.x
+      if (p.x > maxX) maxX = p.x
+      if (p.y < minY) minY = p.y
+      if (p.y > maxY) maxY = p.y
+    }
+    const wMm = Math.round((maxX - minX) * paperScale.mmPerPx * 10) / 10
+    const hMm = Math.round((maxY - minY) * paperScale.mmPerPx * 10) / 10
+    if (wMm > 3 && hMm > 3) {
+      setRealWidth(wMm)
+      setRealHeight(hMm)
+      dimsAutoFilledRef.current = true
+    }
+  }, [paperScale, step, contours, selectedContour])
+
+  // /editor/?gasket=1 preset: paper sizing on, thin 3D object output
+  useEffect(() => {
+    if (searchParams.get('gasket') && step === 0) {
+      setPaperMode(true)
+      setOutputMode('object')
+      setDepth(3)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams])
 
   // Auto-run detection once the sample image and OpenCV are both ready,
   // so first-time users see the trace happen without hunting for the button.
@@ -2202,7 +2297,11 @@ export default function Editor() {
             {step >= 2 && (
               <div>
                 <h3 className="text-xs font-semibold text-[#8888A0] uppercase tracking-wider mb-1">Tool Dimensions</h3>
-                <p className="text-[10px] text-[#666680] mb-3 italic">* Measure your tool and enter exact dimensions</p>
+                {paperScale ? (
+                  <p className="text-[10px] text-green-400/90 mb-3 italic">Sized automatically from your {paperScale.paperLabel} sheet. Fine-tune below if needed.</p>
+                ) : (
+                  <p className="text-[10px] text-[#666680] mb-3 italic">* Measure your tool and enter exact dimensions</p>
+                )}
 
 
                 {/* Tool dimensions for active tool */}
@@ -3088,6 +3187,17 @@ export default function Editor() {
                   {sampleLoading ? 'Loading sample...' : 'No tool handy? Try a sample photo'}
                 </button>
                 <p className="text-[11px] text-[#666680]">Watch the auto-trace work on a real pair of pliers</p>
+
+                <label className="mt-3 flex items-start gap-2.5 max-w-md text-left cursor-pointer select-none">
+                  <input type="checkbox" checked={paperMode} onChange={e => { setPaperMode(e.target.checked); setPaperStatus('') }}
+                    className="mt-0.5 accent-[#FF6B2B]" />
+                  <span className="text-xs text-[#9999AD] leading-relaxed">
+                    <span className="font-semibold text-[#C8C8D0]">Auto-size with a sheet of paper.</span>{' '}
+                    Place your tool or gasket on a plain white Letter or A4 sheet on a dark surface, photograph the whole sheet, and exact dimensions get set for you. No ruler needed.
+                    {paperStatus === 'searching' && <span className="block mt-1 text-brand">Finding the paper sheet...</span>}
+                    {paperStatus === 'notfound' && <span className="block mt-1 text-amber-400">Could not find a paper sheet in the last photo, so it loaded normally. Make sure all four corners are visible against a darker surface.</span>}
+                  </span>
+                </label>
               </div>
 
               {/* Photo Tips Popup */}
