@@ -8,7 +8,7 @@ import {
 } from 'lucide-react'
 import ThreePreview from '../components/ThreePreview'
 import PaywallModal from '../components/PaywallModal'
-import { detectPaperAndRectify } from '../lib/paperScale'
+import { detectPaperAndRectify, measureToolOnPaper } from '../lib/paperScale'
 import packoutCompact from '../data/packout_compact_profile.json'
 import packoutSlim from '../data/packout_slim_profile.json'
 import packoutShockwave from '../data/packout_shockwave_profile.json'
@@ -607,6 +607,7 @@ export default function Editor() {
     if (result.found) {
       const rectified = new Image()
       rectified.onload = () => {
+        window.__tfPaperImage = result.dataUrl // debug hook: rectified paper image
         commitEditorImage(result.dataUrl, rectified)
         setPaperScale({ mmPerPx: result.mmPerPx, paperLabel: result.paperLabel })
         setPaperStatus('found')
@@ -657,11 +658,18 @@ export default function Editor() {
       if (p.y < minY) minY = p.y
       if (p.y > maxY) maxY = p.y
     }
-    // Dimensions come straight from the traced silhouette at exact paper scale.
-    // (A shadow-trimming pass exists in paperScale.js but is disabled pending
-    // calibration on original camera files; screenshots proved untrustworthy.)
-    const wMm = Math.round((maxX - minX) * paperScale.mmPerPx * 10) / 10
-    const hMm = Math.round((maxY - minY) * paperScale.mmPerPx * 10) / 10
+    let wMm = Math.round((maxX - minX) * paperScale.mmPerPx * 10) / 10
+    let hMm = Math.round((maxY - minY) * paperScale.mmPerPx * 10) / 10
+    // Illumination-normalized dark-core measurement excludes cast shadow and
+    // soft edges (calibrated on real camera files, Jul 2026). Used only when
+    // it agrees with the trace; otherwise the trace bbox stands.
+    if (window.cv && imageRef.current) {
+      const m = measureToolOnPaper(window.cv, imageRef.current)
+      if (m.found && m.wMm > wMm * 0.7 && m.wMm <= wMm * 1.02 && m.hMm > hMm * 0.5 && m.hMm <= hMm * 1.02) {
+        wMm = m.wMm
+        hMm = m.hMm
+      }
+    }
     if (wMm > 3 && hMm > 3) {
       setRealWidth(wMm)
       setRealHeight(hMm)

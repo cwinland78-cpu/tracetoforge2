@@ -225,82 +225,53 @@ export function measureToolOnPaper(cv, imgEl) {
   const mats = []
   const track = (m) => { mats.push(m); return m }
   try {
+    // Work at reduced scale: the 45px closing below is separable and fast,
+    // and ~2px/mm is ample precision for a dimension readout.
+    const scale = Math.min(1, 600 / imgEl.width)
+    const cw = Math.round(imgEl.width * scale)
+    const ch = Math.round(imgEl.height * scale)
     const canvas = document.createElement('canvas')
-    canvas.width = imgEl.width; canvas.height = imgEl.height
-    canvas.getContext('2d').drawImage(imgEl, 0, 0)
+    canvas.width = cw; canvas.height = ch
+    canvas.getContext('2d').drawImage(imgEl, 0, 0, cw, ch)
     const src = track(cv.imread(canvas))
-    const gray = track(new cv.Mat())
-    cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY)
+    const gray8 = track(new cv.Mat())
+    cv.cvtColor(src, gray8, cv.COLOR_RGBA2GRAY)
 
-    // paper brightness = median of the frame (paper dominates a rectified shot)
-    const g = gray.data
-    const hist = new Array(256).fill(0)
-    for (let i = 0; i < g.length; i += 4) hist[g[i]]++
-    const half = Math.floor(g.length / 8)
-    let acc = 0, med = 200
-    for (let v = 0; v < 256; v++) { acc += hist[v]; if (acc >= half) { med = v; break } }
+    // Illumination field: grayscale closing with a kernel larger than the
+    // tool's minor axis removes the tool but keeps the lighting gradient.
+    const bg = track(new cv.Mat())
+    const bigK = track(cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(45, 45)))
+    cv.morphologyEx(gray8, bg, cv.MORPH_CLOSE, bigK)
+    cv.GaussianBlur(bg, bg, new cv.Size(17, 17), 0)
 
-    const t = Math.max(30, med * 0.6)
+    // solid tool = pixels darker than half the local paper brightness
+    const bgHalf = track(new cv.Mat())
+    bg.convertTo(bgHalf, cv.CV_8U, 0.5, 0)
     const mask = track(new cv.Mat())
-    cv.threshold(gray, mask, t, 255, cv.THRESH_BINARY_INV)
-    const kernel = track(cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(5, 5)))
-    cv.morphologyEx(mask, mask, cv.MORPH_OPEN, kernel)
+    cv.compare(gray8, bgHalf, mask, cv.CMP_LT)
+    const k7 = track(cv.getStructuringElement(cv.MORPH_ELLIPSE, new cv.Size(5, 5)))
+    cv.morphologyEx(mask, mask, cv.MORPH_CLOSE, k7)
+    const k3 = track(cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(3, 3)))
+    cv.morphologyEx(mask, mask, cv.MORPH_OPEN, k3)
 
     const contours = track(new cv.MatVector())
     const hierarchy = track(new cv.Mat())
     cv.findContours(mask, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-    let bestIdx = -1, bestArea = 0
+    let best = null
     for (let i = 0; i < contours.size(); i++) {
       const c = contours.get(i)
       const a = cv.contourArea(c)
-      if (a > bestArea) { bestArea = a; bestIdx = i }
+      if (a > 100 && (!best || a > best.area)) {
+        best = { area: a, rect: cv.boundingRect(c) }
+      }
       c.delete()
     }
-    if (bestIdx < 0 || bestArea < 400) return { found: false } // < ~5x5mm
-
-    const comp = track(new cv.Mat.zeros(gray.rows, gray.cols, cv.CV_8UC1))
-    cv.drawContours(comp, contours, bestIdx, new cv.Scalar(255), -1)
-    const bb = cv.boundingRect(contours.get(bestIdx))
-
-    // per-row / per-column mean gray over component pixels, plus core sample
-    const rows = bb.height, cols = bb.width
-    const rowSum = new Float64Array(rows), rowN = new Float64Array(rows)
-    const colSum = new Float64Array(cols), colN = new Float64Array(cols)
-    const samples = []
-    const gd = gray.data, cd = comp.data, W = gray.cols
-    for (let y = 0; y < rows; y++) {
-      const gy = bb.y + y
-      for (let x = 0; x < cols; x++) {
-        const gx = bb.x + x
-        if (cd[gy * W + gx]) {
-          const v = gd[gy * W + gx]
-          rowSum[y] += v; rowN[y]++
-          colSum[x] += v; colN[x]++
-          if (((y + x) & 3) === 0) samples.push(v)
-        }
-      }
-    }
-    samples.sort((a, b) => a - b)
-    const core = samples[Math.floor(samples.length * 0.3)] || 0
-    const MARGIN = 20
-
-    const peel = (sums, ns, n) => {
-      const limit = Math.floor(n * 0.35)
-      let lo = 0, hi = n - 1
-      const mean = (i) => ns[i] ? sums[i] / ns[i] : 255
-      while (lo < limit && mean(lo) > core + MARGIN) lo++
-      while (hi > n - 1 - limit && mean(hi) > core + MARGIN) hi--
-      return [lo, hi]
-    }
-    const [r0, r1] = peel(rowSum, rowN, rows)
-    const [c0, c1] = peel(colSum, colN, cols)
-    if (r1 <= r0 || c1 <= c0) return { found: false }
-
-    const PX_PER_MM_LOCAL = 4
+    if (!best) return { found: false }
+    const pxPerMm = 4 * scale
     return {
       found: true,
-      wMm: Math.round(((c1 - c0 + 1) / PX_PER_MM_LOCAL) * 10) / 10,
-      hMm: Math.round(((r1 - r0 + 1) / PX_PER_MM_LOCAL) * 10) / 10,
+      wMm: Math.round((best.rect.width / pxPerMm) * 10) / 10,
+      hMm: Math.round((best.rect.height / pxPerMm) * 10) / 10,
     }
   } catch (err) {
     console.error('[paperScale] measure error:', err)
