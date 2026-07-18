@@ -8,7 +8,7 @@ import {
 } from 'lucide-react'
 import ThreePreview from '../components/ThreePreview'
 import PaywallModal from '../components/PaywallModal'
-import { detectPaperAndRectify, measureToolOnPaper } from '../lib/paperScale'
+import { detectPaperAndRectify } from '../lib/paperScale'
 import packoutCompact from '../data/packout_compact_profile.json'
 import packoutSlim from '../data/packout_slim_profile.json'
 import packoutShockwave from '../data/packout_shockwave_profile.json'
@@ -657,17 +657,11 @@ export default function Editor() {
       if (p.y < minY) minY = p.y
       if (p.y > maxY) maxY = p.y
     }
-    let wMm = Math.round((maxX - minX) * paperScale.mmPerPx * 10) / 10
-    let hMm = Math.round((maxY - minY) * paperScale.mmPerPx * 10) / 10
-    // Prefer the shadow-trimmed dark-core measurement when it agrees with the
-    // trace to within 25%; wildly different means a light tool, keep the bbox.
-    if (window.cv && imageRef.current) {
-      const m = measureToolOnPaper(window.cv, imageRef.current)
-      if (m.found && m.wMm > wMm * 0.6 && m.wMm <= wMm * 1.05 && m.hMm > hMm * 0.4 && m.hMm <= hMm * 1.05) {
-        wMm = m.wMm
-        hMm = m.hMm
-      }
-    }
+    // Dimensions come straight from the traced silhouette at exact paper scale.
+    // (A shadow-trimming pass exists in paperScale.js but is disabled pending
+    // calibration on original camera files; screenshots proved untrustworthy.)
+    const wMm = Math.round((maxX - minX) * paperScale.mmPerPx * 10) / 10
+    const hMm = Math.round((maxY - minY) * paperScale.mmPerPx * 10) / 10
     if (wMm > 3 && hMm > 3) {
       setRealWidth(wMm)
       setRealHeight(hMm)
@@ -3230,7 +3224,7 @@ export default function Editor() {
                     className="mt-0.5 accent-[#FF6B2B]" />
                   <span className="text-xs text-[#9999AD] leading-relaxed">
                     <span className="font-semibold text-[#C8C8D0]">Auto-size with a sheet of paper.</span>{' '}
-                    Place your tool or gasket on a plain white Letter or A4 sheet on a dark surface, photograph the whole sheet, and exact dimensions get set for you. No ruler needed.
+                    Place your tool or gasket on a plain white Letter or A4 sheet, photograph the whole sheet straight down, and exact dimensions get set for you. Best accuracy: light from above (overhead shop light or outdoor shade) so the tool casts little shadow.
                     {paperStatus === 'searching' && <span className="block mt-1 text-brand">Finding the paper sheet...</span>}
                     {paperStatus === 'notfound' && <span className="block mt-1 text-amber-400">Could not find a paper sheet in the last photo, so it loaded normally. Make sure all four corners are visible against a darker surface.</span>}
                   </span>
