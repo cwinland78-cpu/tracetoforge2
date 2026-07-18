@@ -127,9 +127,16 @@ export function detectPaperAndRectify(cv, imgEl) {
     cv.warpPerspective(fullSrc, warped, M, new cv.Size(outW, outH),
       cv.INTER_LINEAR, cv.BORDER_CONSTANT, new cv.Scalar(255, 255, 255, 255))
 
+    // Trim a small border: warp edge artifacts and slivers of table from
+    // imperfect corner detection would otherwise register as contours.
+    const inset = Math.round(Math.min(outW, outH) * 0.015)
+    const cropW = outW - inset * 2
+    const cropH = outH - inset * 2
+    const roi = warped.roi(new cv.Rect(inset, inset, cropW, cropH))
     const outCanvas = document.createElement('canvas')
-    outCanvas.width = outW; outCanvas.height = outH
-    cv.imshow(outCanvas, warped)
+    outCanvas.width = cropW; outCanvas.height = cropH
+    cv.imshow(outCanvas, roi)
+    roi.delete()
     const dataUrl = outCanvas.toDataURL('image/jpeg', 0.92)
 
     return {
@@ -138,8 +145,8 @@ export function detectPaperAndRectify(cv, imgEl) {
       paperLabel: size.label,
       mmPerPx: 1 / PX_PER_MM,
       dataUrl,
-      outW,
-      outH,
+      outW: cropW,
+      outH: cropH,
     }
   } catch (err) {
     console.error('[paperScale] detection error:', err)

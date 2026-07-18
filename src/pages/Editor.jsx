@@ -97,6 +97,8 @@ export default function Editor() {
   const [paperStatus, setPaperStatus] = useState('') // '' | 'searching' | 'found' | 'notfound'
   const pendingPaperRef = useRef(null)
   const dimsAutoFilledRef = useRef(false)
+  const lastDimsFillKeyRef = useRef(null)
+  const originalUploadRef = useRef(null) // {img, dataUrl} of last real upload, for retroactive paper mode
   const [showPaywall, setShowPaywall] = useState(false)
   const [credits, setCredits] = useState(0)
   const [projectId, setProjectId] = useState(null)
@@ -531,6 +533,7 @@ export default function Editor() {
     reader.onload = (ev) => {
       const img = new Image()
       img.onload = () => {
+        originalUploadRef.current = { img, dataUrl: ev.target.result }
         if (paperMode) {
           beginPaperProcess(img, ev.target.result)
           return
@@ -641,8 +644,10 @@ export default function Editor() {
 
   // Auto-fill real dimensions from the paper scale once contours exist
   useEffect(() => {
-    if (!paperScale || dimsAutoFilledRef.current) return
+    if (!paperScale) return
     if (step < 2 || !contours.length) return
+    const fillKey = `${selectedContour}:${contours.length}`
+    if (lastDimsFillKeyRef.current === fillKey) return
     const pts = contours[selectedContour] || contours[0]
     if (!pts || pts.length < 3) return
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
@@ -657,7 +662,7 @@ export default function Editor() {
     if (wMm > 3 && hMm > 3) {
       setRealWidth(wMm)
       setRealHeight(hMm)
-      dimsAutoFilledRef.current = true
+      lastDimsFillKeyRef.current = fillKey
     }
   }, [paperScale, step, contours, selectedContour])
 
@@ -2208,6 +2213,29 @@ export default function Editor() {
             {/* Crop */}
             {step >= 1 && (
               <div>
+                {paperStatus === 'notfound' && (
+                  <div className="mb-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-xs text-amber-300 leading-relaxed">
+                    <span className="font-bold">Paper sheet not found.</span> Loaded your photo in normal mode instead, so enter dimensions manually below. For auto-sizing: use a plain white Letter/A4 sheet on a clearly darker surface, keep all 4 corners in frame, and avoid strong shadows across the paper.
+                    <button onClick={() => { const o = originalUploadRef.current; if (o) { setPaperStatus('searching'); beginPaperProcess(o.img, o.dataUrl) } }}
+                      className="block mt-2 underline text-amber-200 hover:text-white">Try paper detection again</button>
+                  </div>
+                )}
+                {paperStatus === 'searching' && (
+                  <div className="mb-4 p-3 rounded-lg bg-brand/10 border border-brand/30 text-xs text-brand">Finding the paper sheet...</div>
+                )}
+                {paperScale && (
+                  <div className="mb-4 p-3 rounded-lg bg-green-500/10 border border-green-500/30 text-xs text-green-300">
+                    <span className="font-bold">{paperScale.paperLabel} sheet detected.</span> Perspective corrected and dimensions set automatically.
+                  </div>
+                )}
+                {!paperMode && !paperScale && paperStatus === '' && (
+                  <label className="mb-4 flex items-start gap-2 cursor-pointer select-none">
+                    <input type="checkbox" checked={false}
+                      onChange={() => { setPaperMode(true); const o = originalUploadRef.current; if (o) beginPaperProcess(o.img, o.dataUrl) }}
+                      className="mt-0.5 accent-[#FF6B2B]" />
+                    <span className="text-[11px] text-[#9999AD] leading-snug">Photo is on a white Letter/A4 sheet? Auto-size it.</span>
+                  </label>
+                )}
                 <h3 className="text-xs font-semibold text-[#8888A0] uppercase tracking-wider mb-3">Crop</h3>
                 {!isCropping ? (
                   <button onClick={() => { setIsCropping(true); setCropRect(null) }}
