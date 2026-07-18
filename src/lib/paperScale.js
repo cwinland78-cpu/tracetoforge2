@@ -175,3 +175,100 @@ export function detectPaperAndRectify(cv, imgEl) {
     mats.forEach(m => { try { m.delete() } catch (_) { /* already deleted */ } })
   }
 }
+
+/**
+ * Measure the tool's true footprint on a rectified paper image, trimming
+ * cast shadows. A shadow, even a dark contact shadow, is brighter than a
+ * dark tool, so we peel the bounding box inward while the outermost
+ * rows/columns are brighter than the tool's core.
+ * Returns {found, wMm, hMm} or {found:false}. Callers fall back to the
+ * traced contour's bbox when this fails (e.g. light-colored tools).
+ */
+export function measureToolOnPaper(cv, imgEl) {
+  const mats = []
+  const track = (m) => { mats.push(m); return m }
+  try {
+    const canvas = document.createElement('canvas')
+    canvas.width = imgEl.width; canvas.height = imgEl.height
+    canvas.getContext('2d').drawImage(imgEl, 0, 0)
+    const src = track(cv.imread(canvas))
+    const gray = track(new cv.Mat())
+    cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY)
+
+    // paper brightness = median of the frame (paper dominates a rectified shot)
+    const g = gray.data
+    const hist = new Array(256).fill(0)
+    for (let i = 0; i < g.length; i += 4) hist[g[i]]++
+    const half = Math.floor(g.length / 8)
+    let acc = 0, med = 200
+    for (let v = 0; v < 256; v++) { acc += hist[v]; if (acc >= half) { med = v; break } }
+
+    const t = Math.max(30, med * 0.6)
+    const mask = track(new cv.Mat())
+    cv.threshold(gray, mask, t, 255, cv.THRESH_BINARY_INV)
+    const kernel = track(cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(5, 5)))
+    cv.morphologyEx(mask, mask, cv.MORPH_OPEN, kernel)
+
+    const contours = track(new cv.MatVector())
+    const hierarchy = track(new cv.Mat())
+    cv.findContours(mask, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+    let bestIdx = -1, bestArea = 0
+    for (let i = 0; i < contours.size(); i++) {
+      const c = contours.get(i)
+      const a = cv.contourArea(c)
+      if (a > bestArea) { bestArea = a; bestIdx = i }
+      c.delete()
+    }
+    if (bestIdx < 0 || bestArea < 400) return { found: false } // < ~5x5mm
+
+    const comp = track(new cv.Mat.zeros(gray.rows, gray.cols, cv.CV_8UC1))
+    cv.drawContours(comp, contours, bestIdx, new cv.Scalar(255), -1)
+    const bb = cv.boundingRect(contours.get(bestIdx))
+
+    // per-row / per-column mean gray over component pixels, plus core sample
+    const rows = bb.height, cols = bb.width
+    const rowSum = new Float64Array(rows), rowN = new Float64Array(rows)
+    const colSum = new Float64Array(cols), colN = new Float64Array(cols)
+    const samples = []
+    const gd = gray.data, cd = comp.data, W = gray.cols
+    for (let y = 0; y < rows; y++) {
+      const gy = bb.y + y
+      for (let x = 0; x < cols; x++) {
+        const gx = bb.x + x
+        if (cd[gy * W + gx]) {
+          const v = gd[gy * W + gx]
+          rowSum[y] += v; rowN[y]++
+          colSum[x] += v; colN[x]++
+          if (((y + x) & 3) === 0) samples.push(v)
+        }
+      }
+    }
+    samples.sort((a, b) => a - b)
+    const core = samples[Math.floor(samples.length * 0.3)] || 0
+    const MARGIN = 20
+
+    const peel = (sums, ns, n) => {
+      const limit = Math.floor(n * 0.35)
+      let lo = 0, hi = n - 1
+      const mean = (i) => ns[i] ? sums[i] / ns[i] : 255
+      while (lo < limit && mean(lo) > core + MARGIN) lo++
+      while (hi > n - 1 - limit && mean(hi) > core + MARGIN) hi--
+      return [lo, hi]
+    }
+    const [r0, r1] = peel(rowSum, rowN, rows)
+    const [c0, c1] = peel(colSum, colN, cols)
+    if (r1 <= r0 || c1 <= c0) return { found: false }
+
+    const PX_PER_MM_LOCAL = 4
+    return {
+      found: true,
+      wMm: Math.round(((c1 - c0 + 1) / PX_PER_MM_LOCAL) * 10) / 10,
+      hMm: Math.round(((r1 - r0 + 1) / PX_PER_MM_LOCAL) * 10) / 10,
+    }
+  } catch (err) {
+    console.error('[paperScale] measure error:', err)
+    return { found: false }
+  } finally {
+    mats.forEach(m => { try { m.delete() } catch (_) { /* already deleted */ } })
+  }
+}

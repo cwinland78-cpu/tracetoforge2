@@ -8,7 +8,7 @@ import {
 } from 'lucide-react'
 import ThreePreview from '../components/ThreePreview'
 import PaywallModal from '../components/PaywallModal'
-import { detectPaperAndRectify } from '../lib/paperScale'
+import { detectPaperAndRectify, measureToolOnPaper } from '../lib/paperScale'
 import packoutCompact from '../data/packout_compact_profile.json'
 import packoutSlim from '../data/packout_slim_profile.json'
 import packoutShockwave from '../data/packout_shockwave_profile.json'
@@ -657,8 +657,17 @@ export default function Editor() {
       if (p.y < minY) minY = p.y
       if (p.y > maxY) maxY = p.y
     }
-    const wMm = Math.round((maxX - minX) * paperScale.mmPerPx * 10) / 10
-    const hMm = Math.round((maxY - minY) * paperScale.mmPerPx * 10) / 10
+    let wMm = Math.round((maxX - minX) * paperScale.mmPerPx * 10) / 10
+    let hMm = Math.round((maxY - minY) * paperScale.mmPerPx * 10) / 10
+    // Prefer the shadow-trimmed dark-core measurement when it agrees with the
+    // trace to within 25%; wildly different means a light tool, keep the bbox.
+    if (window.cv && imageRef.current) {
+      const m = measureToolOnPaper(window.cv, imageRef.current)
+      if (m.found && m.wMm > wMm * 0.6 && m.wMm <= wMm * 1.05 && m.hMm > hMm * 0.4 && m.hMm <= hMm * 1.05) {
+        wMm = m.wMm
+        hMm = m.hMm
+      }
+    }
     if (wMm > 3 && hMm > 3) {
       setRealWidth(wMm)
       setRealHeight(hMm)
