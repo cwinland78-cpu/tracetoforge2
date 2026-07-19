@@ -580,6 +580,7 @@ export default function Editor() {
         setZoom(0.4)
         setContours([])
         setShowPreview(false)
+        setSensitivity(8) // pinned: sample photo traces clean at +2, fragments at default
         setPendingAutoDetect(true)
         setSampleLoading(false)
       }
