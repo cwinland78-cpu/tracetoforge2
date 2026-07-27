@@ -609,7 +609,25 @@ export default function Editor() {
         setLocked(true) // saved trace was hand-tuned, do not clobber on slider change
         setStep(2)
         setEditMode('edit') // show the editable points right away
-        setZoom(0.55)
+        // Fit the image plus its dimension labels inside the viewport, then
+        // center the scroll so the labels below/right of the image are visible.
+        const iw = (cfg.imageSize?.w || img.width)
+        const ih = (cfg.imageSize?.h || img.height)
+        const el = containerRef.current
+        let fitZoom = 0.45
+        if (el && el.clientWidth > 0) {
+          // Label bars add roughly 25% width and 45% height around the image
+          fitZoom = Math.min(el.clientWidth / (iw * 1.3), el.clientHeight / (ih * 1.5))
+          fitZoom = Math.max(0.25, Math.min(0.9, Math.floor(fitZoom * 20) / 20))
+        }
+        setZoom(fitZoom)
+        setTimeout(() => {
+          const sc = scrollRef.current
+          if (sc) {
+            sc.scrollTop = Math.max(0, (sc.scrollHeight - sc.clientHeight) / 2 + 60)
+            sc.scrollLeft = Math.max(0, (sc.scrollWidth - sc.clientWidth) / 2)
+          }
+        }, 80)
         setShowPreview(false)
         setSampleLoading(false)
       }
