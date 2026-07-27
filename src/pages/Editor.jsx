@@ -175,6 +175,7 @@ export default function Editor() {
   const [showPreview, setShowPreview] = useState(false)
   const [showPhotoTips, setShowPhotoTips] = useState(false)
   const [minContourPct, setMinContourPct] = useState(0.05) // % of image area
+  const [holeMinPct, setHoleMinPct] = useState(1.0) // gasket mode: min hole size as % of outline area
   const [isCropping, setIsCropping] = useState(false)
   const [cropStart, setCropStart] = useState(null)
   const [cropRect, setCropRect] = useState(null)
@@ -303,6 +304,7 @@ export default function Editor() {
       if (cfg.outerShapeType) setOuterShapeType(cfg.outerShapeType)
       if (cfg.outerShapePoints) setOuterShapePoints(cfg.outerShapePoints)
       if (cfg.activeTemplate) setActiveTemplate(cfg.activeTemplate)
+      if (cfg.holeMinPct != null) setHoleMinPct(cfg.holeMinPct)
       if (cfg.gridX) setGridX(cfg.gridX)
       if (cfg.gridY) setGridY(cfg.gridY)
       if (cfg.gridHeight) setGridHeight(cfg.gridHeight)
@@ -329,7 +331,7 @@ export default function Editor() {
       fingerNotches, activeToolIdx, notchBevel,
       tools: savedTools, step: step, trayWidth, trayHeight, trayDepth, depth, objectEdgeRadius,
       edgeProfile, edgeSize, outerShapeType, outerShapePoints, activeTemplate, gridX, gridY,
-      gridHeight, stackingLip, threshold, simplification, sensitivity, minContourPct,
+      gridHeight, stackingLip, threshold, simplification, sensitivity, minContourPct, holeMinPct,
       image: image || null,
       imageSize: imageSize || null,
     }
@@ -980,6 +982,9 @@ export default function Editor() {
             const pArea = parentAreaByDetIdx.get(di) || area
             const minWidth = Math.max(10, 0.025 * Math.sqrt(pArea))
             if (shortSide < minWidth) { contour.delete(); continue }
+            // User-adjustable floor: hole must be at least holeMinPct% of the
+            // gasket outline area. Dials out phantom holes from surface texture.
+            if (area < pArea * (holeMinPct / 100)) { contour.delete(); continue }
             const points = simplifyHole(contour)
             contour.delete()
             if (points.length < 3) continue
@@ -1020,7 +1025,7 @@ export default function Editor() {
       }
       setProcessing(false)
     }, 50)
-  }, [cvReady, simplification, sensitivity, minContourPct, gasketUI])
+  }, [cvReady, simplification, sensitivity, minContourPct, gasketUI, holeMinPct])
 
   // Auto re-detect when settings change (after first detection).
   // Skipped when locked: user has hand-edited contours and we must not clobber them.
@@ -1031,7 +1036,7 @@ export default function Editor() {
       runEdgeDetection()
     }, 300)
     return () => clearTimeout(timer)
-  }, [simplification, sensitivity, minContourPct, locked])
+  }, [simplification, sensitivity, minContourPct, holeMinPct, locked])
 
   /* ── Canvas Drawing ── */
   const drawCanvas = useCallback(() => {
@@ -2498,6 +2503,17 @@ export default function Editor() {
                         <span className="text-xs text-[#8888A0] w-7 text-right flex-shrink-0">{minContourPct}%</span>
                       </div>
                     </div>
+                    {gasketUI && (
+                      <div>
+                        <div className="flex items-center text-sm text-[#C8C8D0] mb-1">Hole Size <Tooltip text="Minimum hole size as a percentage of the gasket outline. Raise it to ignore false holes from surface texture and highlights, lower it to keep small bolt holes." /></div>
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => setHoleMinPct(v => Math.max(0.1, Math.round((v - 0.1) * 10) / 10))} className="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded bg-[#1C1C24] hover:bg-[#2A2A35] text-[#8888A0] hover:text-white text-sm font-bold transition-colors">-</button>
+                          <input type="range" min="0.1" max="10" step="0.1" value={holeMinPct} onChange={e => setHoleMinPct(+e.target.value)} className="flex-1 min-w-0" />
+                          <button onClick={() => setHoleMinPct(v => Math.min(10, Math.round((v + 0.1) * 10) / 10))} className="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded bg-[#1C1C24] hover:bg-[#2A2A35] text-[#8888A0] hover:text-white text-sm font-bold transition-colors">+</button>
+                          <span className="text-xs text-[#8888A0] w-7 text-right flex-shrink-0">{holeMinPct}%</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <button onClick={runEdgeDetection} disabled={!cvReady || processing}
                     className="w-full py-2 rounded-lg bg-brand hover:bg-brand-light disabled:bg-[#2A2A35] disabled:text-[#555566] text-white text-sm font-medium transition-colors">
