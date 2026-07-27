@@ -1079,17 +1079,16 @@ export default function Editor() {
         }, 0) / 2)
         detected.sort((a, b) => areaOf(b.points) - areaOf(a.points))
 
-        // Twin absorption (gasket mode): a bright line along the gasket's
-        // outer edge can split it into two stacked top-level blobs - an outer
-        // band and an interior blob carrying the real holes. If a shape sits
-        // just inside a larger one, hugging it within a couple mm along its
-        // whole boundary, it is the same physical gasket: absorb its holes
-        // into the larger shape and drop the duplicate ring. Separate gaskets
-        // lying side by side are never inside each other, so they are safe.
+        // Containment absorption (gasket mode): the edge detector returns
+        // hole boundaries as independent top-level shapes. Physically, a
+        // shape whose center lies inside another shape cannot be a separate
+        // gasket - it is a hole in that gasket. Absorb it. Shapes lying side
+        // by side are never inside each other, so multiple gaskets on one
+        // sheet still work. Hugging twins (double-edge artifacts within the
+        // wall distance) are absorbed but NOT added as holes.
         let removedTwins = null
         if (gasketUI && gasketHelpers && detected.length > 1) {
           const { maxWallDist, centroidOf, pointInPoly, wallPx } = gasketHelpers
-          const absorbDist = wallPx * 2.5
           removedTwins = new Set()
           for (let i = 0; i < detected.length; i++) {
             if (removedTwins.has(i)) continue
@@ -1097,16 +1096,12 @@ export default function Editor() {
               if (removedTwins.has(j)) continue
               const cj = centroidOf(detected[j].points)
               if (!pointInPoly(cj, detected[i].points)) continue
-              if (maxWallDist(detected[j].points, detected[i].points) >= absorbDist) continue
-              // j is i's double-edge twin: adopt its holes (wall-checked
-              // and deduped against what i already has)
-              detected[j].holes.forEach(h => {
-                if (maxWallDist(h, detected[i].points) <= wallPx) return
-                const hc = centroidOf(h)
-                if (detected[i].holes.some(k => pointInPoly(hc, k))) return
-                detected[i].holes.push(h)
-              })
               removedTwins.add(j)
+              // Double-edge twin hugging the outline: drop entirely.
+              if (maxWallDist(detected[j].points, detected[i].points) <= wallPx) continue
+              // Real hole: adopt unless it duplicates an existing one.
+              if (detected[i].holes.some(k => pointInPoly(cj, k))) continue
+              detected[i].holes.push(detected[j].points)
             }
           }
         }
