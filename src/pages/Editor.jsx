@@ -8,7 +8,7 @@ import {
 } from 'lucide-react'
 import ThreePreview from '../components/ThreePreview'
 import PaywallModal from '../components/PaywallModal'
-import { detectCalibSheetAndRectify, detectPaperAndRectify, measureToolOnPaper } from '../lib/paperScale'
+import { CALIB_LAYOUT, detectCalibSheetAndRectify, detectPaperAndRectify, measureToolOnPaper } from '../lib/paperScale'
 import packoutCompact from '../data/packout_compact_profile.json'
 import packoutSlim from '../data/packout_slim_profile.json'
 import packoutShockwave from '../data/packout_shockwave_profile.json'
@@ -921,6 +921,21 @@ export default function Editor() {
           if (br.width > img.width * 0.97 && br.height > img.height * 0.97) {
             contour.delete()
             continue
+          }
+
+          // Calibration sheet: exclude the sheet's own printed features.
+          // We generated the sheet, so marker/text/ruler positions are known
+          // exactly in rectified mm coordinates.
+          if (paperScale?.paperLabel === 'Calibration' && paperScale.mmPerPx) {
+            const cxmm = (br.x + br.width / 2) * paperScale.mmPerPx
+            const cymm = (br.y + br.height / 2) * paperScale.mmPerPx
+            const { rectW, rectH, margin, markerHalf, topBand, bottomBand } = CALIB_LAYOUT
+            const corners = [[margin, margin], [margin + rectW, margin], [margin, margin + rectH], [margin + rectW, margin + rectH]]
+            const nearMarker = corners.some(([mx, my]) => Math.abs(cxmm - mx) < markerHalf && Math.abs(cymm - my) < markerHalf)
+            if (nearMarker || cymm < topBand || cymm > bottomBand) {
+              contour.delete()
+              continue
+            }
           }
 
           const points = simplify(contour)

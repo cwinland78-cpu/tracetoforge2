@@ -292,6 +292,17 @@ const CALIB_RECT_H = 230  // mm between marker centers, vertical
 const CALIB_PX_PER_MM = 6 // rectified output resolution
 const CALIB_MARGIN = 14   // mm of sheet kept around the marker rectangle
 
+// Exported so detection can exclude the sheet's own printed features
+// (markers, title, ruler) from tool contours - all in rectified mm coords.
+export const CALIB_LAYOUT = {
+  rectW: CALIB_RECT_W,
+  rectH: CALIB_RECT_H,
+  margin: CALIB_MARGIN,
+  markerHalf: 30,   // exclusion half-size around each marker center, mm
+  topBand: 30,      // exclude centroids above this y (title text), mm
+  bottomBand: 232,  // exclude centroids below this y (ruler + url), mm
+}
+
 /**
  * @param {object} cv - window.cv
  * @param {HTMLImageElement} imgEl - uploaded photo
