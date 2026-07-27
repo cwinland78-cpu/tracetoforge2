@@ -1025,9 +1025,41 @@ export default function Editor() {
             if (!rawHoles.has(di)) rawHoles.set(di, [])
             rawHoles.get(di).push({ points, area })
           }
-          // Concentric dedupe: the double edge often yields two nested contours
-          // for the same physical hole - keep the larger of any nested pair
+          // Outer double-edge artifact: the gasket's outer edge highlight can
+          // come back as a giant fake hole hugging just inside the outline.
+          // Discriminator is wall width, not size (real washers have huge
+          // holes): if a hole's FARTHEST point from the outer contour is
+          // still within ~1mm, no functional gasket has that wall - drop it.
+          const distPtSeg = (p, a, b) => {
+            const dx = b.x - a.x, dy = b.y - a.y
+            const len2 = dx * dx + dy * dy
+            if (len2 === 0) return Math.hypot(p.x - a.x, p.y - a.y)
+            let t = ((p.x - a.x) * dx + (p.y - a.y) * dy) / len2
+            t = Math.max(0, Math.min(1, t))
+            return Math.hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy))
+          }
+          const maxWallDist = (holePts, outerPts) => {
+            const step = Math.max(1, Math.floor(holePts.length / 40))
+            let mx = 0
+            for (let j = 0; j < holePts.length; j += step) {
+              const hp = holePts[j]
+              let dmin = Infinity
+              for (let a = 0, b = outerPts.length - 1; a < outerPts.length; b = a++) {
+                const d = distPtSeg(hp, outerPts[b], outerPts[a])
+                if (d < dmin) dmin = d
+              }
+              if (dmin > mx) mx = dmin
+            }
+            return mx
+          }
+          const wallPx = paperScale?.mmPerPx ? (1.0 / paperScale.mmPerPx) : 5
+
           rawHoles.forEach((list, di) => {
+            const outer = detected[di].points
+            // Drop edge-artifact holes first so real holes inside them survive
+            list = list.filter(h => maxWallDist(h.points, outer) > wallPx)
+            // Concentric dedupe: the double edge can also yield two nested
+            // contours for the same physical hole - keep the larger
             list.sort((a, b) => b.area - a.area)
             const kept = []
             list.forEach(h => {
