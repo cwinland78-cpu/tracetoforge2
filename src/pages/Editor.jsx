@@ -877,6 +877,7 @@ export default function Editor() {
         const holeMinArea = Math.max(minArea * 0.05, 40)
         const detected = []       // [{ points, holes, origIdx }]
         const keptByOrigIdx = new Map()
+        const parentAreaByDetIdx = new Map()
         const simplify = (contour) => {
           const epsilon = simplification * 0.002 * cv.arcLength(contour, true)
           const approx = new cv.Mat()
@@ -907,6 +908,7 @@ export default function Editor() {
           contour.delete()
           if (points.length >= 3) {
             keptByOrigIdx.set(i, detected.length)
+            parentAreaByDetIdx.set(detected.length, area)
             detected.push({ points, holes: [] })
           }
         }
@@ -970,10 +972,17 @@ export default function Editor() {
             const contour = contoursMat.get(i)
             const area = cv.contourArea(contour)
             if (area < holeMinArea) { contour.delete(); continue }
+            const di = keptByOrigIdx.get(parentIdx)
+            // Thinness filter: surface highlights on the gasket material show
+            // up as long paper-thin contours. A real hole has meaningful width.
+            const rect = cv.minAreaRect(contour)
+            const shortSide = Math.min(rect.size.width, rect.size.height)
+            const pArea = parentAreaByDetIdx.get(di) || area
+            const minWidth = Math.max(10, 0.025 * Math.sqrt(pArea))
+            if (shortSide < minWidth) { contour.delete(); continue }
             const points = simplifyHole(contour)
             contour.delete()
             if (points.length < 3) continue
-            const di = keptByOrigIdx.get(parentIdx)
             if (!rawHoles.has(di)) rawHoles.set(di, [])
             rawHoles.get(di).push({ points, area })
           }
