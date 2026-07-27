@@ -175,7 +175,7 @@ export default function Editor() {
   const [showPreview, setShowPreview] = useState(false)
   const [showPhotoTips, setShowPhotoTips] = useState(false)
   const [minContourPct, setMinContourPct] = useState(0.05) // % of image area
-  const [holeMinPct, setHoleMinPct] = useState(1.0) // gasket mode: min hole size as % of outline area
+  const [holeMinPct, setHoleMinPct] = useState(0.5) // gasket mode: min hole size as % of outline area
   const [isCropping, setIsCropping] = useState(false)
   const [cropStart, setCropStart] = useState(null)
   const [cropRect, setCropRect] = useState(null)
@@ -975,12 +975,14 @@ export default function Editor() {
             const area = cv.contourArea(contour)
             if (area < holeMinArea) { contour.delete(); continue }
             const di = keptByOrigIdx.get(parentIdx)
-            // Thinness filter: surface highlights on the gasket material show
-            // up as long paper-thin contours. A real hole has meaningful width.
+            // Thinness filter: surface highlights show up as paper-thin
+            // contours. No assumptions about gasket proportions - a functional
+            // hole just needs physical width. With paper scale we use ~1.2mm;
+            // without it, a fixed 6px floor that only rejects pixel-scale noise.
             const rect = cv.minAreaRect(contour)
             const shortSide = Math.min(rect.size.width, rect.size.height)
             const pArea = parentAreaByDetIdx.get(di) || area
-            const minWidth = Math.max(10, 0.025 * Math.sqrt(pArea))
+            const minWidth = paperScale?.mmPerPx ? (1.2 / paperScale.mmPerPx) : 6
             if (shortSide < minWidth) { contour.delete(); continue }
             // User-adjustable floor: hole must be at least holeMinPct% of the
             // gasket outline area. Dials out phantom holes from surface texture.
@@ -1025,7 +1027,7 @@ export default function Editor() {
       }
       setProcessing(false)
     }, 50)
-  }, [cvReady, simplification, sensitivity, minContourPct, gasketUI, holeMinPct])
+  }, [cvReady, simplification, sensitivity, minContourPct, gasketUI, holeMinPct, paperScale])
 
   // Auto re-detect when settings change (after first detection).
   // Skipped when locked: user has hand-edited contours and we must not clobber them.
