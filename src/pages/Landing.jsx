@@ -308,11 +308,12 @@ export default function Landing() {
             Lay your tools on a sheet of paper, snap a photo, and get a precision-fit drawer tray that
             holds every piece exactly where it belongs. Works for wrench organizers, plier organizers,
             screwdriver organizers, hammer trays, Gridfinity bins, and custom tool chest inserts.
+            It even makes replacement gaskets from a photo of the old one.
             Export STL, 3MF, SVG, or DXF. Zero CAD skills.
           </p>
 
           <p className="text-sm text-[#666680] font-mono mb-10">
-            <span className="text-brand font-semibold">Tool Drawer Trays</span> &bull; <span className="text-[#AAABB8]">Wrench Organizer</span> &bull; <span className="text-[#AAABB8]">Plier Organizer</span> &bull; <span className="text-[#AAABB8]">Screwdriver Tray</span> &bull; <span className="text-[#AAABB8]">Gridfinity</span>
+            <span className="text-brand font-semibold">Tool Drawer Trays</span> &bull; <span className="text-[#AAABB8]">Wrench Organizer</span> &bull; <span className="text-[#AAABB8]">Plier Organizer</span> &bull; <span className="text-[#AAABB8]">Screwdriver Tray</span> &bull; <span className="text-[#AAABB8]">Gridfinity</span> &bull; <Link to="/editor/?gasket=1" className="text-[#AAABB8] hover:text-brand transition-colors">Gasket Maker</Link>
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

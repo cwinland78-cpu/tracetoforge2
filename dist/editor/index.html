@@ -15,20 +15,20 @@
     <link rel="apple-touch-icon" href="/icon-512.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tool Insert Editor - Upload Photo &amp; Export STL | TracetoForge</title>
-    <meta name="description" content="Upload a photo of your tool and create a custom 3D-printable insert. Export STL, 3MF, SVG, or DXF. Works with Packout, Gridfinity, and custom trays." />
+    <meta name="description" content="Free browser-based tool insert editor. Upload a photo, auto-trace the outline, and export print-ready STL, 3MF, SVG, or DXF files. Works with Milwaukee Packout, Gridfinity, DeWalt ToughSystem, and custom trays." />
     <meta name="author" content="TracetoForge" />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://tracetoforge.com/editor/" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://tracetoforge.com/editor/" />
     <meta property="og:title" content="TracetoForge Editor - Photo to 3D Insert" />
-    <meta property="og:description" content="Upload a photo of your tool and create a custom 3D-printable insert. Export STL, 3MF, SVG, or DXF. Works with Packout, Gridfinity, and custom trays." />
+    <meta property="og:description" content="Free browser-based tool insert editor. Upload a photo, auto-trace the outline, and export print-ready STL, 3MF, SVG, or DXF files. Works with Milwaukee Packout, Gridfinity, DeWalt ToughSystem, and custom trays." />
     <meta property="og:image" content="https://tracetoforge.com/og-twitter.jpg" />
     <meta property="og:site_name" content="TracetoForge" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:url" content="https://tracetoforge.com/editor/" />
     <meta name="twitter:title" content="TracetoForge Editor - Photo to 3D Insert" />
-    <meta name="twitter:description" content="Upload a photo of your tool and create a custom 3D-printable insert. Export STL, 3MF, SVG, or DXF. Works with Packout, Gridfinity, and custom trays." />
+    <meta name="twitter:description" content="Free browser-based tool insert editor. Upload a photo, auto-trace the outline, and export print-ready STL, 3MF, SVG, or DXF files. Works with Milwaukee Packout, Gridfinity, DeWalt ToughSystem, and custom trays." />
     <meta name="twitter:image" content="https://tracetoforge.com/og-twitter.jpg" />
     <script type="application/ld+json">
     {
@@ -58,30 +58,138 @@
       "@context": "https://schema.org",
       "@type": "Organization",
       "name": "TracetoForge",
+      "legalName": "Qwikymart LLC",
       "url": "https://tracetoforge.com",
       "logo": "https://tracetoforge.com/icon-512.png",
       "description": "Photo-to-print tool insert generator for 3D printing.",
+      "foundingDate": "2024",
+      "address": {
+        "@type": "PostalAddress",
+        "addressRegion": "OH",
+        "addressCountry": "US"
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "email": "support@tracetoforge.com",
+        "contactType": "customer service",
+        "availableLanguage": "English"
+      },
       "sameAs": [
-        "https://www.etsy.com/shop/TracetoForge"
+        "https://www.etsy.com/shop/TracetoForge",
+        "https://www.amazon.com/s?k=TracetoForge+gridfinity+insert&rh=n%3A553240"
       ],
       "founder": {
         "@type": "Person",
-        "name": "Chris Winland"
+        "name": "Chris Winland",
+        "jobTitle": "Founder",
+        "worksFor": {
+          "@type": "Organization",
+          "name": "Qwikymart LLC"
+        },
+        "url": "https://tracetoforge.com/about/",
+        "sameAs": [
+          "https://www.etsy.com/shop/TracetoForge"
+        ]
       }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "TracetoForge Editor",
+      "url": "https://tracetoforge.com/editor/",
+      "applicationCategory": "DesignApplication",
+      "applicationSubCategory": "3D Modeling Software",
+      "operatingSystem": "Web Browser",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "featureList": [
+        "Photo-based automatic tool outline detection",
+        "Custom tray insert generation",
+        "Gridfinity-compatible bin export (42mm grid)",
+        "STL, 3MF, SVG, DXF export formats",
+        "Real-time 3D preview"
+      ]
     }
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-    <script type="module" crossorigin src="/assets/index-B4kQbqh0.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-6igyh4SM.css">
+    <script type="module" crossorigin src="/assets/index-BcILVcwa.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CtuNuNf0.css">
   </head>
   <body>
     <div id="root">
-      <h1>TracetoForge Editor</h1>
+      <h1>TracetoForge Editor: Photo to Print-Ready Tool Insert</h1>
       
-      <p>Upload a photo of your tool to create a custom 3D-printable insert. Supports STL, 3MF, SVG, and DXF export. Compatible with Milwaukee Packout, Gridfinity, DeWalt ToughSystem, and custom trays.</p>
-      <p><a href="/">Learn more about TracetoForge</a> | <a href="/guide">Getting Started Guide</a></p>
+      <p>The TracetoForge editor turns a top-down photo of any hand tool into a precision-fit 3D printable insert. Upload your photo, the app auto-traces the outline using OpenCV edge detection, and you export a print-ready file in STL, 3MF, SVG, or DXF. The editor runs entirely in your browser — no installs, no uploads to a server, no CAD experience required. Average time from photo to printable file is under two minutes.</p>
+
+      <h2>How to Use the Editor</h2>
+      <h3>Step 1: Take a top-down photo</h3>
+      <p>Place your tool on a clean sheet of white paper, A4 or US Letter size. The paper acts as both a contrasting background and a size reference, which the editor uses to calibrate real-world dimensions. Hold your phone directly above the tool and shoot straight down. Good even lighting matters more than a high-end camera. Avoid harsh shadows, glare on shiny tools, and tilted angles.</p>
+
+      <h3>Step 2: Upload and auto-trace</h3>
+      <p>Drag and drop your photo into the editor or use the file picker. OpenCV processes the image client-side and detects the tool outline automatically. If the trace looks off, adjust the Sensitivity slider. Lower sensitivity (1-2) uses Otsu thresholding, which works well for high-contrast white-paper-and-dark-tool shots. Mid-range sensitivity (3-8) uses Canny edge detection. Higher sensitivity (9-10) blends adaptive thresholding with Canny for low-contrast or shadowed photos.</p>
+
+      <h3>Step 3: Set real dimensions</h3>
+      <p>Enter the actual length of your tool, or use the paper reference for automatic scale calibration. This converts pixel measurements to millimeters so your printed insert fits the tool exactly. You can also adjust tolerance, cavity depth, and add a finger notch for easy tool removal.</p>
+
+      <h3>Step 4: Pick an insert mode</h3>
+      <p>Choose between three output modes depending on where the insert will live. Custom Tray creates a rectangular or oval tray for Milwaukee Packout, DeWalt ToughSystem, or any toolbox drawer with custom dimensions. Gridfinity Bin generates a standards-compliant 42mm-grid bin with the proper base profile. 3D Object exports just the extruded tool shape, useful for custom mounts, foam templates, or shadow boards.</p>
+
+      <h3>Step 5: Preview and export</h3>
+      <p>The 3D preview shows your insert in real time. Drag tools around in the preview to reposition. When you are satisfied, pick your export format and download. Slice with Cura, PrusaSlicer, OrcaSlicer, Bambu Studio, or any other slicer.</p>
+
+      <h2>Multi-Tool Support</h2>
+      <p>The editor supports up to five tools per insert. Trace each tool from its own photo, then position them on a single tray. Each tool has independent settings: cavity depth, wall tolerance, finger notch, rotation, and bevel. This lets you build a single insert that holds an entire set of pliers, screwdrivers, or wrenches in one print.</p>
+
+      <h2>Supported Export Formats</h2>
+      <p><strong>STL:</strong> The universal 3D printing format. Works with every slicer and 3D printer. Best choice for single-material PETG or PLA prints.</p>
+      <p><strong>3MF:</strong> Modern 3D printing format with support for multi-material, multi-color, and embedded slicing settings. Use for Bambu, Prusa XL, or any AMS-equipped printer if you want a two-tone insert.</p>
+      <p><strong>SVG:</strong> Vector format for laser cutting. Use SVG to laser-cut foam inserts, plywood trays, or acrylic templates of the same shape you would otherwise 3D print.</p>
+      <p><strong>DXF:</strong> CAD format for CNC routing. Use DXF when you want to mill a custom hardwood tool tray or aluminum insert on a CNC router.</p>
+
+      <h2>Compatible Tool Storage Systems</h2>
+      <p>TracetoForge generates inserts that fit Milwaukee Packout (full size, compact, low-profile), Gridfinity (42mm standard grid), DeWalt ToughSystem 2.0, DeWalt TSTAK, Ridgid Pro Gear 2.0, Makita MakTrak, Flex Stack Pack, Klein ModBox, Bosch L-Boxx, Festool Systainer, Makita MakPac, Kobalt, Husky, Craftsman, Stanley FatMax, Harbor Freight US General, and Snap-on. For toolbox drawers without a standard system, use Custom Tray mode and enter your own dimensions.</p>
+
+      <h2>Pricing and Credits</h2>
+      <p>Tracing, previewing, and adjusting your insert are always free with no signup required. Exporting a file to download requires one credit. New accounts get three free export credits on signup. Additional credits are available in packs: 20 credits for $9.99 or 100 credits for $34.99. Credits never expire.</p>
+
+      <h2>Editor FAQ</h2>
+
+      <h3>Does the editor work on mobile?</h3>
+      <p>Yes. The editor runs in any modern mobile browser (Safari on iOS, Chrome on Android). Photo upload, tracing, and 3D preview all work on phones and tablets. Most users find it easier to take the photo on phone and do the export on desktop, but either works.</p>
+
+      <h3>What photo quality do I need?</h3>
+      <p>A standard smartphone camera is more than enough. Aim for the tool to fill at least half the frame, shoot from at least 12 inches above the object to minimize perspective distortion, and use diffused lighting. Auto-detection handles 90% of cases on the first try.</p>
+
+      <h3>Are my photos uploaded anywhere?</h3>
+      <p>No. All image processing happens in your browser using OpenCV.js. Your photo never leaves your device unless you explicitly save the project to your account, in which case a small thumbnail is stored alongside the project settings.</p>
+
+      <h3>What filament should I print with?</h3>
+      <p>PETG is the recommended choice for tool inserts. It survives temperatures up to 80°C, which makes it safe for vehicle toolboxes and hot garages. PLA prints faster and looks cleaner but warps above 60°C, so save it for indoor workshop use. ABS and ASA work for industrial applications but require an enclosed printer.</p>
+
+      <h3>Can I save and edit projects later?</h3>
+      <p>Yes. Sign in with email to save unlimited projects. Each project stores your tool dimensions, tracing settings, insert mode, and a thumbnail. Projects are private to your account.</p>
+
+      <h3>Can I sell prints I make with TracetoForge?</h3>
+      <p>Yes. You own the files you generate. There is no royalty or commercial-use restriction on your exports.</p>
+
+      <h2>Tutorials and Guides</h2>
+      <p>For deeper walkthroughs, see the <a href="/guide/">Getting Started Guide</a>, or browse practical guides on the <a href="/blog/">TracetoForge blog</a>:</p>
+      <ul>
+        <li><a href="/blog/image-to-stl-converter-free/">Image to STL Converter: Turn Any Photo into a 3D Printable File for Free</a></li>
+        <li><a href="/blog/gridfinity-custom-cutout-no-cad/">Gridfinity Custom Cutouts Without CAD: The Photo-Based Method</a></li>
+        <li><a href="/blog/3d-printed-tool-organizer-guide/">3D Printed Tool Organizer: The Complete Guide</a></li>
+        <li><a href="/blog/knipex-pliers-organizer-3d-printed/">Knipex Pliers Organizer: 3D Printed Inserts</a></li>
+        <li><a href="/blog/custom-milwaukee-packout-inserts-3d-print/">Custom Milwaukee Packout Inserts</a></li>
+      </ul>
+
+      <p><a href="/">Back to TracetoForge home</a> | <a href="/guide/">Getting Started Guide</a> | <a href="/blog/">Blog</a></p>
     </div>
   </body>
 </html>

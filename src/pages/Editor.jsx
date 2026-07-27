@@ -119,6 +119,10 @@ export default function Editor() {
 
   // Output mode
   const [outputMode, setOutputMode] = useState('custom')
+  // Gasket is a UI-level preset over 'object' mode (paper sizing on, thin depth).
+  // Tracked separately so the selector can highlight it without adding a new
+  // geometry path in the exporter.
+  const [gasketUI, setGasketUI] = useState(false)
 
   // Shared
   const [realWidth, setRealWidth] = useState(100)
@@ -684,6 +688,7 @@ export default function Editor() {
       setPaperMode(true)
       setOutputMode('object')
       setDepth(3)
+      setGasketUI(true)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams])
@@ -2872,18 +2877,41 @@ export default function Editor() {
             {/* Output Mode */}
             <div>
               <h3 className="text-xs font-semibold text-[#8888A0] uppercase tracking-wider mb-2">Output Mode</h3>
-                <div className="grid grid-cols-3 gap-1 bg-[#131318] rounded-lg p-1">
+                <div className="grid grid-cols-2 gap-1 bg-[#131318] rounded-lg p-1">
                   {[
                     { key: 'object', label: 'Object' },
                     { key: 'custom', label: 'Tray' },
                     { key: 'gridfinity', label: 'Gridfinity' },
-                  ].map(({ key, label }) => (
-                    <button key={key} onClick={() => setOutputMode(key)}
-                      className={`py-1.5 text-xs font-medium rounded-md transition-all
-                        ${outputMode === key ? 'bg-brand text-white shadow-sm' : 'text-[#8888A0] hover:text-white'}`}>
-                      {label}
-                    </button>
-                  ))}
+                    { key: 'gasket', label: 'Gasket' },
+                  ].map(({ key, label }) => {
+                    const active = key === 'gasket'
+                      ? gasketUI
+                      : (outputMode === key && !gasketUI)
+                    return (
+                      <button key={key}
+                        title={key === 'gasket' ? 'Flat gasket preset: paper sizing on, 3mm thick object. Print in TPU or export SVG/DXF as a cutting template.' : undefined}
+                        onClick={() => {
+                          if (key === 'gasket') {
+                            setGasketUI(true)
+                            setOutputMode('object')
+                            setDepth(3)
+                            if (!paperMode) {
+                              setPaperMode(true)
+                              setPaperStatus('')
+                              const o = originalUploadRef.current
+                              if (o) beginPaperProcess(o.img, o.dataUrl)
+                            }
+                          } else {
+                            setGasketUI(false)
+                            setOutputMode(key)
+                          }
+                        }}
+                        className={`py-1.5 text-xs font-medium rounded-md transition-all
+                          ${active ? 'bg-brand text-white shadow-sm' : 'text-[#8888A0] hover:text-white'}`}>
+                        {label}
+                      </button>
+                    )
+                  })}
                 </div>
             </div>
 

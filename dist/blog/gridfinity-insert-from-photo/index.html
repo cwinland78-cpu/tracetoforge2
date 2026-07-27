@@ -58,15 +58,38 @@
       "@context": "https://schema.org",
       "@type": "Organization",
       "name": "TracetoForge",
+      "legalName": "Qwikymart LLC",
       "url": "https://tracetoforge.com",
       "logo": "https://tracetoforge.com/icon-512.png",
       "description": "Photo-to-print tool insert generator for 3D printing.",
+      "foundingDate": "2024",
+      "address": {
+        "@type": "PostalAddress",
+        "addressRegion": "OH",
+        "addressCountry": "US"
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "email": "support@tracetoforge.com",
+        "contactType": "customer service",
+        "availableLanguage": "English"
+      },
       "sameAs": [
-        "https://www.etsy.com/shop/TracetoForge"
+        "https://www.etsy.com/shop/TracetoForge",
+        "https://www.amazon.com/s?k=TracetoForge+gridfinity+insert&rh=n%3A553240"
       ],
       "founder": {
         "@type": "Person",
-        "name": "Chris Winland"
+        "name": "Chris Winland",
+        "jobTitle": "Founder",
+        "worksFor": {
+          "@type": "Organization",
+          "name": "Qwikymart LLC"
+        },
+        "url": "https://tracetoforge.com/about/",
+        "sameAs": [
+          "https://www.etsy.com/shop/TracetoForge"
+        ]
       }
     }
     </script>
@@ -77,12 +100,21 @@
       "headline": "Create Gridfinity Inserts from a Photo: The Fastest Way in 2026",
       "description": "Generate custom Gridfinity bins with tool cutouts from a simple photo. No CAD software needed. Upload a photo, trace the outline, export STL.",
       "url": "https://tracetoforge.com/blog/gridfinity-insert-from-photo/",
+      "image": "https://tracetoforge.com/og-twitter.jpg",
       "datePublished": "2026-02-24",
-      "dateModified": "2026-02-24",
+      "dateModified": "2026-05-07",
       "author": {
         "@type": "Person",
         "name": "Chris Winland",
-        "url": "https://tracetoforge.com"
+        "url": "https://tracetoforge.com/about/",
+        "jobTitle": "Founder",
+        "worksFor": {
+          "@type": "Organization",
+          "name": "Qwikymart LLC"
+        },
+        "sameAs": [
+          "https://www.etsy.com/shop/TracetoForge"
+        ]
       },
       "publisher": {
         "@type": "Organization",
@@ -100,19 +132,53 @@
       "keywords": "Gridfinity, 3D Printing, Workshop Organization"
     }
     </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://tracetoforge.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Blog",
+          "item": "https://tracetoforge.com/blog/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Create Gridfinity Inserts from a Photo: The Fastest Way in 2026"
+        }
+      ]
+    }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-    <script type="module" crossorigin src="/assets/index-B4kQbqh0.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-6igyh4SM.css">
+    <script type="module" crossorigin src="/assets/index-BcILVcwa.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CtuNuNf0.css">
   </head>
   <body>
     <div id="root">
       <h1>Create Gridfinity Inserts from a Photo: The Fastest Way in 2026</h1>
       
-      <p>Published 2026-02-24 by Chris Winland</p>
+      <p>Published 2026-02-24 · Updated 2026-05-07 by <a href="/about/">Chris Winland</a></p>
       <article>
-<p>
+<div>
+        <p>Quick Answer</p>
+        <p>
+          To generate a Gridfinity bin from a photo, place the tool flat on a plain sheet of paper, take a top-down photo, and upload it to TracetoForge.
+          The browser auto-traces the silhouette, you set the grid size (e.g. <strong>2×1×6u</strong>) and tolerance (1.5&nbsp;mm is a good default), and export STL or 3MF.
+          Print in PETG at 0.2&nbsp;mm layer height with 15-20% gyroid infill. The output drops onto any standard Gridfinity baseplate. End-to-end: under 2 minutes from photo to print-ready file.
+        </p>
+      </div>
+
+      <p>
         Gridfinity, the open-source modular storage system created by Zack Freedman, has become the go-to
         solution for workshop organization. The standard 42mm grid, stackable bins, and magnetic baseplates
         make it endlessly customizable. But when you need a bin that holds a specific tool in a specific position,
@@ -156,7 +222,7 @@
 
       <h3>3. Upload and Trace</h3>
       <p>
-        In <a href="/editor">TracetoForge</a>, upload your photo. The app detects the paper and
+        In <a href="/editor/">TracetoForge</a>, upload your photo. The app detects the paper and
         tool outlines automatically. You can adjust the trace if needed, for example removing shadows
         or refining edges around complex shapes. Set the paper size so the dimensions scale correctly.
       </p>
@@ -250,13 +316,20 @@
 
       <h2>Related Guides</h2>
       <ul>
-        <li><a href="/blog/custom-milwaukee-packout-inserts-3d-print">Custom Milwaukee Packout Inserts</a> - Use the same photo-to-insert workflow for Packout cases</li>
-        <li><a href="/blog/gridfinity-vs-packout-vs-custom-tray">Gridfinity vs Packout vs Custom Trays</a> - Deciding which system to use and when</li>
-        <li><a href="/blog/tool-organizer-photo-to-stl">Photo-to-STL: How It Works</a> - Technical breakdown of photo-based insert generation</li>
-        <li><a href="/blog/best-3d-printed-tool-organizer-ideas">Best 3D Printed Tool Organizer Ideas</a> - More inspiration for workshop organization</li>
+        <li><a href="/blog/custom-milwaukee-packout-inserts-3d-print/">Custom Milwaukee Packout Inserts</a> - Use the same photo-to-insert workflow for Packout cases</li>
+        <li><a href="/blog/gridfinity-vs-packout-vs-custom-tray/">Gridfinity vs Packout vs Custom Trays</a> - Deciding which system to use and when</li>
+        <li><a href="/blog/tool-organizer-photo-to-stl/">Photo-to-STL: How It Works</a> - Technical breakdown of photo-based insert generation</li>
+        <li><a href="/blog/best-3d-printed-tool-organizer-ideas/">Best 3D Printed Tool Organizer Ideas</a> - More inspiration for workshop organization</li>
       </ul>
       </article>
-      <p><a href="/blog">Back to Blog</a> | <a href="/editor">Try TracetoForge Free</a></p>
+
+      <aside>
+        <h3>About the author</h3>
+        <p>Chris Winland runs TracetoForge out of a small workshop in Northeast Ohio. Qwikymart LLC, the operator of this site, makes and ships precision-fit 3D printed tool inserts alongside the browser-based editor. Most posts on this blog come from real problems hit while tracing, printing, and selling inserts to other makers. Reach out at <!--email_off-->support@tracetoforge.com<!--/email_off--> with corrections, questions, or tracing problems.</p>
+        <p><a href="/about/">More about TracetoForge</a> | <a href="/contact/">Contact</a></p>
+      </aside>
+      <p><a href="/blog/">Back to Blog</a> | <a href="/editor/?sample=1">Watch It Trace a Tool (Live Demo)</a> | <a href="/editor/">Upload Your Own Photo</a></p>
+      <p>Everything you export from TracetoForge is yours to sell. No commercial license needed.</p>
     </div>
   </body>
 </html>

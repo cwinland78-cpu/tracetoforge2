@@ -193,7 +193,7 @@ const faqSchema = {
 
 const landingHtml = makePage({
   title: 'Custom Tool Drawer Organizer From a Photo | TracetoForge',
-  description: 'Design custom wrench, plier, screwdriver, and hammer drawer trays from a photo of your tools. Auto-trace, export STL, 3MF, SVG, or DXF. Gridfinity supported. Free, no CAD needed.',
+  description: 'Design custom wrench, plier, screwdriver, and hammer drawer trays from a photo of your tools. Also makes replacement gaskets from a photo. Auto-trace, export STL, 3MF, SVG, or DXF. Gridfinity supported. Free, no CAD needed.',
   canonical: 'https://tracetoforge.com/',
   ogTitle: 'TracetoForge - Custom Tool Drawer Trays From a Photo',
   h1: 'Custom Gridfinity Inserts From a Photo — No CAD Needed',
