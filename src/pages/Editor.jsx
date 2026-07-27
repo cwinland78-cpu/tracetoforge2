@@ -608,6 +608,7 @@ export default function Editor() {
         setSelectedContour(cfg.selectedContour || 0)
         setLocked(true) // saved trace was hand-tuned, do not clobber on slider change
         setStep(2)
+        setEditMode('edit') // show the editable points right away
         setZoom(0.55)
         setShowPreview(false)
         setSampleLoading(false)
