@@ -947,6 +947,7 @@ export default function Editor() {
           }
         }
 
+        let gasketHelpers = null
         // Pass 2 (gasket mode only): child contours become holes on their parent.
         // Hole edges are noisier than outer edges (inner-wall shadow + highlight
         // create a double edge the threshold oscillates between), so holes get
@@ -1068,6 +1069,7 @@ export default function Editor() {
             })
             detected[di].holes = kept.map(h => h.points)
           })
+          gasketHelpers = { maxWallDist, centroidOf, pointInPoly, wallPx }
         }
 
         // Sort largest first (holes travel with their parent)
@@ -1077,8 +1079,43 @@ export default function Editor() {
         }, 0) / 2)
         detected.sort((a, b) => areaOf(b.points) - areaOf(a.points))
 
-        setContours(detected.map(d => d.points))
-        setContourHoles(detected.map(d => d.holes))
+        // Twin absorption (gasket mode): a bright line along the gasket's
+        // outer edge can split it into two stacked top-level blobs - an outer
+        // band and an interior blob carrying the real holes. If a shape sits
+        // just inside a larger one, hugging it within a couple mm along its
+        // whole boundary, it is the same physical gasket: absorb its holes
+        // into the larger shape and drop the duplicate ring. Separate gaskets
+        // lying side by side are never inside each other, so they are safe.
+        let removedTwins = null
+        if (gasketUI && gasketHelpers && detected.length > 1) {
+          const { maxWallDist, centroidOf, pointInPoly, wallPx } = gasketHelpers
+          const absorbDist = wallPx * 2.5
+          removedTwins = new Set()
+          for (let i = 0; i < detected.length; i++) {
+            if (removedTwins.has(i)) continue
+            for (let j = i + 1; j < detected.length; j++) {
+              if (removedTwins.has(j)) continue
+              const cj = centroidOf(detected[j].points)
+              if (!pointInPoly(cj, detected[i].points)) continue
+              if (maxWallDist(detected[j].points, detected[i].points) >= absorbDist) continue
+              // j is i's double-edge twin: adopt its holes (wall-checked
+              // and deduped against what i already has)
+              detected[j].holes.forEach(h => {
+                if (maxWallDist(h, detected[i].points) <= wallPx) return
+                const hc = centroidOf(h)
+                if (detected[i].holes.some(k => pointInPoly(hc, k))) return
+                detected[i].holes.push(h)
+              })
+              removedTwins.add(j)
+            }
+          }
+        }
+        const finalDetected = removedTwins
+          ? detected.filter((_, i) => !removedTwins.has(i))
+          : detected
+
+        setContours(finalDetected.map(d => d.points))
+        setContourHoles(finalDetected.map(d => d.holes))
         setSelectedContour(0)
         setLocked(false) // fresh detection, lock no longer applies
         setStep(2)
