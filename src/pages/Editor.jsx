@@ -109,6 +109,9 @@ export default function Editor() {
   const [exportFormats, setExportFormats] = useState({ stl: false, svg: false, dxf: false, '3mf': true })
   const [imageSize, setImageSize] = useState({ w: 0, h: 0 })
   const [contours, setContours] = useState([])
+  // Holes per contour (gasket mode): contourHoles[i] is an array of point-arrays
+  // for holes inside contours[i]. Detected only, not node-editable (v1).
+  const [contourHoles, setContourHoles] = useState([])
   const [selectedContour, setSelectedContour] = useState(0)
   const [locked, setLocked] = useState(false) // true when user has manually edited contours; blocks auto-redetect
   const [editMode, setEditMode] = useState('select')
@@ -257,6 +260,7 @@ export default function Editor() {
       if (cfg.objectEdgeRadius != null) setObjectEdgeRadius(cfg.objectEdgeRadius)
       if (cfg.tolerance) setTolerance(cfg.tolerance)
       if (cfg.contours) setContours(cfg.contours)
+      setContourHoles(cfg.contourHoles || [])
       if (cfg.selectedContour != null) setSelectedContour(cfg.selectedContour)
       if (cfg.cornerRadius != null) setCornerRadius(cfg.cornerRadius)
       if (cfg.cavityBevel != null) setCavityBevel(cfg.cavityBevel)
@@ -320,7 +324,7 @@ export default function Editor() {
     )
     return {
       outputMode, realWidth, realHeight, wallThickness, floorThickness,
-      toolDepth, tolerance, contours, selectedContour, cornerRadius,
+      toolDepth, tolerance, contours, contourHoles, selectedContour, cornerRadius,
       cavityBevel, toolRotation, toolOffsetX, toolOffsetY,
       fingerNotches, activeToolIdx, notchBevel,
       tools: savedTools, step: step, trayWidth, trayHeight, trayDepth, depth, objectEdgeRadius,
@@ -547,7 +551,7 @@ export default function Editor() {
         imageRef.current = img
         setStep(1)
         setZoom(0.4)
-        setContours([])
+        setContours([]); setContourHoles([])
         setShowPreview(false)
       }
       img.src = ev.target.result
@@ -567,29 +571,49 @@ export default function Editor() {
     if (sampleLoading) return
     setSampleLoading(true)
     try {
-      const res = await fetch('/flow-1-photo.jpeg')
-      const blob = await res.blob()
-      const dataUrl = await new Promise((resolve, reject) => {
-        const r = new FileReader()
-        r.onload = () => resolve(r.result)
-        r.onerror = () => reject(new Error('sample read failed'))
-        r.readAsDataURL(blob)
-      })
+      // Sample is a fully traced, dimensioned project (Johnson Calipers).
+      // Restoring it directly means new users land on a ready-to-preview
+      // trace with real dimensions set - no detection variability.
+      const res = await fetch('/sample-tool.json')
+      const cfg = await res.json()
       const img = new Image()
       img.onload = () => {
-        setImage(dataUrl)
-        setImageSize({ w: img.width, h: img.height })
+        setImage(cfg.image)
+        setImageSize(cfg.imageSize || { w: img.width, h: img.height })
         imageRef.current = img
-        setStep(1)
-        setZoom(0.4)
-        setContours([])
+        setProjectName(cfg.name || 'Sample Tool')
+        if (cfg.outputMode) setOutputMode(cfg.outputMode)
+        setGasketUI(false)
+        if (cfg.realWidth) setRealWidth(cfg.realWidth)
+        if (cfg.realHeight) setRealHeight(cfg.realHeight)
+        if (cfg.toolDepth) setToolDepth(cfg.toolDepth)
+        if (cfg.tolerance != null) setTolerance(cfg.tolerance)
+        if (cfg.toolOffsetX != null) setToolOffsetX(cfg.toolOffsetX)
+        if (cfg.toolOffsetY != null) setToolOffsetY(cfg.toolOffsetY)
+        if (cfg.toolRotation != null) setToolRotation(cfg.toolRotation)
+        if (cfg.cavityBevel != null) setCavityBevel(cfg.cavityBevel)
+        if (cfg.sensitivity != null) setSensitivity(cfg.sensitivity)
+        if (cfg.simplification != null) setSimplification(cfg.simplification)
+        if (cfg.minContourPct != null) setMinContourPct(cfg.minContourPct)
+        if (cfg.gridX) setGridX(cfg.gridX)
+        if (cfg.gridY) setGridY(cfg.gridY)
+        if (cfg.gridHeight) setGridHeight(cfg.gridHeight)
+        if (cfg.trayWidth) setTrayWidth(cfg.trayWidth)
+        if (cfg.trayHeight) setTrayHeight(cfg.trayHeight)
+        if (cfg.trayDepth) setTrayDepth(cfg.trayDepth)
+        if (cfg.wallThickness) setWallThickness(cfg.wallThickness)
+        if (cfg.floorThickness) setFloorThickness(cfg.floorThickness)
+        setContours(cfg.contours || [])
+        setContourHoles(cfg.contourHoles || [])
+        setSelectedContour(cfg.selectedContour || 0)
+        setLocked(true) // saved trace was hand-tuned, do not clobber on slider change
+        setStep(2)
+        setZoom(0.55)
         setShowPreview(false)
-        setSensitivity(8) // pinned: sample photo traces clean at +2, fragments at default
-        setPendingAutoDetect(true)
         setSampleLoading(false)
       }
       img.onerror = () => setSampleLoading(false)
-      img.src = dataUrl
+      img.src = cfg.image
     } catch (err) {
       console.error('Sample load error:', err)
       setSampleLoading(false)
@@ -603,7 +627,7 @@ export default function Editor() {
     imageRef.current = img
     setStep(1)
     setZoom(0.4)
-    setContours([])
+    setContours([]); setContourHoles([])
     setShowPreview(false)
   }, [])
 
@@ -729,7 +753,7 @@ export default function Editor() {
       setCropRect(null)
       setCropStart(null)
       setIsCropping(false)
-      setContours([])
+      setContours([]); setContourHoles([])
     }
     croppedImg.src = dataUrl
   }, [cropRect])
@@ -823,19 +847,35 @@ export default function Editor() {
           closeK2.delete()
         }
 
-        // Find contours
-        cv.findContours(binary, contoursMat, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+        // Find contours. RETR_CCOMP gives a two-level hierarchy: top level is
+        // the same external contours RETR_EXTERNAL returned, second level is
+        // the holes inside them. We only harvest holes in gasket mode.
+        cv.findContours(binary, contoursMat, hierarchy, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE)
 
         const minArea = img.width * img.height * (minContourPct / 100)
-        const detected = []
+        // Holes can be much smaller than the outer ring (bolt holes), so use a
+        // looser floor: 5% of the outer minimum, never below 40 px.
+        const holeMinArea = Math.max(minArea * 0.05, 40)
+        const detected = []       // [{ points, holes, origIdx }]
+        const keptByOrigIdx = new Map()
+        const simplify = (contour) => {
+          const epsilon = simplification * 0.002 * cv.arcLength(contour, true)
+          const approx = new cv.Mat()
+          cv.approxPolyDP(contour, approx, epsilon, true)
+          const points = []
+          for (let j = 0; j < approx.rows; j++) {
+            points.push({ x: approx.data32S[j * 2], y: approx.data32S[j * 2 + 1] })
+          }
+          approx.delete()
+          return points
+        }
+
+        // Pass 1: top-level (parent === -1) contours with existing filters
         for (let i = 0; i < contoursMat.size(); i++) {
+          if (hierarchy.data32S[i * 4 + 3] !== -1) continue
           const contour = contoursMat.get(i)
           const area = cv.contourArea(contour)
-
-          if (area < minArea) {
-            contour.delete()
-            continue
-          }
+          if (area < minArea) { contour.delete(); continue }
 
           // Skip contours that span nearly the full image (border artifacts from crop)
           const br = cv.boundingRect(contour)
@@ -844,34 +884,37 @@ export default function Editor() {
             continue
           }
 
-          // Simplify contour - scale epsilon with simplification slider
-          const epsilon = simplification * 0.002 * cv.arcLength(contour, true)
-          const approx = new cv.Mat()
-          cv.approxPolyDP(contour, approx, epsilon, true)
-
-          const points = []
-          for (let j = 0; j < approx.rows; j++) {
-            points.push({
-              x: approx.data32S[j * 2],
-              y: approx.data32S[j * 2 + 1],
-            })
-          }
-
-          if (points.length >= 3) detected.push(points)
-          approx.delete()
+          const points = simplify(contour)
           contour.delete()
+          if (points.length >= 3) {
+            keptByOrigIdx.set(i, detected.length)
+            detected.push({ points, holes: [] })
+          }
         }
 
-        // Sort largest first
-        detected.sort((a, b) => {
-          const areaOf = (pts) => Math.abs(pts.reduce((s, p, i) => {
-            const n = pts[(i + 1) % pts.length]
-            return s + (p.x * n.y - n.x * p.y)
-          }, 0) / 2)
-          return areaOf(b) - areaOf(a)
-        })
+        // Pass 2 (gasket mode only): child contours become holes on their parent
+        if (gasketUI) {
+          for (let i = 0; i < contoursMat.size(); i++) {
+            const parentIdx = hierarchy.data32S[i * 4 + 3]
+            if (parentIdx === -1 || !keptByOrigIdx.has(parentIdx)) continue
+            const contour = contoursMat.get(i)
+            const area = cv.contourArea(contour)
+            if (area < holeMinArea) { contour.delete(); continue }
+            const points = simplify(contour)
+            contour.delete()
+            if (points.length >= 3) detected[keptByOrigIdx.get(parentIdx)].holes.push(points)
+          }
+        }
 
-        setContours(detected)
+        // Sort largest first (holes travel with their parent)
+        const areaOf = (pts) => Math.abs(pts.reduce((s, p, i) => {
+          const n = pts[(i + 1) % pts.length]
+          return s + (p.x * n.y - n.x * p.y)
+        }, 0) / 2)
+        detected.sort((a, b) => areaOf(b.points) - areaOf(a.points))
+
+        setContours(detected.map(d => d.points))
+        setContourHoles(detected.map(d => d.holes))
         setSelectedContour(0)
         setLocked(false) // fresh detection, lock no longer applies
         setStep(2)
@@ -884,7 +927,7 @@ export default function Editor() {
       }
       setProcessing(false)
     }, 50)
-  }, [cvReady, simplification, sensitivity, minContourPct])
+  }, [cvReady, simplification, sensitivity, minContourPct, gasketUI])
 
   // Auto re-detect when settings change (after first detection).
   // Skipped when locked: user has hand-edited contours and we must not clobber them.
@@ -995,6 +1038,21 @@ export default function Editor() {
       ctx.strokeStyle = isSel ? '#E8650A' : '#FF853480'
       ctx.lineWidth = isSel ? 3 : 2
       ctx.stroke()
+
+      // Hole contours (gasket mode): drawn in blue, not editable
+      const holes = contourHoles[ci]
+      if (holes && holes.length) {
+        holes.forEach(hl => {
+          if (hl.length < 3) return
+          ctx.beginPath()
+          ctx.moveTo(hl[0].x + imgOffsetX, hl[0].y + imgOffsetY)
+          hl.forEach((p, i) => { if (i > 0) ctx.lineTo(p.x + imgOffsetX, p.y + imgOffsetY) })
+          ctx.closePath()
+          ctx.strokeStyle = isSel ? '#33BBFF' : '#33BBFF80'
+          ctx.lineWidth = isSel ? 2.5 : 1.5
+          ctx.stroke()
+        })
+      }
 
       if (isSel && editMode === 'edit' && !editingOuter) {
         ctx.fillStyle = 'rgba(232, 101, 10, 0.08)'
@@ -1222,7 +1280,7 @@ export default function Editor() {
     }
 
     ctx.restore()
-  }, [image, zoom, contours, selectedContour, editMode, hoveredPoint, draggingPoint, editingOuter, outerShapePoints, hoveredOuterPoint, draggingOuterPoint, realWidth, realHeight, tolerance, step, isCropping, cropRect])
+  }, [image, zoom, contours, contourHoles, selectedContour, editMode, hoveredPoint, draggingPoint, editingOuter, outerShapePoints, hoveredOuterPoint, draggingOuterPoint, realWidth, realHeight, tolerance, step, isCropping, cropRect])
 
   useEffect(() => { drawCanvas() }, [drawCanvas])
 
@@ -1552,12 +1610,12 @@ export default function Editor() {
   // Save current top-level state into a tool object
   const saveCurrentToolState = useCallback(() => ({
     image, imageSize, imageEl: imageRef.current,
-    contours, selectedContour, locked,
+    contours, contourHoles, selectedContour, locked,
     realWidth, realHeight, toolDepth, tolerance,
     toolOffsetX, toolOffsetY, toolRotation, cavityBevel,
     sensitivity, simplification, minContourPct,
     step: Math.max(step, 0),
-  }), [image, imageSize, contours, selectedContour, locked, realWidth, realHeight, toolDepth, tolerance, toolOffsetX, toolOffsetY, toolRotation, cavityBevel, sensitivity, simplification, minContourPct, step])
+  }), [image, imageSize, contours, contourHoles, selectedContour, locked, realWidth, realHeight, toolDepth, tolerance, toolOffsetX, toolOffsetY, toolRotation, cavityBevel, sensitivity, simplification, minContourPct, step])
 
   // Restore a tool object into top-level state
   const restoreToolState = useCallback((t) => {
@@ -1565,6 +1623,7 @@ export default function Editor() {
     setImageSize(t.imageSize || { w: 0, h: 0 })
     imageRef.current = t.imageEl || null
     setContours(t.contours || [])
+    setContourHoles(t.contourHoles || [])
     setSelectedContour(t.selectedContour || 0)
     setRealWidth(t.realWidth ?? 100)
     setRealHeight(t.realHeight ?? 100)
@@ -1987,6 +2046,23 @@ export default function Editor() {
       : (tools[0] || { toolDepth, tolerance, realWidth, toolOffsetX, toolOffsetY, toolRotation, cavityBevel })
     const base = { mode: outputMode, depth: outputMode === 'object' ? depth : t0.toolDepth, tolerance: t0.tolerance, realWidth: t0.realWidth, toolDepth: t0.toolDepth, toolOffsetX: t0.toolOffsetX, toolOffsetY: t0.toolOffsetY, toolRotation: t0.toolRotation, objectEdgeRadius }
 
+    // Gasket/object mode: scale hole contours with the SAME factors as the
+    // outer ring (its bounding box vs real dims), not the holes' own bounds.
+    if (outputMode === 'object') {
+      const holeSrc = activeToolIdx === 0 ? { contours, selectedContour, contourHoles, realWidth, realHeight } : (tools[0] || {})
+      const outer = holeSrc.contours?.[holeSrc.selectedContour ?? 0]
+      const holes = holeSrc.contourHoles?.[holeSrc.selectedContour ?? 0]
+      if (outer && outer.length >= 3 && holes && holes.length) {
+        const b = outer.reduce((a, p) => ({ minX: Math.min(a.minX, p.x), maxX: Math.max(a.maxX, p.x), minY: Math.min(a.minY, p.y), maxY: Math.max(a.maxY, p.y) }), { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity })
+        const pw = b.maxX - b.minX, ph = b.maxY - b.minY
+        if (pw > 0 && ph > 0) {
+          const fx = (holeSrc.realWidth ?? realWidth) / pw
+          const fy = (holeSrc.realHeight ?? realHeight) / ph
+          base.holes = holes.map(hl => hl.map(p => ({ x: p.x * fx, y: p.y * fy })))
+        }
+      }
+    }
+
     // Build additional tools array from all tools except tool 0
     const allTools = tools.map((t, i) => {
       if (i === activeToolIdx) {
@@ -2364,12 +2440,14 @@ export default function Editor() {
                         className="w-[4.5rem] text-right" min="1" />
                       <span className="text-xs text-[#8888A0] w-7">mm</span>
                     </ParamRow>
-                    <ParamRow label="Depth" tooltip="How deep the tool sits in the tray (Z height of the cavity).">
-                      <input type="number" value={toolDepth}
-                        onChange={e => setToolDepth(+e.target.value)}
-                        className="w-[4.5rem] text-right" min="1" />
-                      <span className="text-xs text-[#8888A0] w-7">mm</span>
-                    </ParamRow>
+                    {outputMode !== 'object' && (
+                      <ParamRow label="Depth" tooltip="How deep the tool sits in the tray (Z height of the cavity).">
+                        <input type="number" value={toolDepth}
+                          onChange={e => setToolDepth(+e.target.value)}
+                          className="w-[4.5rem] text-right" min="1" />
+                        <span className="text-xs text-[#8888A0] w-7">mm</span>
+                      </ParamRow>
+                    )}
                   </div>
                   <ParamRow label="Tolerance" tooltip="Extra clearance around the tool cavity.">
                     <input type="number" value={tolerance}

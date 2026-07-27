@@ -30,6 +30,18 @@ export function exportSVG(toolPoints, config) {
     paths += `  <path d="${d}" fill="none" stroke="${color}" stroke-width="0.3" />\n`
   })
 
+  // Gasket hole contours (object mode) - same mm coordinate frame as toolPoints
+  if (config.holes && config.holes.length) {
+    config.holes.forEach(hl => {
+      if (!hl || hl.length < 3) return
+      const d = hl.map((p, j) => {
+        const cmd = j === 0 ? 'M' : 'L'
+        return `${cmd}${(p.x + offsetX).toFixed(3)},${(p.y + offsetY).toFixed(3)}`
+      }).join(' ') + ' Z'
+      paths += `  <path d="${d}" fill="none" stroke="#33BBFF" stroke-width="0.3" />\n`
+    })
+  }
+
   // Add finger notch outlines if present
   if (config.fingerNotches && config.fingerNotches.length > 0) {
     config.fingerNotches.forEach(fn => {
@@ -77,6 +89,22 @@ export function exportDXF(toolPoints, config) {
       entities += '  20\n' + p.y.toFixed(4) + '\n'  // Y
     })
   })
+
+  // Gasket hole contours (object mode) on their own layers
+  if (config.holes && config.holes.length) {
+    config.holes.forEach((hl, hi) => {
+      if (!hl || hl.length < 3) return
+      entities += '  0\nLWPOLYLINE\n'
+      entities += '  8\nHOLE_' + hi + '\n'
+      entities += '  62\n4\n'  // cyan
+      entities += '  90\n' + hl.length + '\n'
+      entities += '  70\n1\n'
+      hl.forEach(p => {
+        entities += '  10\n' + p.x.toFixed(4) + '\n'
+        entities += '  20\n' + p.y.toFixed(4) + '\n'
+      })
+    })
+  }
 
   // Add finger notch outlines
   if (config.fingerNotches && config.fingerNotches.length > 0) {

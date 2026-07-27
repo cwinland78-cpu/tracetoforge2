@@ -25,14 +25,36 @@ function centerPoints(points) {
   return points.map(p => ({ x: p.x - cx, y: -(p.y - cy) }))
 }
 
-function createShapeFromPoints(points) {
+function createShapeFromPoints(points, holes) {
   const shape = new THREE.Shape()
-  const centered = centerPoints(points)
+  // Compute the outer ring's centroid once; holes must use the SAME transform
+  // (offset + Y flip), never their own centroid.
+  let cx = 0, cy = 0
+  points.forEach(p => { cx += p.x; cy += p.y })
+  cx /= points.length
+  cy /= points.length
+  const tx = (p) => ({ x: p.x - cx, y: -(p.y - cy) })
+
+  const centered = points.map(tx)
   centered.forEach((p, i) => {
     if (i === 0) shape.moveTo(p.x, p.y)
     else shape.lineTo(p.x, p.y)
   })
   shape.closePath()
+
+  if (holes && holes.length) {
+    holes.forEach(hl => {
+      if (!hl || hl.length < 3) return
+      const path = new THREE.Path()
+      hl.map(tx).forEach((p, i) => {
+        if (i === 0) path.moveTo(p.x, p.y)
+        else path.lineTo(p.x, p.y)
+      })
+      path.closePath()
+      shape.holes.push(path)
+    })
+  }
+
   return { shape, centered }
 }
 
@@ -107,7 +129,7 @@ const GF = {
  * Create a simple extruded 3D object from tool outline
  */
 function createObjectExtrusion(points, config) {
-  const { shape } = createShapeFromPoints(points)
+  const { shape } = createShapeFromPoints(points, config.holes)
   const depth = config.depth || 25
   const rawEdgeRadius = config.objectEdgeRadius || 0
   const edgeRadius = Math.min(rawEdgeRadius, depth * 0.3)
