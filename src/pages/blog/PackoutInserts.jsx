@@ -1,4 +1,5 @@
 import React from 'react'
+import GearBox from '../../components/GearBox'
 import { Link } from 'react-router-dom'
 import BlogPost from './BlogPost'
 
@@ -76,15 +77,11 @@ export default function PackoutInserts() {
         <p className="!my-0 text-sm"><strong>See it before you try it:</strong> <a href="/editor/?sample=1">watch TracetoForge trace a pair of pliers</a> right now, no photo or signup needed. It takes about ten seconds.</p>
       </div>
 
-      <div className="my-8 p-5 rounded-xl bg-[#16161E] border border-[#2A2A35]">
-        <p className="!mt-0 !mb-2 font-bold text-white">Gear mentioned in this guide</p>
-        <ul className="!my-0">
-          <li><a href="https://www.amazon.com/s?k=milwaukee+packout+organizer&tag=tracetoforge-20" rel="sponsored nofollow noopener" target="_blank">Milwaukee Packout organizers</a> - the compact and large cases both take custom inserts</li>
-          <li><a href="https://www.amazon.com/s?k=milwaukee+packout+3+drawer&tag=tracetoforge-20" rel="sponsored nofollow noopener" target="_blank">Milwaukee Packout 3-drawer tool box</a> - the best candidate for full drawer trays</li>
-          <li><a href="https://www.amazon.com/s?k=digital+calipers&tag=tracetoforge-20" rel="sponsored nofollow noopener" target="_blank">Digital calipers</a> - for measuring tools before tracing</li>
-        </ul>
-        <p className="!mb-0 !mt-3 text-xs text-[#666680]">Amazon affiliate links. As an Amazon Associate we earn from qualifying purchases at no extra cost to you.</p>
-      </div>
+      <GearBox items={[
+        { img: '/gear/packout-organizer.webp', href: 'https://www.amazon.com/s?k=milwaukee+packout+organizer&tag=tracetoforge-20', title: 'Milwaukee Packout organizers', blurb: 'the compact and large cases both take custom inserts' },
+        { img: '/gear/packout-3drawer.webp', href: 'https://www.amazon.com/s?k=milwaukee+packout+3+drawer&tag=tracetoforge-20', title: 'Milwaukee Packout 3-drawer tool box', blurb: 'the best candidate for full drawer trays' },
+        { img: '/gear/calipers.webp', href: 'https://www.amazon.com/s?k=digital+calipers&tag=tracetoforge-20', title: 'Digital calipers', blurb: 'for measuring tools before tracing' },
+      ]} />
       <h2>Step 3: Configure for Packout</h2>
 
       <p>

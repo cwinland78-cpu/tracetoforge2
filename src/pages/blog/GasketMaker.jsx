@@ -1,4 +1,5 @@
 import React from 'react'
+import GearBox from '../../components/GearBox'
 import BlogPost from './BlogPost'
 
 export default function GasketMaker() {
@@ -37,15 +38,11 @@ export default function GasketMaker() {
       <h2>The Honest Limitation: Bolt Holes</h2>
       <p>The tracer captures the outer profile of the gasket. Interior bolt holes and the center opening do not auto-detect yet, so handle them the way machinists always have: transfer punch the holes from the old gasket or the flange itself. Cut the outer profile from the template, lay it in place, and punch. A cheap hollow punch set makes cleaner holes than any knife anyway. For center openings, trace the flange opening onto the back of the template and cut inside the line.</p>
 
-      <div className="my-8 p-5 rounded-xl bg-[#16161E] border border-[#2A2A35]">
-        <p className="!mt-0 !mb-2 font-bold text-white">Gear mentioned in this guide</p>
-        <ul className="!my-0">
-          <li><a href="https://www.amazon.com/s?k=gasket+material+sheet+assortment&tag=tracetoforge-20" rel="sponsored nofollow noopener" target="_blank">Gasket material sheet assortment</a> - cork, rubber, and fiber in one pack covers most jobs</li>
-          <li><a href="https://www.amazon.com/s?k=hollow+punch+set&tag=tracetoforge-20" rel="sponsored nofollow noopener" target="_blank">Hollow punch set</a> - clean bolt holes, better than any knife</li>
-          <li><a href="https://www.amazon.com/s?k=tpu+filament+95a+1.75mm&tag=tracetoforge-20" rel="sponsored nofollow noopener" target="_blank">TPU filament (95A)</a> - for printing low-pressure gaskets directly</li>
-        </ul>
-        <p className="!mb-0 !mt-3 text-xs text-[#666680]">Amazon affiliate links. As an Amazon Associate we earn from qualifying purchases at no extra cost to you.</p>
-      </div>
+      <GearBox items={[
+        { img: '/gear/gasket-material.webp', href: 'https://www.amazon.com/s?k=gasket+material+sheet+assortment&tag=tracetoforge-20', title: 'Gasket material sheet assortment', blurb: 'cork, rubber, and fiber in one pack covers most jobs' },
+        { img: '/gear/punch-set.webp', href: 'https://www.amazon.com/s?k=hollow+punch+set&tag=tracetoforge-20', title: 'Hollow punch set', blurb: 'clean bolt holes, better than any knife' },
+        { img: '/gear/tpu-filament.webp', href: 'https://www.amazon.com/s?k=tpu+filament+95a+1.75mm&tag=tracetoforge-20', title: 'TPU filament (95A)', blurb: 'for printing low-pressure gaskets directly' },
+      ]} />
 
       <h2>What This Replaces</h2>
       <p>A custom gasket from a specialty shop runs $15 to $50 plus a week of waiting. Gasket material for a dozen gaskets costs about $10. The trace takes two minutes, and the template is saved in your library, so the next time that machine needs the same gasket, you export and cut in five minutes flat.</p>

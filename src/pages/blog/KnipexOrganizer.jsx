@@ -1,4 +1,5 @@
 import React from 'react'
+import GearBox from '../../components/GearBox'
 import { Link } from 'react-router-dom'
 import BlogPost from './BlogPost'
 
@@ -124,15 +125,11 @@ export default function KnipexOrganizer() {
       </p>
 
 
-      <div className="my-8 p-5 rounded-xl bg-[#16161E] border border-[#2A2A35]">
-        <p className="!mt-0 !mb-2 font-bold text-white">Gear mentioned in this guide</p>
-        <ul className="!my-0">
-          <li><a href="https://www.amazon.com/s?k=knipex+cobra+pliers+set&tag=tracetoforge-20" rel="sponsored nofollow noopener" target="_blank">Knipex Cobra water pump pliers sets</a> - the lineup these trays are built around</li>
-          <li><a href="https://www.amazon.com/s?k=knipex+86+03+pliers+wrench&tag=tracetoforge-20" rel="sponsored nofollow noopener" target="_blank">Knipex 86 03 Pliers Wrench</a> - every size from 125mm to 250mm fits a traced tray</li>
-          <li><a href="https://www.amazon.com/s?k=milwaukee+packout+organizer&tag=tracetoforge-20" rel="sponsored nofollow noopener" target="_blank">Milwaukee Packout organizers</a> - the case these inserts drop into</li>
-        </ul>
-        <p className="!mb-0 !mt-3 text-xs text-[#666680]">Amazon affiliate links. As an Amazon Associate we earn from qualifying purchases at no extra cost to you.</p>
-      </div>
+      <GearBox items={[
+        { img: '/gear/knipex-cobra.webp', href: 'https://www.amazon.com/s?k=knipex+cobra+pliers+set&tag=tracetoforge-20', title: 'Knipex Cobra water pump pliers sets', blurb: 'the lineup these trays are built around' },
+        { img: '/gear/knipex-8603.webp', href: 'https://www.amazon.com/s?k=knipex+86+03+pliers+wrench&tag=tracetoforge-20', title: 'Knipex 86 03 Pliers Wrench', blurb: 'every size from 125mm to 250mm fits a traced tray' },
+        { img: '/gear/packout-organizer.webp', href: 'https://www.amazon.com/s?k=milwaukee+packout+organizer&tag=tracetoforge-20', title: 'Milwaukee Packout organizers', blurb: 'the case these inserts drop into' },
+      ]} />
       <h2>Buy Ready-Made Knipex Inserts</h2>
 
       <p>

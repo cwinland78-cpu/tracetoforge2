@@ -1,4 +1,5 @@
 import React from 'react'
+import GearBox from '../../components/GearBox'
 import BlogPost from './BlogPost'
 
 export default function PaperMeasure() {
@@ -34,14 +35,10 @@ export default function PaperMeasure() {
         <li><strong>Shoot roughly straight down.</strong> A small tilt is fine, the correction handles it. Extreme angles lose detail on the far edge.</li>
       </ul>
 
-      <div className="my-8 p-5 rounded-xl bg-[#16161E] border border-[#2A2A35]">
-        <p className="!mt-0 !mb-2 font-bold text-white">Gear mentioned in this guide</p>
-        <ul className="!my-0">
-          <li><a href="https://www.amazon.com/s?k=digital+calipers&tag=tracetoforge-20" rel="sponsored nofollow noopener" target="_blank">Digital calipers</a> - for the critical dimensions you want to verify by hand</li>
-          <li><a href="https://www.amazon.com/s?k=cutting+mat+dark&tag=tracetoforge-20" rel="sponsored nofollow noopener" target="_blank">Dark cutting mat</a> - the ideal contrast surface under the paper</li>
-        </ul>
-        <p className="!mb-0 !mt-3 text-xs text-[#666680]">Amazon affiliate links. As an Amazon Associate we earn from qualifying purchases at no extra cost to you.</p>
-      </div>
+      <GearBox items={[
+        { img: '/gear/calipers.webp', href: 'https://www.amazon.com/s?k=digital+calipers&tag=tracetoforge-20', title: 'Digital calipers', blurb: 'for the critical dimensions you want to verify by hand' },
+        { img: '/gear/cutting-mat.webp', href: 'https://www.amazon.com/s?k=cutting+mat+dark&tag=tracetoforge-20', title: 'Dark cutting mat', blurb: 'the ideal contrast surface under the paper' },
+      ]} />
 
       <h2>Where This Pays Off</h2>
       <p>Multi-tool trays are the obvious one, since a full drawer of tools measured by hand is an hour with calipers and a notepad. It also covers the tools calipers handle badly: pliers wider than your caliper jaws, odd-shaped scrapers, anything with a taper. And it is the backbone of making gasket templates, where the whole point is capturing a real-world size you cannot easily measure. One sheet of paper, one photo, and the numbers are just there.</p>

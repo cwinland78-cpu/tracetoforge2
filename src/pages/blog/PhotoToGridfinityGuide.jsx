@@ -1,4 +1,5 @@
 import React from 'react'
+import GearBox from '../../components/GearBox'
 import { Link } from 'react-router-dom'
 import BlogPost from './BlogPost'
 
@@ -106,15 +107,11 @@ export default function PhotoToGridfinityGuide() {
         <p className="!my-0 text-sm"><strong>See it before you try it:</strong> <a href="/editor/?sample=1">watch TracetoForge trace a pair of pliers</a> right now, no photo or signup needed. It takes about ten seconds.</p>
       </div>
 
-      <div className="my-8 p-5 rounded-xl bg-[#16161E] border border-[#2A2A35]">
-        <p className="!mt-0 !mb-2 font-bold text-white">Gear mentioned in this guide</p>
-        <ul className="!my-0">
-          <li><a href="https://www.amazon.com/s?k=digital+calipers&tag=tracetoforge-20" rel="sponsored nofollow noopener" target="_blank">Digital calipers</a> - verify your reference measurement before exporting</li>
-          <li><a href="https://www.amazon.com/s?k=pla+filament+1.75mm&tag=tracetoforge-20" rel="sponsored nofollow noopener" target="_blank">PLA filament</a> - fine for indoor drawer bins and organizers</li>
-          <li><a href="https://www.amazon.com/s?k=knipex+cobra+pliers+set&tag=tracetoforge-20" rel="sponsored nofollow noopener" target="_blank">Knipex Cobra pliers sets</a> - the classic first trace</li>
-        </ul>
-        <p className="!mb-0 !mt-3 text-xs text-[#666680]">Amazon affiliate links. As an Amazon Associate we earn from qualifying purchases at no extra cost to you.</p>
-      </div>
+      <GearBox items={[
+        { img: '/gear/calipers.webp', href: 'https://www.amazon.com/s?k=digital+calipers&tag=tracetoforge-20', title: 'Digital calipers', blurb: 'verify your reference measurement before exporting' },
+        { img: '/gear/pla-filament.webp', href: 'https://www.amazon.com/s?k=pla+filament+1.75mm&tag=tracetoforge-20', title: 'PLA filament', blurb: 'fine for indoor drawer bins and organizers' },
+        { img: '/gear/knipex-cobra.webp', href: 'https://www.amazon.com/s?k=knipex+cobra+pliers+set&tag=tracetoforge-20', title: 'Knipex Cobra pliers sets', blurb: 'the classic first trace' },
+      ]} />
       <h2>Why Photo Beats Parametric for Tool-Shaped Cutouts</h2>
 
       <p>
