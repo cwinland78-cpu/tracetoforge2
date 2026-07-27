@@ -911,18 +911,83 @@ export default function Editor() {
           }
         }
 
-        // Pass 2 (gasket mode only): child contours become holes on their parent
+        // Pass 2 (gasket mode only): child contours become holes on their parent.
+        // Hole edges are noisier than outer edges (inner-wall shadow + highlight
+        // create a double edge the threshold oscillates between), so holes get
+        // extra conditioning: moving-average smoothing of the raw contour, a
+        // minimum simplification even at slider 0, and concentric dedupe.
         if (gasketUI) {
+          const simplifyHole = (contour) => {
+            // Raw pixel contour
+            const raw = []
+            for (let j = 0; j < contour.rows; j++) {
+              raw.push({ x: contour.data32S[j * 2], y: contour.data32S[j * 2 + 1] })
+            }
+            if (raw.length < 8) return raw
+            // Closed moving average, window 7: flattens single-pixel oscillation
+            const W = 7, half = 3, n = raw.length
+            const smoothed = raw.map((_, j) => {
+              let sx = 0, sy = 0
+              for (let k = -half; k <= half; k++) {
+                const p = raw[(j + k + n) % n]
+                sx += p.x; sy += p.y
+              }
+              return { x: sx / W, y: sy / W }
+            })
+            // Simplify with a floor: holes never get raw staircase output
+            const flat = new Int32Array(n * 2)
+            smoothed.forEach((p, j) => { flat[j * 2] = Math.round(p.x); flat[j * 2 + 1] = Math.round(p.y) })
+            const mat = cv.matFromArray(n, 1, cv.CV_32SC2, flat)
+            const arc = cv.arcLength(mat, true)
+            const epsilon = Math.max(simplification * 0.002, 0.004) * arc
+            const approx = new cv.Mat()
+            cv.approxPolyDP(mat, approx, epsilon, true)
+            const points = []
+            for (let j = 0; j < approx.rows; j++) {
+              points.push({ x: approx.data32S[j * 2], y: approx.data32S[j * 2 + 1] })
+            }
+            mat.delete(); approx.delete()
+            return points
+          }
+          const centroidOf = (pts) => {
+            let cx = 0, cy = 0
+            pts.forEach(p => { cx += p.x; cy += p.y })
+            return { x: cx / pts.length, y: cy / pts.length }
+          }
+          const pointInPoly = (pt, poly) => {
+            let inside = false
+            for (let a = 0, b = poly.length - 1; a < poly.length; b = a++) {
+              const pa = poly[a], pb = poly[b]
+              if ((pa.y > pt.y) !== (pb.y > pt.y) &&
+                  pt.x < (pb.x - pa.x) * (pt.y - pa.y) / (pb.y - pa.y) + pa.x) inside = !inside
+            }
+            return inside
+          }
+          const rawHoles = new Map() // detectedIdx -> [{points, area}]
           for (let i = 0; i < contoursMat.size(); i++) {
             const parentIdx = hierarchy.data32S[i * 4 + 3]
             if (parentIdx === -1 || !keptByOrigIdx.has(parentIdx)) continue
             const contour = contoursMat.get(i)
             const area = cv.contourArea(contour)
             if (area < holeMinArea) { contour.delete(); continue }
-            const points = simplify(contour)
+            const points = simplifyHole(contour)
             contour.delete()
-            if (points.length >= 3) detected[keptByOrigIdx.get(parentIdx)].holes.push(points)
+            if (points.length < 3) continue
+            const di = keptByOrigIdx.get(parentIdx)
+            if (!rawHoles.has(di)) rawHoles.set(di, [])
+            rawHoles.get(di).push({ points, area })
           }
+          // Concentric dedupe: the double edge often yields two nested contours
+          // for the same physical hole - keep the larger of any nested pair
+          rawHoles.forEach((list, di) => {
+            list.sort((a, b) => b.area - a.area)
+            const kept = []
+            list.forEach(h => {
+              const c = centroidOf(h.points)
+              if (!kept.some(k => pointInPoly(c, k.points))) kept.push(h)
+            })
+            detected[di].holes = kept.map(h => h.points)
+          })
         }
 
         // Sort largest first (holes travel with their parent)
