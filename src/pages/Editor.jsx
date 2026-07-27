@@ -616,8 +616,8 @@ export default function Editor() {
         const el = containerRef.current
         let fitZoom = 0.45
         if (el && el.clientWidth > 0) {
-          // Label bars add roughly 25% width and 45% height around the image
-          fitZoom = Math.min(el.clientWidth / (iw * 1.3), el.clientHeight / (ih * 1.5))
+          // Label room is baked into the sample image padding now
+          fitZoom = Math.min(el.clientWidth / (iw * 1.05), el.clientHeight / (ih * 1.1))
           fitZoom = Math.max(0.25, Math.min(0.9, Math.floor(fitZoom * 20) / 20))
         }
         setZoom(fitZoom)
