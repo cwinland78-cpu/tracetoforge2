@@ -8,7 +8,7 @@ import {
 } from 'lucide-react'
 import ThreePreview from '../components/ThreePreview'
 import PaywallModal from '../components/PaywallModal'
-import { detectPaperAndRectify, measureToolOnPaper } from '../lib/paperScale'
+import { detectCalibSheetAndRectify, detectPaperAndRectify, measureToolOnPaper } from '../lib/paperScale'
 import packoutCompact from '../data/packout_compact_profile.json'
 import packoutSlim from '../data/packout_slim_profile.json'
 import packoutShockwave from '../data/packout_shockwave_profile.json'
@@ -653,6 +653,23 @@ export default function Editor() {
   }, [])
 
   const runPaperDetection = useCallback((img, originalDataUrl) => {
+    // Gasket mode: try the printed calibration sheet first - exact perspective
+    // and scale from the four corner markers. Falls back to paper detection.
+    if (gasketUI) {
+      const calib = detectCalibSheetAndRectify(window.cv, img)
+      if (calib.found) {
+        const rectified = new Image()
+        rectified.onload = () => {
+          commitEditorImage(calib.dataUrl, rectified)
+          setPaperScale({ mmPerPx: calib.mmPerPx, paperLabel: calib.paperLabel })
+          setPaperStatus('found')
+          dimsAutoFilledRef.current = false
+          setPendingAutoDetect(true)
+        }
+        rectified.src = calib.dataUrl
+        return
+      }
+    }
     const result = detectPaperAndRectify(window.cv, img)
     if (result.found) {
       const rectified = new Image()
@@ -671,7 +688,7 @@ export default function Editor() {
       setPaperStatus('notfound')
       commitEditorImage(originalDataUrl, img)
     }
-  }, [commitEditorImage])
+  }, [commitEditorImage, gasketUI])
 
   const beginPaperProcess = useCallback((img, dataUrl) => {
     setPaperStatus('searching')
@@ -3451,6 +3468,11 @@ export default function Editor() {
                   <span className="text-xs text-[#9999AD] leading-relaxed">
                     <span className="font-semibold text-[#C8C8D0]">Auto-size with a sheet of paper.</span>{' '}
                     Place your tool or gasket on a plain white Letter or A4 sheet, photograph the whole sheet straight down, and exact dimensions get set for you. Best accuracy: light from above (overhead shop light or outdoor shade) so the tool casts little shadow.
+                    {gasketUI && (
+                      <span className="block mt-1.5 text-brand">
+                        Gaskets: for the tightest accuracy, <a href="/gasket-calibration-sheet.pdf" target="_blank" rel="noopener" className="underline font-semibold">print the calibration sheet</a> (100% scale) and place your gasket between the four markers. It gets detected automatically.
+                      </span>
+                    )}
                     {paperStatus === 'searching' && <span className="block mt-1 text-brand">Finding the paper sheet...</span>}
                     {paperStatus === 'notfound' && <span className="block mt-1 text-amber-400">Could not find a paper sheet in the last photo, so it loaded normally. Make sure all four corners are visible against a darker surface.</span>}
                   </span>

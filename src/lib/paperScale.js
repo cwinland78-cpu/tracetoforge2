@@ -280,3 +280,142 @@ export function measureToolOnPaper(cv, imgEl) {
     mats.forEach(m => { try { m.delete() } catch (_) { /* already deleted */ } })
   }
 }
+
+// ─── Gasket calibration sheet (QR-style finder markers) ───
+// The printable sheet has four finder patterns (21mm nested squares) whose
+// CENTERS form a 170 x 230 mm rectangle, centered on A4 or Letter. Detecting
+// them gives exact perspective + scale with no assumptions about paper edges
+// or background. Detection is plain contour hierarchy - no ArUco module needed.
+
+const CALIB_RECT_W = 170  // mm between marker centers, horizontal
+const CALIB_RECT_H = 230  // mm between marker centers, vertical
+const CALIB_PX_PER_MM = 6 // rectified output resolution
+const CALIB_MARGIN = 14   // mm of sheet kept around the marker rectangle
+
+/**
+ * @param {object} cv - window.cv
+ * @param {HTMLImageElement} imgEl - uploaded photo
+ * @returns same shape as detectPaperAndRectify
+ */
+export function detectCalibSheetAndRectify(cv, imgEl) {
+  const mats = []
+  const track = (m) => { mats.push(m); return m }
+  try {
+    // Detect on a downscaled copy for speed
+    const maxDim = 1600
+    const scale = Math.min(1, maxDim / Math.max(imgEl.width, imgEl.height))
+    const dw = Math.round(imgEl.width * scale)
+    const dh = Math.round(imgEl.height * scale)
+    const workCanvas = document.createElement('canvas')
+    workCanvas.width = dw; workCanvas.height = dh
+    workCanvas.getContext('2d').drawImage(imgEl, 0, 0, dw, dh)
+
+    const src = track(cv.imread(workCanvas))
+    const gray = track(new cv.Mat())
+    cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY)
+
+    // Adaptive threshold, inverse: dark marker ink becomes white blobs.
+    // Block size scales with image so it works from phone photos to scans.
+    const block = Math.max(31, Math.round(Math.max(dw, dh) / 22)) | 1
+    const bin = track(new cv.Mat())
+    cv.adaptiveThreshold(gray, bin, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY_INV, block, 5)
+
+    const contours = track(new cv.MatVector())
+    const hierarchy = track(new cv.Mat())
+    cv.findContours(bin, contours, hierarchy, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+
+    // A finder pattern in the inverted binary is: blob (outer black square)
+    // containing a hole (white ring) containing another blob (black core).
+    // Hierarchy: contour i has child, child has child.
+    const minArea = dw * dh * 0.00005
+    const cands = []
+    for (let i = 0; i < contours.size(); i++) {
+      const cnt = contours.get(i)
+      const area = cv.contourArea(cnt)
+      if (area < minArea) { cnt.delete(); continue }
+      const child = hierarchy.data32S[i * 4 + 2]
+      if (child === -1) { cnt.delete(); continue }
+      const gchild = hierarchy.data32S[child * 4 + 2]
+      if (gchild === -1) { cnt.delete(); continue }
+      const core = contours.get(gchild)
+      const coreArea = cv.contourArea(core)
+      core.delete()
+      if (coreArea <= 0) { cnt.delete(); continue }
+      const ratio = area / coreArea
+      // module areas 49 vs 9 -> ~5.44 ideal; tolerate perspective + blur
+      if (ratio < 3.0 || ratio > 10.0) { cnt.delete(); continue }
+      const br = cv.boundingRect(cnt)
+      const sq = br.width / br.height
+      if (sq < 0.6 || sq > 1.7) { cnt.delete(); continue }
+      const m = cv.moments(cnt)
+      cnt.delete()
+      if (m.m00 <= 0) continue
+      cands.push({ x: m.m10 / m.m00, y: m.m01 / m.m00, area })
+    }
+
+    if (cands.length < 4) return { found: false, reason: `only ${cands.length} markers` }
+
+    // If extra candidates, keep the 4 most similar in area (the real markers
+    // are the same physical size; noise blobs vary wildly)
+    let four = cands
+    if (cands.length > 4) {
+      cands.sort((a, b) => a.area - b.area)
+      let best = null
+      for (let i = 0; i + 3 < cands.length; i++) {
+        const spread = cands[i + 3].area / cands[i].area
+        if (!best || spread < best.spread) best = { spread, set: cands.slice(i, i + 4) }
+      }
+      four = best.set
+    }
+
+    // Order and undo the detection downscale so we warp from full resolution
+    const ordered = orderCorners(four).map(p => ({ x: p.x / scale, y: p.y / scale }))
+    const [tl, tr, br2, bl] = ordered
+
+    // Orientation: marker rect is portrait (170 wide, 230 tall). If the photo
+    // was taken landscape, the detected quad's horizontal span exceeds its
+    // vertical span - rotate the correspondence instead of assuming.
+    const wSpan = (dist(tl, tr) + dist(bl, br2)) / 2
+    const hSpan = (dist(tl, bl) + dist(tr, br2)) / 2
+    const landscape = wSpan > hSpan
+
+    const m = CALIB_MARGIN, S = CALIB_PX_PER_MM
+    const outW = Math.round((CALIB_RECT_W + 2 * m) * S)
+    const outH = Math.round((CALIB_RECT_H + 2 * m) * S)
+    const dTL = { x: m * S, y: m * S }
+    const dTR = { x: (m + CALIB_RECT_W) * S, y: m * S }
+    const dBR = { x: (m + CALIB_RECT_W) * S, y: (m + CALIB_RECT_H) * S }
+    const dBL = { x: m * S, y: (m + CALIB_RECT_H) * S }
+    // Landscape photo: image TL corresponds to sheet BL (90 deg rotation)
+    const srcPts = landscape ? [bl, tl, tr, br2] : [tl, tr, br2, bl]
+
+    const srcMat = track(cv.matFromArray(4, 1, cv.CV_32FC2,
+      srcPts.flatMap(p => [p.x, p.y])))
+    const dstMat = track(cv.matFromArray(4, 1, cv.CV_32FC2,
+      [dTL, dTR, dBR, dBL].flatMap(p => [p.x, p.y])))
+    const M = track(cv.getPerspectiveTransform(srcMat, dstMat))
+
+    const fullCanvas = document.createElement('canvas')
+    fullCanvas.width = imgEl.width; fullCanvas.height = imgEl.height
+    fullCanvas.getContext('2d').drawImage(imgEl, 0, 0)
+    const full = track(cv.imread(fullCanvas))
+    const out = track(new cv.Mat())
+    cv.warpPerspective(full, out, M, new cv.Size(outW, outH),
+      cv.INTER_LINEAR, cv.BORDER_CONSTANT, new cv.Scalar(255, 255, 255, 255))
+
+    const outCanvas = document.createElement('canvas')
+    outCanvas.width = outW; outCanvas.height = outH
+    cv.imshow(outCanvas, out)
+    return {
+      found: true,
+      paperLabel: 'Calibration',
+      mmPerPx: 1 / S,
+      dataUrl: outCanvas.toDataURL('image/jpeg', 0.92),
+      outW, outH,
+    }
+  } catch (err) {
+    return { found: false, reason: err?.message || 'calib detect error' }
+  } finally {
+    mats.forEach(m => { try { m.delete() } catch (e) { /* noop */ } })
+  }
+}
