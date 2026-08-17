@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../components/AuthContext'
 import { supabase } from '../lib/supabase'
+import { suggestEmailFix } from '../lib/emailTypo'
 
 export default function LoginPage() {
   const [mode, setMode] = useState('login') // login | signup | forgot
@@ -12,6 +13,8 @@ export default function LoginPage() {
   const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
   const [showResend, setShowResend] = useState(false)
+  const [sentTo, setSentTo] = useState('')
+  const emailSuggestion = mode !== 'login' ? suggestEmailFix(email) : null
   const { signIn, signUp, resetPassword } = useAuth()
   const navigate = useNavigate()
 
@@ -29,6 +32,7 @@ export default function LoginPage() {
     e?.preventDefault?.()
     setError('')
     setSuccess('')
+    setSentTo('')
     setLoading(true)
 
     try {
@@ -45,7 +49,8 @@ export default function LoginPage() {
         if (data?.user?.identities?.length === 0) {
           setError('An account with this email already exists')
         } else if (data?.user && !data?.session) {
-          setSuccess('Check your email for a confirmation link! If you don\'t see it, check spam or click Resend below.')
+          setSentTo(email.trim())
+          setSuccess('')
           setShowResend(true)
         } else {
           navigate('/editor/')
@@ -86,17 +91,37 @@ export default function LoginPage() {
             </div>
           )}
 
-          {success && (
+          {sentTo && (
             <div className="bg-green-500/20 border border-green-500/50 text-green-300 px-4 py-3 rounded-lg mb-4 text-sm">
-              {success}
-              {showResend && (
+              <p className="font-semibold text-green-200">Confirmation link sent to:</p>
+              <p className="mt-1 font-mono text-white break-all">{sentTo}</p>
+              <p className="mt-2 text-green-300/90">
+                It usually lands in under a minute. Check spam if it has not shown up.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
                 <button
                   onClick={handleResendConfirmation}
-                  className="block mt-2 text-orange-400 hover:text-orange-300 underline underline-offset-2 text-xs"
+                  className="text-orange-400 hover:text-orange-300 underline underline-offset-2 text-xs"
                 >
-                  Resend confirmation email
+                  Resend it
                 </button>
-              )}
+                <button
+                  onClick={() => {
+                    setSentTo('')
+                    setShowResend(false)
+                    setError('')
+                  }}
+                  className="text-orange-400 hover:text-orange-300 underline underline-offset-2 text-xs"
+                >
+                  Not your email? Use a different one
+                </button>
+              </div>
+            </div>
+          )}
+
+          {success && !sentTo && (
+            <div className="bg-green-500/20 border border-green-500/50 text-green-300 px-4 py-3 rounded-lg mb-4 text-sm">
+              {success}
             </div>
           )}
 
@@ -126,6 +151,19 @@ export default function LoginPage() {
                 required
                 className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 transition-colors"
               />
+              {emailSuggestion && (
+                <p className="mt-1.5 text-sm text-amber-300/90">
+                  Did you mean{' '}
+                  <button
+                    type="button"
+                    onClick={() => setEmail(emailSuggestion)}
+                    className="font-semibold text-amber-200 underline underline-offset-2 hover:text-amber-100 break-all"
+                  >
+                    {emailSuggestion}
+                  </button>
+                  ?
+                </p>
+              )}
             </div>
 
             {mode !== 'forgot' && (
@@ -190,6 +228,8 @@ export default function LoginPage() {
                       setMode('signup')
                       setError('')
                       setSuccess('')
+                    setSentTo('')
+                      setSentTo('')
                     }}
                     className="text-orange-400 hover:text-orange-300"
                   >
@@ -202,6 +242,8 @@ export default function LoginPage() {
                       setMode('forgot')
                       setError('')
                       setSuccess('')
+                    setSentTo('')
+                      setSentTo('')
                     }}
                     className="text-gray-500 hover:text-gray-300"
                   >
@@ -218,6 +260,7 @@ export default function LoginPage() {
                     setMode('login')
                     setError('')
                     setSuccess('')
+                    setSentTo('')
                   }}
                   className="text-orange-400 hover:text-orange-300"
                 >
@@ -232,6 +275,7 @@ export default function LoginPage() {
                     setMode('login')
                     setError('')
                     setSuccess('')
+                    setSentTo('')
                   }}
                   className="text-orange-400 hover:text-orange-300"
                 >
