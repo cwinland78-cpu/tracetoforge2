@@ -11,6 +11,11 @@ export default function GridfinityCustomCutout() {
       date="2026-03-10"
       readTime="5 min"
       tags={['Gridfinity', 'Custom Cutout', '3D Printing', 'No CAD']}
+      faq={[
+        { q: 'How do I make a custom Gridfinity cutout without CAD?', a: 'Photograph the tool on a sheet of paper, upload it, and let the tracer detect the outline. That outline becomes the cutout shape in a Gridfinity-profile bin. You adjust cavity depth, tolerance, and grid size with sliders, then export STL or 3MF. No Fusion 360, no OpenSCAD, and no parametric variables to configure.' },
+        { q: 'Can a Gridfinity generator cut a shape for a specific tool?', a: 'Parametric generators cannot, because they only produce rectangular or rounded compartments from dimensions you type in. A photo-based generator can, because it traces the actual silhouette of your actual tool. That is the core difference between the two categories.' },
+        { q: 'What size Gridfinity bin do I need for my tool?', a: 'Measure the tool\'s length and width, add roughly 6 to 8mm total for cavity clearance and wall thickness, then divide by 42 and round up to get grid units. A 160mm plier needs at least 4 units of length. The editor calculates this for you once it has traced the tool and knows its real dimensions.' },
+      ]}
     >
       <p>
         The Gridfinity ecosystem has thousands of premade bins on Printables and Thingiverse.

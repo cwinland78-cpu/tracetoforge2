@@ -16,7 +16,7 @@ function AdUnit() {
   )
 }
 
-export default function BlogPost({ title, description, canonical, date, updated, readTime, tags, children }) {
+export default function BlogPost({ title, description, canonical, date, updated, readTime, tags, faq, children }) {
   useEffect(() => {
     const initAds = () => {
       try {
@@ -108,6 +108,18 @@ export default function BlogPost({ title, description, canonical, date, updated,
               [&_blockquote]:border-l-2 [&_blockquote]:border-brand/40 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-[#8888A0]
             ">
               {children}
+
+              {faq && faq.length > 0 && (
+                <section className="mt-12 pt-8 border-t border-[#2A2A35]/50">
+                  <h2>Frequently Asked Questions</h2>
+                  {faq.map((item, i) => (
+                    <div key={i} className="mb-6">
+                      <h3>{item.q}</h3>
+                      <p>{item.a}</p>
+                    </div>
+                  ))}
+                </section>
+              )}
             </div>
           </article>
 

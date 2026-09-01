@@ -803,6 +803,7 @@ writePage('/dashboard', makePage({
 
 // Blog Index
 const blogPosts = [
+  { slug: 'packout-drawer-inserts', title: 'Milwaukee Packout Drawer Inserts: Sizes and Layouts', excerpt: 'Interior dimensions for the 2, 3, and 5-drawer Packout units, how much depth you actually get, and three layout approaches for filling them with printed inserts.' },
   { slug: 'drawing-to-3d-object', title: 'Turn a Drawing into a 3D Printable Object', excerpt: 'Sketch a shape on paper, photograph it, and export a printable STL. The same tracer that cuts tool cavities also extrudes solid objects. No CAD required.' },
   { slug: 'photo-to-gridfinity-guide', title: 'Photo to Gridfinity: Custom Bin in Under 2 Minutes', excerpt: 'Turn a phone photo of any tool into a printable Gridfinity bin. Paper-based scaling, tolerance settings, STL and 3MF export. No CAD, runs entirely in your browser.' },
   { slug: 'tracetoforge-vs-tooltrace-vs-gridpilot', title: 'Tracefinity vs Tooltrace vs TracetoForge Compared', excerpt: 'Tracefinity, Tooltrace, GridPilot and TracetoForge side by side. Self-hosting, pricing, free tier limits, export formats, and how each one gets real-world scale from a photo.' },
@@ -814,7 +815,7 @@ const blogPosts = [
   { slug: 'reusable-tool-library-drawer-trays', title: 'Trace Once, Use Everywhere: Build a Reusable Tool Library for Custom Drawer Trays', excerpt: 'Save your traced tools and reuse them across any Gridfinity bin, Packout insert, or drawer tray without re-tracing.' },
   { slug: 'custom-milwaukee-packout-inserts-3d-print', title: 'How to Make Custom Milwaukee Packout Inserts with a 3D Printer', excerpt: 'Stop buying $40 generic inserts. Learn how to create perfectly fitted, custom Packout inserts from a photo.' },
   { slug: 'gasket-maker-from-photo', title: 'Make a Replacement Gasket from a Photo, Bolt Holes and All', excerpt: 'Photograph a dead gasket and get a cutting template with bolt holes detected automatically. Calibration sheet for exact bolt spacing. SVG, DXF, STL, and 3MF exports.' },
-  { slug: 'measure-tool-from-photo-paper', title: 'Measure a Tool from a Photo Using a Sheet of Paper', excerpt: 'Skip the calipers. Photograph any tool on a Letter or A4 sheet and get real millimeter dimensions automatically, with perspective correction built in.' },
+  { slug: 'measure-tool-from-photo-paper', title: 'Measure a Tool from a Photo With a Sheet of Paper', excerpt: 'Skip the calipers. Paper size detected automatically, perspective corrected, holes measured too. Plus when to use the calibration sheet instead.' },
   { slug: 'gridfinity-insert-from-photo', title: 'Create Gridfinity Inserts from a Photo: The Fastest Way in 2026', excerpt: 'Forget hours of CAD work. Snap a photo and generate a perfectly fitted Gridfinity insert in minutes.' },
   { slug: 'tool-organizer-photo-to-stl', title: 'Photo to STL: Turn Any Tool Photo into a 3D Printable Organizer', excerpt: 'A complete guide to converting photos into print-ready STL, 3MF, SVG, and DXF files.' },
   { slug: 'gridfinity-vs-packout-vs-custom-tray', title: 'Gridfinity vs Packout vs Custom Trays: Which to Pick', excerpt: 'Three insert systems compared on cost, print time, drawer fit, and how easy each is to modify. A straight answer on which one suits your setup.' },
@@ -848,6 +849,7 @@ ${blogListHtml}
 import { readdirSync } from 'fs'
 
 const postConfigs = [
+  { slug: 'packout-drawer-inserts', file: 'PackoutDrawerInserts.jsx' },
   { slug: 'drawing-to-3d-object', file: 'DrawingTo3D.jsx' },
   { slug: 'photo-to-gridfinity-guide', file: 'PhotoToGridfinityGuide.jsx' },
   { slug: 'tracetoforge-vs-tooltrace-vs-gridpilot', file: 'CompetitorComparison.jsx' },
@@ -881,7 +883,16 @@ function extractMeta(jsxContent) {
   const updated = jsxContent.match(/updated="([^"]*)"/)?.[1] || ''
   const tagsMatch = jsxContent.match(/tags=\{\[([^\]]*)\]\}/)
   const tags = tagsMatch ? tagsMatch[1].match(/'([^']+)'/g)?.map(t => t.replace(/'/g, '')) || [] : []
-  return { title, desc, canonical, date, updated, tags }
+  const faq = []
+  const faqBlock = jsxContent.match(/faq=\{\[([\s\S]*?)\]\}/)
+  if (faqBlock) {
+    const re = /\{\s*q:\s*'((?:[^'\\]|\\.)*)'\s*,\s*a:\s*'((?:[^'\\]|\\.)*)'\s*\}/g
+    let m
+    while ((m = re.exec(faqBlock[1])) !== null) {
+      faq.push({ q: m[1].replace(/\\'/g, "'"), a: m[2].replace(/\\'/g, "'") })
+    }
+  }
+  return { title, desc, canonical, date, updated, tags, faq }
 }
 
 function extractArticleContent(jsxContent) {
@@ -964,6 +975,22 @@ for (const post of postConfigs) {
         <p><a href="/about/">More about TracetoForge</a> | <a href="/contact/">Contact</a></p>
       </aside>`
 
+  const faqSchema = meta.faq.length ? {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: meta.faq.map(f => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a }
+    }))
+  } : null
+
+  const faqHtml = meta.faq.length ? `
+      <section>
+        <h2>Frequently Asked Questions</h2>
+${meta.faq.map(f => `        <h3>${f.q}</h3>\n        <p>${f.a}</p>`).join('\n')}
+      </section>` : ''
+
   writePage(`/blog/${post.slug}`, makePage({
     title: `${meta.title} | TracetoForge`,
     description: meta.desc,
@@ -976,11 +1003,12 @@ for (const post of postConfigs) {
       <article>
 ${articleContent}
       </article>
+${faqHtml}
 ${authorBioHtml}
       <p><a href="/blog/">Back to Blog</a> | <a href="/editor/?sample=1">Watch It Trace a Tool (Live Demo)</a> | <a href="/editor/">Upload Your Own Photo</a></p>
       <p>Everything you export from TracetoForge is yours to sell. No commercial license needed.</p>`,
     articleSchema,
-    extraSchemas: [breadcrumbSchema]
+    extraSchemas: faqSchema ? [breadcrumbSchema, faqSchema] : [breadcrumbSchema]
   }))
 }
 

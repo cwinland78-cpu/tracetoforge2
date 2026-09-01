@@ -13,6 +13,12 @@ export default function PhotoToGridfinityGuide() {
       updated="2026-05-07"
       readTime="14 min"
       tags={['Gridfinity', 'Photo to STL', 'Tool Organization', '3D Printing']}
+      faq={[
+        { q: 'How do I make a Gridfinity bin from a photo?', a: 'Lay the tool flat on a sheet of Letter or A4 paper, photograph it from directly overhead with all four paper corners in frame, and upload it. The software detects the paper to establish real-world scale, traces the tool silhouette, and cuts that shape as a cavity into a Gridfinity-profile bin. Set your grid size and tolerance, then export STL or 3MF. Start to finish is usually under two minutes.' },
+        { q: 'How accurate is measuring a tool from a photo?', a: 'Tested against calipers, dimensions land within roughly 2 to 3 millimeters and diameter-type measurements within about 1 millimeter. That is comfortably inside working tolerance for drawer cavities. Most remaining error comes from camera angle, which the paper correction handles, and from hard side lighting casting a shadow that reads as part of the tool.' },
+        { q: 'What tolerance should I use for a Gridfinity tool cavity?', a: 'Around 0.5mm of clearance suits most printers as a starting point. The number that matters is what your specific machine and filament actually produce, so print one cavity as a small test coupon before committing to a full bin. PETG typically needs slightly more clearance than PLA.' },
+        { q: 'What is the best filament for Gridfinity bins?', a: 'PLA is fine for bins that stay in a shop at room temperature and it prints easily. PETG is the better choice for anything that rides in a vehicle, since a toolbox in a truck in summer can get hot enough to soften PLA. For bins holding sharp or heavy tools, PETG also resists cracking better.' },
+      ]}
     >
       <div className="not-prose mb-8 p-5 rounded-lg border border-brand/30 bg-brand/5">
         <p className="text-xs font-semibold text-brand uppercase tracking-wider mb-2">Quick Answer</p>

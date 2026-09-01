@@ -157,10 +157,42 @@
       ]
     }
     </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How do I make a custom Gridfinity cutout without CAD?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Photograph the tool on a sheet of paper, upload it, and let the tracer detect the outline. That outline becomes the cutout shape in a Gridfinity-profile bin. You adjust cavity depth, tolerance, and grid size with sliders, then export STL or 3MF. No Fusion 360, no OpenSCAD, and no parametric variables to configure."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can a Gridfinity generator cut a shape for a specific tool?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Parametric generators cannot, because they only produce rectangular or rounded compartments from dimensions you type in. A photo-based generator can, because it traces the actual silhouette of your actual tool. That is the core difference between the two categories."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What size Gridfinity bin do I need for my tool?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Measure the tool's length and width, add roughly 6 to 8mm total for cavity clearance and wall thickness, then divide by 42 and round up to get grid units. A 160mm plier needs at least 4 units of length. The editor calculates this for you once it has traced the tool and knows its real dimensions."
+          }
+        }
+      ]
+    }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-    <script type="module" crossorigin src="/assets/index-DZfVLumi.js"></script>
+    <script type="module" crossorigin src="/assets/index-RR4D7Opd.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-CvTkhhqT.css">
   </head>
   <body>
@@ -278,6 +310,16 @@
         and the <a href="/editor/">TracetoForge editor</a>. Your first export is free.
       </p>
       </article>
+
+      <section>
+        <h2>Frequently Asked Questions</h2>
+        <h3>How do I make a custom Gridfinity cutout without CAD?</h3>
+        <p>Photograph the tool on a sheet of paper, upload it, and let the tracer detect the outline. That outline becomes the cutout shape in a Gridfinity-profile bin. You adjust cavity depth, tolerance, and grid size with sliders, then export STL or 3MF. No Fusion 360, no OpenSCAD, and no parametric variables to configure.</p>
+        <h3>Can a Gridfinity generator cut a shape for a specific tool?</h3>
+        <p>Parametric generators cannot, because they only produce rectangular or rounded compartments from dimensions you type in. A photo-based generator can, because it traces the actual silhouette of your actual tool. That is the core difference between the two categories.</p>
+        <h3>What size Gridfinity bin do I need for my tool?</h3>
+        <p>Measure the tool's length and width, add roughly 6 to 8mm total for cavity clearance and wall thickness, then divide by 42 and round up to get grid units. A 160mm plier needs at least 4 units of length. The editor calculates this for you once it has traced the tool and knows its real dimensions.</p>
+      </section>
 
       <aside>
         <h3>About the author</h3>

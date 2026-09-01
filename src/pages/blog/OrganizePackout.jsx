@@ -11,6 +11,12 @@ export default function OrganizePackout() {
       date="2026-02-24"
       readTime="8 min"
       tags={['Milwaukee Packout', 'Tool Organization', 'Workshop', '3D Printing']}
+      faq={[
+        { q: 'What fits in a Milwaukee Packout drawer?', a: 'It depends heavily on which unit you have, and published dimensions describe the outside of the case rather than the usable interior. Measure the drawer floor rather than the opening, since the walls taper, and measure usable height rather than nominal drawer depth. Those two numbers determine everything you can fit.' },
+        { q: 'Are 3D printed Packout inserts better than foam?', a: 'For most uses, yes. Printed inserts cost a few dollars in filament against $30 to $50 for cut foam, they do not compress or tear over time, and they can be reprinted exactly when a tool changes. Foam still wins for delicate instruments where you want cushioning against impact.' },
+        { q: 'Can you use Gridfinity in a Packout drawer?', a: 'Yes, by laying a baseplate on the drawer floor and filling it with 42mm bins. The tradeoff is wasted space, since the grid does not divide evenly into a Packout drawer and you get a dead strip along one or two edges, plus the baseplate consumes several millimeters of depth you may not have in a shallow drawer.' },
+        { q: 'What filament should I use for Packout inserts?', a: 'PETG. A Packout is designed to be carried and left in vehicles, and a closed truck bed in summer regularly exceeds the temperature at which PLA starts to soften and sag. PLA is acceptable only for a box that never leaves a climate-controlled shop.' },
+      ]}
     >
       <p>
         You bought the Packout system because it is the most modular, stackable, lockable tool storage

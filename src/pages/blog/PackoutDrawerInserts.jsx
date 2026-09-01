@@ -1,0 +1,83 @@
+import React from 'react'
+import GearBox from '../../components/GearBox'
+import BlogPost from './BlogPost'
+
+export default function PackoutDrawerInserts() {
+  return (
+    <BlogPost
+      title="Milwaukee Packout Drawer Inserts: Sizes and Layouts"
+      description="Interior dimensions for the 2, 3, and 5-drawer Packout units, how much depth you actually get per drawer, and three layout approaches for filling them with printed inserts."
+      canonical="https://tracetoforge.com/blog/packout-drawer-inserts/"
+      date="September 1, 2026"
+      readTime="9 min"
+      tags={['Milwaukee Packout', 'Drawer Inserts', '3D Printing', 'Tool Storage']}
+    >
+      <p><strong>An empty Packout drawer is a surprisingly bad place to keep tools.</strong> You paid for a precision-built modular box and the inside is a rectangular void where wrenches slide into a pile every time you carry it. The drawers are the right idea. The empty space inside them is the problem.</p>
+      <p>Generic foam and plastic organizers exist, and they mostly fit badly because they were designed for a drawer in general rather than your drawer in particular. Printed inserts fix that, but only if you start from real interior dimensions instead of the outside measurements on the box.</p>
+
+      <h2>Measure Your Own Drawer, Then Trust It</h2>
+      <p>Published dimensions for Packout drawer units describe the outside of the case. What you need is the usable interior of each drawer, and that number is smaller than you expect once you account for the drawer walls, the draft angle molded into the sides, and the rails.</p>
+      <p>Rather than repeat numbers you would be right to distrust, measure yours. It takes ninety seconds and it is the single highest-leverage thing you can do before printing anything.</p>
+      <ul>
+        <li><strong>Width and depth at the bottom, not the top.</strong> Injection-molded drawers taper. The opening is wider than the floor, sometimes by several millimeters per side. An insert sized to the opening will not seat.</li>
+        <li><strong>Usable height, not drawer height.</strong> Measure from the floor to the point where the drawer above or the lip would foul. This is almost always less than the drawer's nominal depth.</li>
+        <li><strong>Check the corners.</strong> Molded radii mean a true square insert will not sit flat. Note the radius and either match it or relieve the corners.</li>
+        <li><strong>Note any floor features.</strong> Ribs, drain slots, and molded logos change what sits flush.</li>
+      </ul>
+      <p>Write those numbers down once and you will use them for years. Every insert you make afterward starts from a known-good box.</p>
+
+      <h2>Depth Is the Constraint That Bites</h2>
+      <p>Most people plan layouts in two dimensions and get surprised by the third. A drawer that comfortably holds the footprint of a socket set may not close over it.</p>
+      <p>The rule: your cavity depth plus the tool's thickness above the cavity floor has to clear the drawer opening. Cutting a cavity deeper than the tool is thick means the tool disappears below the surface and becomes hard to pick out. Cutting it shallower means the tool stands proud, which is fine as long as it clears.</p>
+      <p>The comfortable target is a cavity roughly 60 to 70 percent of the tool's thickness. Deep enough that nothing shifts during a carry, shallow enough that you can get a finger under it. Anything thinner than about 6mm, like combination wrenches, wants a finger notch instead of extra depth, because there is no useful depth to work with.</p>
+
+      <h2>Three Ways to Fill a Drawer</h2>
+      <p>These are genuinely different approaches with different tradeoffs, not three flavors of the same thing.</p>
+
+      <h3>One full-drawer tray</h3>
+      <p>A single insert spanning the whole drawer, with cavities cut for each tool. Best fit, least wasted space, most satisfying result. The downside is that it is one large print, often too large for a 220mm bed without splitting, and changing your mind about one tool means reprinting the whole thing or living with a wrong pocket.</p>
+      <p>Pick this when the tool set is settled and you want maximum density. A wrench set or a fixed screwdriver lineup is a good candidate because it will not change.</p>
+
+      <h3>Gridfinity baseplate plus bins</h3>
+      <p>Lay a baseplate in the drawer floor and fill it with 42mm-grid bins. Rearranging is instant, prints are small, and you can borrow bins from the enormous existing Gridfinity library.</p>
+      <p>The cost is space. The grid does not divide evenly into a Packout drawer, so you get a dead strip along one or two edges, and the baseplate itself eats several millimeters of your scarce depth. On shallow drawers that is most of your budget.</p>
+      <p>Pick this when the contents change often or when you already have Gridfinity elsewhere and want interchangeability.</p>
+
+      <h3>Separate zone trays</h3>
+      <p>The middle path. Two or three independent trays that together fill the drawer, each holding a related group. Each prints in one go on a small bed, and replacing one zone does not disturb the others.</p>
+      <p>Slightly more wasted space than a single tray from the seams, far less than Gridfinity. This is the approach I would suggest to most people building their first drawer, because it survives changing your mind.</p>
+
+      <div className="my-8 p-5 rounded-xl bg-brand/5 border border-brand/20">
+        <p className="!my-0 text-sm"><strong>Build a drawer tray from a photo:</strong> lay the tools flat on a sheet of paper, photograph from above, and <a href="/editor/">trace them in the editor</a>. Set your measured drawer dimensions as the tray size and the cavities land where the tools actually are. <a href="/editor/?sample=1">Watch it run on a sample first</a> if you want to see the workflow.</p>
+      </div>
+
+      <h2>Laying Out Tools So the Drawer Still Works</h2>
+      <p>A layout that looks good in the preview can be annoying in practice. Some things worth deciding on purpose.</p>
+      <p><strong>Put the tools you reach for most at the front.</strong> You open a drawer partway far more often than fully. Frequently used tools at the back mean pulling the whole drawer every time.</p>
+      <p><strong>Leave a finger channel on anything flat.</strong> Wrenches, chisels, and rules sitting in a snug pocket with no relief are genuinely hard to remove with gloves. A notch at the midpoint solves it and costs almost nothing.</p>
+      <p><strong>Group by job, not by type.</strong> The instinct is all pliers together, all drivers together. In practice you reach for a job's worth of tools at once. An electrical drawer beats a pliers drawer.</p>
+      <p><strong>Orient long tools along the drawer's long axis.</strong> Obvious, but it is the difference between fitting eight wrenches and fitting five.</p>
+      <p><strong>Do not fill it completely.</strong> Leave one open zone. You will acquire a tool, and a drawer with no slack forces a reprint.</p>
+
+      <GearBox items={[
+        { img: '/gear/petg-filament.webp', href: 'https://www.amazon.com/s?k=petg+filament+1.75mm&tag=tracetoforge-20', title: 'PETG filament', blurb: 'holds up to job site heat better than PLA' },
+        { img: '/gear/digital-caliper.webp', href: 'https://www.amazon.com/s?k=digital+caliper&tag=tracetoforge-20', title: 'Digital caliper', blurb: 'for the drawer interior measurements above' },
+        { img: '/gear/drawer-liner.webp', href: 'https://www.amazon.com/s?k=non+slip+drawer+liner&tag=tracetoforge-20', title: 'Non-slip liner', blurb: 'keeps a printed tray from sliding on the drawer floor' },
+      ]} />
+
+      <h2>Print Settings for Drawer Trays</h2>
+      <p>Trays are large, flat, and mostly walls, so the settings that matter are different from a typical print.</p>
+      <p><strong>Material:</strong> PETG for anything that rides in a vehicle. A Packout in a truck bed in summer gets hot enough to soften PLA, and a sagged tray is a wasted eight-hour print. PLA is fine for a shop drawer that stays indoors.</p>
+      <p><strong>Layer height:</strong> 0.28 or 0.3mm. Trays are big and detail hardly matters. This can halve your print time with no functional loss.</p>
+      <p><strong>Walls and infill:</strong> 3 perimeters and 10 to 15 percent gyroid. Strength lives in the perimeters here, and high infill on a part this size wastes hours and filament for nothing.</p>
+      <p><strong>Splitting for small beds:</strong> Cut along a cavity wall rather than through open floor, so the seam falls where geometry already provides stiffness. Glue with CA or leave the pieces loose, since the drawer walls hold them in position anyway.</p>
+
+      <h2>The Mistake Almost Everyone Makes First</h2>
+      <p>Printing the full tray before testing the fit. It is an eight-hour print and if the cavity tolerance is wrong, every pocket is wrong at once.</p>
+      <p>Print one cavity as a small test coupon first. Twenty minutes, and it tells you whether your tolerance setting matches your printer and your filament. Around 0.5mm of clearance suits most setups, but the number that matters is the one your machine actually produces, and a coupon is how you find it. Then print the real thing knowing it will fit.</p>
+
+      <h2>Where to Go Next</h2>
+      <p>If you want the Gridfinity route specifically, the <a href="/blog/gridfinity-in-packout-drawer/">Gridfinity in Packout drawers guide</a> covers baseplate sizing and mounting. For the wider question of which system to commit to, see <a href="/blog/gridfinity-vs-packout-vs-custom-tray/">Gridfinity vs Packout vs custom trays</a>. And for organizing the boxes themselves rather than the drawers, the <a href="/blog/how-to-organize-milwaukee-packout/">Packout organization guide</a> covers the stack as a whole.</p>
+    </BlogPost>
+  )
+}

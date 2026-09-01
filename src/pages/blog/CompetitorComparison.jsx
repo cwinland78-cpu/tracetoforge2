@@ -12,6 +12,12 @@ export default function CompetitorComparison() {
       updated="2026-05-07"
       readTime="8 min"
       tags={['Gridfinity', 'Comparison', 'Tool Organization']}
+      faq={[
+        { q: 'What is the difference between Tracefinity and TracetoForge?', a: 'Tracefinity is an open-source app you self-host in Docker, with an optional paid tier, and it uses AI models for tracing that can run locally or through a cloud API. TracetoForge runs entirely in your browser with no install and no server-side image processing, so your photos never leave your device. Tracefinity suits people comfortable running a container; TracetoForge suits people who want to open a tab and get an STL.' },
+        { q: 'Is there a free photo to Gridfinity generator?', a: 'Yes. TracetoForge gives you three free credits on signup with no card required, and each credit is one export. Tracefinity is free to self-host and its hosted free tier allows a limited number of bins. Tooltrace and GridPilot both offer limited free tiers as well. For a one-off insert, the free tiers are usually enough.' },
+        { q: 'Do I need CAD skills to make a custom Gridfinity bin?', a: 'No. Photo-based generators exist specifically to skip CAD. You photograph the tool on a sheet of paper, the software traces the outline and reads real dimensions from the paper, and you export an STL. Parametric generators like the OpenSCAD ones require no CAD either, but they only make simple box bins, not cavities shaped to a specific tool.' },
+        { q: 'Can I sell what I export from these tools?', a: 'With TracetoForge, yes. Anything you export is yours to sell with no commercial license required. Other tools vary, so check the terms of whichever one you use, particularly with open-source projects where the license covers the software rather than the output.' },
+      ]}
     >
       <div className="not-prose mb-8 p-5 rounded-lg border border-brand/30 bg-brand/5">
         <p className="text-xs font-semibold text-brand uppercase tracking-wider mb-2">Quick Answer</p>
