@@ -5,8 +5,8 @@ import BlogPost from './BlogPost'
 export default function OrganizePackout() {
   return (
     <BlogPost
-      title="How to Organize a Milwaukee Packout Like a Pro: The Complete System"
-      description="A practical guide to organizing your Milwaukee Packout system with 3D printed inserts, Gridfinity bins, and smart layouts. Stop wasting space and time on the job site."
+      title="How to Organize a Milwaukee Packout: Real Layouts"
+      description="Drawer-by-drawer Packout layouts using 3D printed inserts and Gridfinity bins. What fits where, which drawers waste space, and how to cut trays for your own tools."
       canonical="https://tracetoforge.com/blog/how-to-organize-milwaukee-packout/"
       date="2026-02-24"
       readTime="8 min"

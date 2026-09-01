@@ -5,8 +5,8 @@ import BlogPost from './BlogPost'
 export default function ComparisonPost() {
   return (
     <BlogPost
-      title="Gridfinity vs Milwaukee Packout vs Custom Trays: Which Insert System Is Best?"
-      description="A practical comparison of Gridfinity, Milwaukee Packout, and custom tray inserts for 3D printing. Pros, cons, and which system fits your workflow."
+      title="Gridfinity vs Packout vs Custom Trays: Which to Pick"
+      description="Three insert systems compared on cost, print time, drawer fit, and how easy each is to modify. A straight answer on which one suits your setup."
       canonical="https://tracetoforge.com/blog/gridfinity-vs-packout-vs-custom-tray/"
       date="2026-02-24"
       updated="2026-05-07"

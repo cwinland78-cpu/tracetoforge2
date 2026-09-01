@@ -6,8 +6,8 @@ import BlogPost from './BlogPost'
 export default function KnipexOrganizer() {
   return (
     <BlogPost
-      title="Knipex Pliers Organizer: 3D Printed Inserts for Cobra, Pliers Wrench, and More"
-      description="Custom 3D printed organizer inserts for Knipex Cobra, Pliers Wrench, TwinGrip, and diagonal cutters. Gridfinity and Packout compatible. Precision-fit to each model."
+      title="Knipex Pliers Organizer: Cobra, Pliers Wrench, TwinGrip"
+      description="Printable organizer inserts fitted to Knipex Cobra 125-300mm, Pliers Wrench, TwinGrip, and diagonal cutters. Gridfinity and Packout compatible, or trace your own."
       canonical="https://tracetoforge.com/blog/knipex-pliers-organizer-3d-printed/"
       date="2026-03-10"
       readTime="7 min"

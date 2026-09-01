@@ -29,6 +29,7 @@ import PhotoTipsForTrace from './pages/blog/PhotoTipsForTrace'
 import WeraScrewdriverBin from './pages/blog/WeraScrewdriverBin'
 import WrenchSetBin from './pages/blog/WrenchSetBin'
 import DrillBitStorage from './pages/blog/DrillBitStorage'
+import DrawingTo3D from './pages/blog/DrawingTo3D'
 import CommunityPage from './pages/CommunityPage'
 import PrivacyPage from './pages/PrivacyPage'
 import TermsPage from './pages/TermsPage'
@@ -64,6 +65,7 @@ function App() {
           <Route path="/blog/reusable-tool-library-drawer-trays" element={<SavedToolLibrary />} />
           <Route path="/blog/photo-to-gridfinity-guide" element={<PhotoToGridfinityGuide />} />
           <Route path="/blog/tracetoforge-vs-tooltrace-vs-gridpilot" element={<CompetitorComparison />} />
+          <Route path="/blog/drawing-to-3d-object" element={<DrawingTo3D />} />
           <Route path="/blog/gridfinity-in-packout-drawer" element={<GridfinityPackoutDrawer />} />
           <Route path="/blog/photo-tips-for-gridfinity-trace" element={<PhotoTipsForTrace />} />
           <Route path="/blog/wera-screwdriver-gridfinity-bin" element={<WeraScrewdriverBin />} />

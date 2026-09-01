@@ -6,8 +6,8 @@ import BlogPost from './BlogPost'
 export default function PhotoToGridfinityGuide() {
   return (
     <BlogPost
-      title="The Complete Guide to Custom Gridfinity Bins from a Photo"
-      description="Photo-to-Gridfinity in 2026: how to design, trace, export, and print custom Gridfinity bins from a phone photo. Workflow, tool examples, comparison with parametric generators, Packout integration. No CAD required."
+      title="Photo to Gridfinity: Custom Bin in Under 2 Minutes"
+      description="Turn a phone photo of any tool into a printable Gridfinity bin. Paper-based scaling, tolerance settings, STL and 3MF export. No CAD, runs entirely in your browser."
       canonical="https://tracetoforge.com/blog/photo-to-gridfinity-guide/"
       date="2026-05-07"
       updated="2026-05-07"

@@ -5,8 +5,8 @@ import BlogPost from './BlogPost'
 export default function CompetitorComparison() {
   return (
     <BlogPost
-      title="TracetoForge vs Tooltrace vs GridPilot: Photo-to-Gridfinity Tools Compared"
-      description="Side-by-side comparison of the four photo-based Gridfinity generators in 2026: TracetoForge, Tooltrace, GridPilot, and gridfinity.tools. Workflow, supported formats, pricing, free tier limits. Honest differentiators."
+      title="Tracefinity vs Tooltrace vs TracetoForge Compared"
+      description="Tracefinity, Tooltrace, GridPilot and TracetoForge side by side. Self-hosting, pricing, free tier limits, export formats, and how each one gets real-world scale from a photo."
       canonical="https://tracetoforge.com/blog/tracetoforge-vs-tooltrace-vs-gridpilot/"
       date="2026-05-07"
       updated="2026-05-07"

@@ -5,12 +5,13 @@ import BlogPost from './BlogPost'
 export default function GasketMaker() {
   return (
     <BlogPost
-      title="Make a Replacement Gasket from a Photo (No CAD, No Tracing by Hand)"
-      description="Turn a photo of a dead gasket into a cutting template or printable TPU gasket. Lay it on a sheet of paper, snap a photo, export SVG, DXF, or STL."
+      title="Make a Replacement Gasket from a Photo, Bolt Holes and All"
+      description="Photograph a dead gasket and get back a cutting template with bolt holes detected automatically. Perspective-corrected sizing, SVG and DXF for cutting, STL and 3MF for TPU."
       canonical="https://tracetoforge.com/blog/gasket-maker-from-photo/"
       date="July 18, 2026"
+      updated="September 1, 2026"
       readTime="6 min"
-      tags={['Gaskets', 'DIY Repair', 'SVG', 'DXF']}
+      tags={['Gaskets', 'DIY Repair', 'SVG', 'DXF', 'Hole Detection']}
     >
       <p><strong>The old gasket tore coming off, the part is discontinued, and the parts counter guy just shrugged.</strong> Every small engine, compressor, and old machine owner hits this wall eventually. The usual fix is tracing the dead gasket onto material with a pencil and cutting by eyeball, which works about as well as it sounds.</p>
       <p>Here is the better way: photograph the old gasket on a sheet of printer paper and let software do the tracing. TracetoForge was built for tool drawer inserts, but the exact same engine that traces a wrench traces a gasket, and it exports the two formats gasket work actually needs: SVG and DXF for cutting, STL and 3MF for printing.</p>
@@ -35,8 +36,14 @@ export default function GasketMaker() {
       <p>For most jobs, exporting the template and cutting real gasket material is the move. Cork sheet for oil pans and valve covers on old equipment, rubber or neoprene sheet for water and air, and fiber gasket material for fuel and higher temps. Print the SVG at 100 percent scale on plain paper, glue stick it to the material, and cut. Or send the DXF straight to a vinyl cutter or laser if you have one.</p>
       <p>Printing directly works when the material fits the job. TPU at 95A prints a serviceable gasket for low pressure air, water, and dust sealing applications. Keep it away from fuel and real heat. Print 2 to 3 perimeters, 100 percent infill, and around 0.5 to 1 millimeter thicker than the old gasket to account for compression.</p>
 
-      <h2>The Honest Limitation: Bolt Holes</h2>
-      <p>The tracer captures the outer profile of the gasket. Interior bolt holes and the center opening do not auto-detect yet, so handle them the way machinists always have: transfer punch the holes from the old gasket or the flange itself. Cut the outer profile from the template, lay it in place, and punch. A cheap hollow punch set makes cleaner holes than any knife anyway. For center openings, trace the flange opening onto the back of the template and cut inside the line.</p>
+      <h2>Bolt Holes Are Detected Automatically</h2>
+      <p>This used to be the weak spot. It is not anymore. The tracer now finds interior openings, not just the outer profile, so bolt holes and the center opening come through in the same pass as the outline. Behind the scenes it walks the contour hierarchy and keeps anything nested inside the gasket body, which is exactly what a bolt hole is.</p>
+      <p>The <strong>Hole Size</strong> slider controls how small an opening has to be before it gets ignored. Turn it down and you pick up every pinhole, including specks of dirt and paper texture. Turn it up and you keep only the real bolt holes. Start in the middle and adjust until the preview matches what you are holding.</p>
+      <p>A few things still fool it. Holes that the old gasket tore through are open to the edge, so they read as part of the outline rather than as holes. Holes filled with old sealant or carbon do not read at all, so scrape them clear before shooting. And if a hole comes out slightly undersized, that is usually better than oversized, since you can open a hole with a punch but you cannot shrink one.</p>
+
+      <h2>The Calibration Sheet, for When It Has to Be Exact</h2>
+      <p>Plain paper gets you within a couple of millimeters, which is fine for cork and rubber. When the bolt pattern has to line up on the first try, print the calibration sheet instead. It carries reference markers that let the software correct perspective more aggressively than paper corners alone, so a photo shot slightly off-axis still resolves to true dimensions. Print it at 100 percent scale with page scaling off, lay the gasket on it, and shoot as normal.</p>
+      <p>Worth doing whenever bolt spacing matters more than outer profile, which for flange gaskets is most of the time.</p>
 
       <GearBox items={[
         { img: '/gear/gasket-material.webp', href: 'https://www.amazon.com/s?k=gasket+material+sheet+assortment&tag=tracetoforge-20', title: 'Gasket material sheet assortment', blurb: 'cork, rubber, and fiber in one pack covers most jobs' },

@@ -41,7 +41,7 @@ export default function BlogPost({ title, description, canonical, date, updated,
   return (
     <>
       <SEOHead
-        title={`${title} | TracetoForge Blog`}
+        title={`${title} | TracetoForge`}
         description={description}
         canonical={canonical}
         type="article"
