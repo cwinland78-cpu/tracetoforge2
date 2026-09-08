@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react'
+import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import ReactDOM from 'react-dom'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import {
@@ -13,7 +13,7 @@ import packoutCompact from '../data/packout_compact_profile.json'
 import packoutSlim from '../data/packout_slim_profile.json'
 import packoutShockwave from '../data/packout_shockwave_profile.json'
 import { useAuth } from '../components/AuthContext'
-import { exportSTL } from '../lib/stlExporter'
+import { exportSTL, checkGridfinityFit } from '../lib/stlExporter'
 import { exportSVG, exportDXF, export3MF, bundleAsZip } from '../lib/exportFormats'
 import { hasCredits, useCredit, getCredits, initPurchases } from '../lib/purchases'
 import { queryTable } from '../lib/supabase'
@@ -714,7 +714,11 @@ export default function Editor() {
   useEffect(() => {
     if (!paperScale) return
     if (step < 2 || !contours.length) return
-    const fillKey = `${selectedContour}:${contours.length}`
+    // Key must include the active tool. Without it, tool 2 with the same
+    // contour count as tool 1 produced an identical key, the guard matched,
+    // and the paper-derived dimensions were silently never applied while the
+    // "sheet detected" banner still showed. (Reported Sep 2026.)
+    const fillKey = `${activeToolIdx}:${selectedContour}:${contours.length}`
     if (lastDimsFillKeyRef.current === fillKey) return
     const pts = contours[selectedContour] || contours[0]
     if (!pts || pts.length < 3) return
@@ -742,7 +746,7 @@ export default function Editor() {
       setRealHeight(hMm)
       lastDimsFillKeyRef.current = fillKey
     }
-  }, [paperScale, step, contours, selectedContour])
+  }, [paperScale, step, contours, selectedContour, activeToolIdx])
 
   // /editor/?gasket=1 preset: paper sizing on, thin 3D object output
   useEffect(() => {
@@ -2328,6 +2332,21 @@ export default function Editor() {
     setShowDisclaimer(true)
   }
 
+  /* ── Gridfinity fit check (tools no longer auto-shrink, so warn instead) ── */
+  const gridfinityOversize = useMemo(() => {
+    if (outputMode !== 'gridfinity') return []
+    try {
+      const tool0 = activeToolIdx === 0
+        ? { contours, selectedContour, realWidth, realHeight }
+        : tools[0]
+      const pts = tool0?.contours?.[tool0?.selectedContour ?? 0]
+      if (!pts || pts.length < 3) return []
+      const scaled = scaleToolPoints(pts, tool0.realWidth ?? realWidth, tool0.realHeight ?? realHeight)
+      return checkGridfinityFit(scaled, buildConfig())
+    } catch { return [] }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [outputMode, gridX, gridY, contours, selectedContour, realWidth, realHeight, tolerance, tools, activeToolIdx])
+
   /* ── Preview points ── */
   const getPreviewPoints = () => {
     // Always use tool 0 (primary tool) as the base cavity for 3D preview
@@ -3038,6 +3057,15 @@ export default function Editor() {
                         <input type="number" value={gridHeight} onChange={e => setGridHeight(Math.max(7, +e.target.value))} className="w-[4.5rem] text-right" min="7" step="1" />
                         <span className="text-xs text-[#8888A0] w-7">mm</span>
                       </ParamRow>
+
+                      {gridfinityOversize.length > 0 && (
+                        <div className="mx-2 mt-2 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/40 text-[11px] text-amber-300 leading-snug">
+                          <span className="font-bold">Too big for this bin.</span>{' '}
+                          {gridfinityOversize.map(o => `${o.label} needs ${o.w.toFixed(1)} x ${o.h.toFixed(1)} mm`).join('; ')}
+                          {`, but a ${gridX}x${gridY} bin only fits ${gridfinityOversize[0].maxW.toFixed(1)} x ${gridfinityOversize[0].maxH.toFixed(1)} mm.`}{' '}
+                          Increase Grid X or Grid Y, or rotate the tool.
+                        </div>
+                      )}
 
                       {/* Stacking Lip toggle */}
                       <div className="flex items-center justify-between gap-3 px-2 py-1.5 mt-1 rounded-md hover:bg-[#1C1C24]/50 transition-colors">

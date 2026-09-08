@@ -966,8 +966,7 @@ function createGridfinityInsert(points, config) {
   // Each item: { pts, depth (clamped), holePts (with tolerance) }
   const { additionalTools = [] } = config
   const extraToolViz = []
-  const maxGfW = binW - 2
-  const maxGfH = binH - 2
+
 
   // All cavity items that will be CSG-subtracted from the solid wall
   const allCavityItems = []
@@ -979,10 +978,12 @@ function createGridfinityInsert(points, config) {
   additionalTools.forEach((at, atIdx) => {
     if (!at.points || at.points.length < 3) return
     const { shape: atShape, centered: atCentered } = createShapeFromPoints(at.points)
-    const atBounds = getShapeBounds(at.points)
-    const atScaleX = maxGfW / atBounds.width
-    const atScaleY = maxGfH / atBounds.height
-    const atScale = Math.min(atScaleX, atScaleY, 1)
+    // Points are already in real-world mm from the Editor, same as
+    // createCustomInsert. Do NOT re-scale them. Squashing oversized tools to
+    // fit the bin silently produced undersized cavities (reported Sep 2026);
+    // oversize is now reported by checkGridfinityFit() so the user can bump
+    // the grid size instead.
+    const atScale = 1
     const atRad = (at.toolRotation || 0) * Math.PI / 180
     const atCos = Math.cos(atRad), atSin = Math.sin(atRad)
     const atOx = at.toolOffsetX || 0, atOy = at.toolOffsetY || 0
@@ -1316,6 +1317,41 @@ function mergeGeometries(geometries) {
 /**
  * Create a Three.js Group for 3D preview
  */
+/**
+ * Report which cavities are too large for the chosen Gridfinity grid.
+ * Pure check, no geometry. Gridfinity mode only; returns [] otherwise.
+ * Each entry: { label, w, h, maxW, maxH }  (mm, tolerance included)
+ */
+export function checkGridfinityFit(toolPoints, config = {}) {
+  if (config.mode !== 'gridfinity') return []
+  const { gridX = 2, gridY = 1, tolerance = 1.5, realWidth = 0 } = config
+  const maxW = gridX * GF.gridUnit - GF.tolerance * 2 - 2
+  const maxH = gridY * GF.gridUnit - GF.tolerance * 2 - 2
+  const over = []
+
+  const measure = (pts, tol) => {
+    const b = getShapeBounds(pts)
+    return { w: b.width + tol * 2, h: b.height + tol * 2 }
+  }
+
+  if (toolPoints && toolPoints.length >= 3) {
+    const b = getShapeBounds(toolPoints)
+    // Tool 0 is scaled by realWidth / bounds.width inside createGridfinityInsert
+    const s = realWidth && b.width ? realWidth / b.width : 1
+    const w = b.width * s + tolerance * 2
+    const h = b.height * s + tolerance * 2
+    if (w > maxW || h > maxH) over.push({ label: 'Tool 1', w, h, maxW, maxH })
+  }
+
+  ;(config.additionalTools || []).forEach((at, i) => {
+    if (!at.points || at.points.length < 3) return
+    const { w, h } = measure(at.points, at.tolerance || 0)
+    if (w > maxW || h > maxH) over.push({ label: `Tool ${i + 2}`, w, h, maxW, maxH })
+  })
+
+  return over
+}
+
 export function createInsertMesh(toolPoints, config) {
   const mode = config.mode || 'object'
 
