@@ -12,6 +12,7 @@ import { CALIB_LAYOUT, detectCalibSheetAndRectify, detectPaperAndRectify, measur
 import packoutCompact from '../data/packout_compact_profile.json'
 import packoutSlim from '../data/packout_slim_profile.json'
 import packoutShockwave from '../data/packout_shockwave_profile.json'
+import dewaltTs2Small from '../data/dewalt_ts2_small_profile.json'
 import { useAuth } from '../components/AuthContext'
 import { exportSTL, checkGridfinityFit } from '../lib/stlExporter'
 import { exportSVG, exportDXF, export3MF, bundleAsZip } from '../lib/exportFormats'
@@ -2864,7 +2865,39 @@ export default function Editor() {
                             <span className="text-red-400 text-sm flex-shrink-0">✓</span>
                           )}
                         </button>
-                        <p className="text-[10px] text-[#555568] mt-1.5 italic">More templates coming soon: Toolbox, 3-Drawer, Large Toolbox</p>
+                        <button
+                          onClick={() => {
+                            const pts = dewaltTs2Small.inner.map(([x, y]) => ({ x, y }))
+                            setActiveTemplate('dewalt-ts2-small')
+                            setOuterShapeType('custom')
+                            setOuterShapePoints(pts)
+                            setTrayWidth(Math.round(dewaltTs2Small.cavity_width))
+                            setTrayHeight(Math.round(dewaltTs2Small.cavity_depth))
+                            setTrayDepth(Math.round(dewaltTs2Small.height))
+                            setCornerRadius(0)
+                          }}
+                          className={`w-full p-3 rounded-lg border-2 transition-all text-left flex items-center gap-3 ${
+                            activeTemplate === 'dewalt-ts2-small'
+                              ? 'border-yellow-500 bg-yellow-500/10 shadow-lg shadow-yellow-500/10'
+                              : 'border-[#2A2A35] bg-[#1A1A22] hover:border-[#444] hover:bg-[#222230]'
+                          }`}
+                        >
+                          <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                            activeTemplate === 'dewalt-ts2-small' ? 'bg-yellow-500/20' : 'bg-[#2A2A35]'
+                          }`}>
+                            <span className={`text-lg font-bold ${activeTemplate === 'dewalt-ts2-small' ? 'text-yellow-400' : 'text-[#666]'}`}>D</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className={`text-xs font-bold ${activeTemplate === 'dewalt-ts2-small' ? 'text-yellow-400' : 'text-[#C8C8D0]'}`}>
+                              DeWalt ToughSystem 2.0
+                            </div>
+                            <div className="text-[10px] text-[#666680]">DWST08165 Small Tool Box • {Math.round(dewaltTs2Small.cavity_width)}×{Math.round(dewaltTs2Small.cavity_depth)}×{Math.round(dewaltTs2Small.height)}mm</div>
+                          </div>
+                          {activeTemplate === 'dewalt-ts2-small' && (
+                            <span className="text-yellow-400 text-sm flex-shrink-0">✓</span>
+                          )}
+                        </button>
+                        <p className="text-[10px] text-[#555568] mt-1.5 italic">More templates coming soon: ToughSystem drawers, Packout Toolbox, Large Toolbox</p>
                       </div>
                       <ParamRow label="Width" tooltip="Total tray width (left to right) in mm.">
                         <input type="number" value={trayWidth} onChange={e => setTrayWidth(+e.target.value)} className="w-[4.5rem] text-right" min="10" />
