@@ -123,6 +123,17 @@ const GF = {
   lipSlope: 1.8,       // 45deg inward slope
 }
 
+/**
+ * Snap a Gridfinity grid size to the nearest 0.5 unit, clamped to 1..16.
+ * Used by the Editor inputs and defensively inside the exporter, so a typed
+ * or saved value like 4.3 or 0.15 can never reach the geometry.
+ */
+export function snapGridUnits(v, min = 1, max = 16) {
+  const n = Number(v)
+  if (!Number.isFinite(n)) return min
+  return Math.min(max, Math.max(min, Math.round(n * 2) / 2))
+}
+
 // ─── Mesh Creators ───
 
 /**
@@ -790,8 +801,8 @@ function createCustomInsert(points, config) {
  */
 function createGridfinityInsert(points, config) {
   const {
-    gridX = 2,
-    gridY = 1,
+    gridX: rawGridX = 2,
+    gridY: rawGridY = 1,
     gridHeight = 21,
     tolerance = 1.5,
     realWidth = 100,
@@ -801,6 +812,9 @@ function createGridfinityInsert(points, config) {
     toolRotation = 0,
     stackingLip = true,
   } = config
+
+  const gridX = snapGridUnits(rawGridX)
+  const gridY = snapGridUnits(rawGridY)
 
   const group = new THREE.Group()
 
@@ -878,10 +892,20 @@ function createGridfinityInsert(points, config) {
   //   z=0.80: after 45deg chamfer -> 37.2mm per unit
   //   z=2.60: after vertical section -> 37.2mm (unchanged)
   //   z=4.75: after 45deg chamfer -> 41.5mm per unit (full baseUnitSize)
-  
-  const bottomW = GF.baseUnitSize - 2 * (GF.baseChamfer1 + GF.baseChamfer2) // 35.6
-  const midW = GF.baseUnitSize - 2 * GF.baseChamfer2 // 37.2
-  const topW = GF.baseUnitSize // 41.5
+  //
+  // Half-grid: if either dimension is fractional (e.g. 2 x 4.5), the whole
+  // base switches to 21mm feet (Gridfinity Rebuilt half_grid convention).
+  // Previously the loop stepped whole 42mm cells, so a 4.5 bin got 5 full
+  // feet with the last one hanging ~21mm past the wall (reported Sep 2026).
+  // Feet are laid out from the nominal grid (gridX * 42), not from binW,
+  // which also removes a 0.25mm +X/+Y base offset every bin used to have.
+  const halfGrid = !Number.isInteger(gridX) || !Number.isInteger(gridY)
+  const pitch = halfGrid ? GF.gridUnit / 2 : GF.gridUnit            // 21 or 42
+  const footsX = Math.round((gridX * GF.gridUnit) / pitch)
+  const footsY = Math.round((gridY * GF.gridUnit) / pitch)
+  const topW = pitch - (GF.gridUnit - GF.baseUnitSize)                 // 41.5 or 20.5
+  const bottomW = topW - 2 * (GF.baseChamfer1 + GF.baseChamfer2)      // 35.6 or 14.6
+  const midW = topW - 2 * GF.baseChamfer2                             // 37.2 or 16.2
   const cr = 1.6 // corner radius for narrower layers
 
   // Helper: build a frustum (tapered extrusion) between two rounded rects
@@ -929,27 +953,27 @@ function createGridfinityInsert(points, config) {
     return geo
   }
 
-  for (let gx = 0; gx < gridX; gx++) {
-    for (let gy = 0; gy < gridY; gy++) {
-      const cx = -binW / 2 + GF.gridUnit / 2 + gx * GF.gridUnit
-      const cy = -binH / 2 + GF.gridUnit / 2 + gy * GF.gridUnit
+  for (let gx = 0; gx < footsX; gx++) {
+    for (let gy = 0; gy < footsY; gy++) {
+      const cx = -(footsX * pitch) / 2 + pitch / 2 + gx * pitch
+      const cy = -(footsY * pitch) / 2 + pitch / 2 + gy * pitch
       const ov = 0 // no overlap needed
       let z = 0
 
-      // Layer 1: 45deg chamfer (0.8mm) - tapers from 35.6 to 37.2
+      // Layer 1: 45deg chamfer (0.8mm) - tapers bottomW -> midW
       const g1 = buildFrustum(bottomW, midW, cr, cr, GF.baseChamfer1 + ov, 24)
       g1.translate(cx, cy, z)
       group.add(new THREE.Mesh(g1, trayMat))
       z += GF.baseChamfer1
 
-      // Layer 2: vertical section (1.8mm) - stays at 37.2
+      // Layer 2: vertical section (1.8mm) - stays at midW
       const s2 = createRoundedRectShape(midW, midW, cr)
       const g2 = new THREE.ExtrudeGeometry(s2, { depth: GF.baseVertical + ov, bevelEnabled: false })
       g2.translate(cx, cy, z)
       group.add(new THREE.Mesh(g2, trayMat))
       z += GF.baseVertical
 
-      // Layer 3: 45deg chamfer (2.15mm) - tapers from 37.2 to 41.5
+      // Layer 3: 45deg chamfer (2.15mm) - tapers midW -> topW
       const g3 = buildFrustum(midW, topW, cr, GF.cornerRadius, GF.baseChamfer2 + ov, 24)
       g3.translate(cx, cy, z)
       group.add(new THREE.Mesh(g3, trayMat))
@@ -1138,13 +1162,14 @@ function createGridfinityInsert(points, config) {
 
   // ─── Grid lines on floor ───
   const linesMat = new THREE.LineBasicMaterial({ color: 0x444455 })
+  // Lines mark the 42mm grid, measured from the nominal grid edge
   for (let i = 1; i < gridX; i++) {
-    const x = -binW / 2 + i * (binW / gridX)
+    const x = -(gridX * GF.gridUnit) / 2 + i * GF.gridUnit
     const pts = [new THREE.Vector3(x, -binH / 2, GF.baseHeight + 0.1), new THREE.Vector3(x, binH / 2, GF.baseHeight + 0.1)]
     group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), linesMat))
   }
   for (let i = 1; i < gridY; i++) {
-    const y = -binH / 2 + i * (binH / gridY)
+    const y = -(gridY * GF.gridUnit) / 2 + i * GF.gridUnit
     const pts = [new THREE.Vector3(-binW / 2, y, GF.baseHeight + 0.1), new THREE.Vector3(binW / 2, y, GF.baseHeight + 0.1)]
     group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), linesMat))
   }
@@ -1324,7 +1349,9 @@ function mergeGeometries(geometries) {
  */
 export function checkGridfinityFit(toolPoints, config = {}) {
   if (config.mode !== 'gridfinity') return []
-  const { gridX = 2, gridY = 1, tolerance = 1.5, realWidth = 0 } = config
+  const { tolerance = 1.5, realWidth = 0 } = config
+  const gridX = snapGridUnits(config.gridX ?? 2)
+  const gridY = snapGridUnits(config.gridY ?? 1)
   const maxW = gridX * GF.gridUnit - GF.tolerance * 2 - 2
   const maxH = gridY * GF.gridUnit - GF.tolerance * 2 - 2
   const over = []

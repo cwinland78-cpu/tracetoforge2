@@ -14,7 +14,7 @@ import packoutSlim from '../data/packout_slim_profile.json'
 import packoutShockwave from '../data/packout_shockwave_profile.json'
 import dewaltTs2Small from '../data/dewalt_ts2_small_profile.json'
 import { useAuth } from '../components/AuthContext'
-import { exportSTL, checkGridfinityFit } from '../lib/stlExporter'
+import { exportSTL, checkGridfinityFit, snapGridUnits } from '../lib/stlExporter'
 import { exportSVG, exportDXF, export3MF, bundleAsZip } from '../lib/exportFormats'
 import { hasCredits, useCredit, getCredits, initPurchases } from '../lib/purchases'
 import { queryTable } from '../lib/supabase'
@@ -306,8 +306,8 @@ export default function Editor() {
       if (cfg.outerShapePoints) setOuterShapePoints(cfg.outerShapePoints)
       if (cfg.activeTemplate) setActiveTemplate(cfg.activeTemplate)
       if (cfg.holeMinPct != null) setHoleMinPct(cfg.holeMinPct)
-      if (cfg.gridX) setGridX(cfg.gridX)
-      if (cfg.gridY) setGridY(cfg.gridY)
+      if (cfg.gridX) setGridX(snapGridUnits(cfg.gridX))
+      if (cfg.gridY) setGridY(snapGridUnits(cfg.gridY))
       if (cfg.gridHeight) setGridHeight(cfg.gridHeight)
       else if (cfg.heightUnits) setGridHeight(cfg.heightUnits * 7)
       // stackingLip: defaults to true for older projects that didn't have the field
@@ -331,7 +331,8 @@ export default function Editor() {
       cavityBevel, toolRotation, toolOffsetX, toolOffsetY,
       fingerNotches, activeToolIdx, notchBevel,
       tools: savedTools, step: step, trayWidth, trayHeight, trayDepth, depth, objectEdgeRadius,
-      edgeProfile, edgeSize, outerShapeType, outerShapePoints, activeTemplate, gridX, gridY,
+      edgeProfile, edgeSize, outerShapeType, outerShapePoints, activeTemplate,
+      gridX: snapGridUnits(gridX), gridY: snapGridUnits(gridY),
       gridHeight, stackingLip, threshold, simplification, sensitivity, minContourPct, holeMinPct,
       image: image || null,
       imageSize: imageSize || null,
@@ -598,8 +599,8 @@ export default function Editor() {
         if (cfg.sensitivity != null) setSensitivity(cfg.sensitivity)
         if (cfg.simplification != null) setSimplification(cfg.simplification)
         if (cfg.minContourPct != null) setMinContourPct(cfg.minContourPct)
-        if (cfg.gridX) setGridX(cfg.gridX)
-        if (cfg.gridY) setGridY(cfg.gridY)
+        if (cfg.gridX) setGridX(snapGridUnits(cfg.gridX))
+        if (cfg.gridY) setGridY(snapGridUnits(cfg.gridY))
         if (cfg.gridHeight) setGridHeight(cfg.gridHeight)
         if (cfg.trayWidth) setTrayWidth(cfg.trayWidth)
         if (cfg.trayHeight) setTrayHeight(cfg.trayHeight)
@@ -2296,7 +2297,7 @@ export default function Editor() {
       return { ...base, trayWidth, trayHeight, trayDepth, wallThickness, cornerRadius, floorThickness, edgeProfile, edgeSize, cavityBevel: t0.cavityBevel ?? 0, notchBevel, fingerNotches, outerShapeType, outerShapePoints: outerPts, additionalTools, activeToolIdx, activeNotchIdx }
     }
     if (outputMode === 'gridfinity') {
-      return { ...base, gridX, gridY, gridHeight, stackingLip, cavityBevel: t0.cavityBevel ?? 0, notchBevel, fingerNotches, additionalTools, activeToolIdx, activeNotchIdx }
+      return { ...base, gridX: snapGridUnits(gridX), gridY: snapGridUnits(gridY), gridHeight, stackingLip, cavityBevel: t0.cavityBevel ?? 0, notchBevel, fingerNotches, additionalTools, activeToolIdx, activeNotchIdx }
     }
     return { ...base, additionalTools, activeToolIdx, activeNotchIdx }
   }
@@ -3078,12 +3079,12 @@ export default function Editor() {
                       <div className="border-t border-[#2A2A35]/50 pt-3 mt-1">
                         <h4 className="text-[11px] font-semibold text-brand/80 uppercase tracking-wider mb-3">Gridfinity</h4>
                       </div>
-                      <ParamRow label="Grid X" tooltip="Grid units wide (42mm each).">
-                        <input type="number" value={gridX} onChange={e => setGridX(+e.target.value)} className="w-[4.5rem] text-right" min="1" max="16" />
+                      <ParamRow label="Grid X" tooltip="Grid units wide (42mm each). Half sizes like 4.5 are allowed; values snap to the nearest 0.5.">
+                        <input type="number" value={gridX} onChange={e => setGridX(+e.target.value)} onBlur={e => setGridX(snapGridUnits(e.target.value))} className="w-[4.5rem] text-right" min="1" max="16" step="0.5" />
                         <span className="text-xs text-[#8888A0] w-7">units</span>
                       </ParamRow>
-                      <ParamRow label="Grid Y" tooltip="Grid units deep (42mm each).">
-                        <input type="number" value={gridY} onChange={e => setGridY(+e.target.value)} className="w-[4.5rem] text-right" min="1" max="16" />
+                      <ParamRow label="Grid Y" tooltip="Grid units deep (42mm each). Half sizes like 4.5 are allowed; values snap to the nearest 0.5.">
+                        <input type="number" value={gridY} onChange={e => setGridY(+e.target.value)} onBlur={e => setGridY(snapGridUnits(e.target.value))} className="w-[4.5rem] text-right" min="1" max="16" step="0.5" />
                         <span className="text-xs text-[#8888A0] w-7">units</span>
                       </ParamRow>
                       <ParamRow label="Height" tooltip="Wall height in mm (excludes the 4.75mm base)." tooltipPos="above">
@@ -3095,7 +3096,7 @@ export default function Editor() {
                         <div className="mx-2 mt-2 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/40 text-[11px] text-amber-300 leading-snug">
                           <span className="font-bold">Too big for this bin.</span>{' '}
                           {gridfinityOversize.map(o => `${o.label} needs ${o.w.toFixed(1)} x ${o.h.toFixed(1)} mm`).join('; ')}
-                          {`, but a ${gridX}x${gridY} bin only fits ${gridfinityOversize[0].maxW.toFixed(1)} x ${gridfinityOversize[0].maxH.toFixed(1)} mm.`}{' '}
+                          {`, but a ${snapGridUnits(gridX)}x${snapGridUnits(gridY)} bin only fits ${gridfinityOversize[0].maxW.toFixed(1)} x ${gridfinityOversize[0].maxH.toFixed(1)} mm.`}{' '}
                           Increase Grid X or Grid Y, or rotate the tool.
                         </div>
                       )}
