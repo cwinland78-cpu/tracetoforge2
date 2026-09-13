@@ -1030,49 +1030,15 @@ function createGridfinityInsert(points, config) {
     allCavityItems.push({ pts: nd.pts, depth: notchDepth, bevel: notchBev, label: `notch${nd.origIdx}` })
   })
 
-  // ─── Floor generation ───
-  // Floor sits between base top (GF.baseHeight) and cavity bottom
-  // Use the DEEPEST cavity to determine minimum floor
-  const deepestCavity = Math.max(...allCavityItems.map(c => c.depth))
-  const globalFloorZ = wallHeight - deepestCavity
-  
-  if (globalFloorZ > 0.01) {
-    // Check if any item cuts deeper than the primary cavity (into the floor)
-    const floorCutItems = allCavityItems.filter(c => c.depth > cavityZ)
-    if (floorCutItems.length > 0) {
-      // Layered floor: some items cut deeper than the primary floor level
-      const floorCuts = floorCutItems.map(c => {
-        const extraDepth = Math.min(c.depth - cavityZ, floorZ)
-        return { pts: c.pts, cutStart: floorZ - extraDepth }
-      })
-      const floorBreaks = [0, ...floorCuts.map(c => c.cutStart), floorZ]
-      const uniqueFloorBreaks = [...new Set(floorBreaks)].filter(h => h >= 0 && h <= floorZ).sort((a, b) => a - b)
-      
-      for (let fi = 0; fi < uniqueFloorBreaks.length - 1; fi++) {
-        const layerBot = uniqueFloorBreaks[fi]
-        const layerTop = uniqueFloorBreaks[fi + 1]
-        const layerH = layerTop - layerBot
-        if (layerH < 0.01) continue
-        
-        const floorShape = outerShape.clone()
-        floorCuts.forEach(c => {
-          if (layerBot >= c.cutStart - 0.001) {
-            floorShape.holes.push(new THREE.Path(c.pts.map(p => new THREE.Vector2(p.x, p.y))))
-          }
-        })
-        
-        const floorOv = (fi < uniqueFloorBreaks.length - 2) ? 0.01 : 0
-        const floorGeo = new THREE.ExtrudeGeometry(floorShape, { depth: layerH + floorOv, bevelEnabled: false })
-        floorGeo.translate(0, 0, GF.baseHeight + layerBot)
-        group.add(new THREE.Mesh(floorGeo, trayMat))
-      }
-    } else {
-      // Simple floor: no items cut deeper than primary
-      const floorGeo = new THREE.ExtrudeGeometry(outerShape, { depth: floorZ, bevelEnabled: false })
-      floorGeo.translate(0, 0, GF.baseHeight)
-      group.add(new THREE.Mesh(floorGeo, trayMat))
-    }
-  }
+  // ─── Floor ───
+  // No separate floor mesh. The solid wall block below starts at GF.baseHeight
+  // and each cavity is only cut down to its own depth, so the material left
+  // under a cavity IS the floor. A separate floor extrusion used to be added
+  // here as well, which put two overlapping solids in z = baseHeight..floorZ
+  // plus three coincident faces at z = baseHeight (base top, floor bottom,
+  // wall bottom). Slicers resolved that ambiguity badly: a customer's 2-tool
+  // bin sliced with a floating slab, infill and supports under the shallower
+  // tool (reported Sep 2026). Winding number is now exactly 1 in the floor.
 
   // ─── Wall: start solid, CSG-subtract each cavity independently ───
   // Build a completely solid wall (outer shape, no holes)
