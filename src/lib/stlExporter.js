@@ -1318,28 +1318,62 @@ export function checkGridfinityFit(toolPoints, config = {}) {
   const { tolerance = 1.5, realWidth = 0 } = config
   const gridX = snapGridUnits(config.gridX ?? 2)
   const gridY = snapGridUnits(config.gridY ?? 1)
-  const maxW = gridX * GF.gridUnit - GF.tolerance * 2 - 2
-  const maxH = gridY * GF.gridUnit - GF.tolerance * 2 - 2
+  const binW = gridX * GF.gridUnit - GF.tolerance * 2
+  const binH = gridY * GF.gridUnit - GF.tolerance * 2
+  const minWall = 1 // keep at least 1mm of wall on every side
+  const maxW = binW - 2 * minWall
+  const maxH = binH - 2 * minWall
+  const limX = binW / 2 - minWall
+  const limY = binH / 2 - minWall
   const over = []
 
-  const measure = (pts, tol) => {
-    const b = getShapeBounds(pts)
-    return { w: b.width + tol * 2, h: b.height + tol * 2 }
+  // Same transform createGridfinityInsert applies: center on the centroid,
+  // flip Y, scale, rotate, then offset. Tolerance grows the box on every side.
+  const extent = (pts, scale, rotDeg, ox, oy, tol) => {
+    let cx = 0, cy = 0
+    pts.forEach(p => { cx += p.x; cy += p.y })
+    cx /= pts.length; cy /= pts.length
+    const rad = (rotDeg || 0) * Math.PI / 180
+    const c = Math.cos(rad), sn = Math.sin(rad)
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
+    pts.forEach(p => {
+      const sx = (p.x - cx) * scale, sy = -(p.y - cy) * scale
+      const x = sx * c - sy * sn + (ox || 0)
+      const y = sx * sn + sy * c + (oy || 0)
+      if (x < minX) minX = x; if (x > maxX) maxX = x
+      if (y < minY) minY = y; if (y > maxY) maxY = y
+    })
+    return { minX: minX - tol, maxX: maxX + tol, minY: minY - tol, maxY: maxY + tol }
+  }
+
+  const judge = (label, e) => {
+    const w = e.maxX - e.minX, h = e.maxY - e.minY
+    if (w > maxW || h > maxH) {
+      over.push({ label, kind: 'oversize', w, h, maxW, maxH })
+      return
+    }
+    // Size fits, but is it slid past a wall? Report how far, per side.
+    const spill = {
+      right: e.maxX - limX, left: -limX - e.minX,
+      back: e.maxY - limY, front: -limY - e.minY,
+    }
+    const sides = Object.entries(spill).filter(([, v]) => v > 0.01)
+    if (sides.length) {
+      const [side, mm] = sides.sort((p, q) => q[1] - p[1])[0]
+      over.push({ label, kind: 'offEdge', side, mm, w, h, maxW, maxH })
+    }
   }
 
   if (toolPoints && toolPoints.length >= 3) {
     const b = getShapeBounds(toolPoints)
     // Tool 0 is scaled by realWidth / bounds.width inside createGridfinityInsert
     const s = realWidth && b.width ? realWidth / b.width : 1
-    const w = b.width * s + tolerance * 2
-    const h = b.height * s + tolerance * 2
-    if (w > maxW || h > maxH) over.push({ label: 'Tool 1', w, h, maxW, maxH })
+    judge('Tool 1', extent(toolPoints, s, config.toolRotation, config.toolOffsetX, config.toolOffsetY, tolerance))
   }
 
   ;(config.additionalTools || []).forEach((at, i) => {
     if (!at.points || at.points.length < 3) return
-    const { w, h } = measure(at.points, at.tolerance || 0)
-    if (w > maxW || h > maxH) over.push({ label: `Tool ${i + 2}`, w, h, maxW, maxH })
+    judge(`Tool ${i + 2}`, extent(at.points, 1, at.toolRotation, at.toolOffsetX, at.toolOffsetY, at.tolerance || 0))
   })
 
   return over

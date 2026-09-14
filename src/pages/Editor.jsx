@@ -2347,7 +2347,7 @@ export default function Editor() {
       return checkGridfinityFit(scaled, buildConfig())
     } catch { return [] }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [outputMode, gridX, gridY, contours, selectedContour, realWidth, realHeight, tolerance, tools, activeToolIdx])
+  }, [outputMode, gridX, gridY, contours, selectedContour, realWidth, realHeight, tolerance, toolRotation, toolOffsetX, toolOffsetY, tools, activeToolIdx])
 
   /* ── Preview points ── */
   const getPreviewPoints = () => {
@@ -3092,12 +3092,20 @@ export default function Editor() {
                         <span className="text-xs text-[#8888A0] w-7">mm</span>
                       </ParamRow>
 
-                      {gridfinityOversize.length > 0 && (
+                      {gridfinityOversize.some(o => o.kind === 'oversize') && (
                         <div className="mx-2 mt-2 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/40 text-[11px] text-amber-300 leading-snug">
                           <span className="font-bold">Too big for this bin.</span>{' '}
-                          {gridfinityOversize.map(o => `${o.label} needs ${o.w.toFixed(1)} x ${o.h.toFixed(1)} mm`).join('; ')}
+                          {gridfinityOversize.filter(o => o.kind === 'oversize').map(o => `${o.label} needs ${o.w.toFixed(1)} x ${o.h.toFixed(1)} mm`).join('; ')}
                           {`, but a ${snapGridUnits(gridX)}x${snapGridUnits(gridY)} bin only fits ${gridfinityOversize[0].maxW.toFixed(1)} x ${gridfinityOversize[0].maxH.toFixed(1)} mm.`}{' '}
                           Increase Grid X or Grid Y, or rotate the tool.
+                        </div>
+                      )}
+
+                      {gridfinityOversize.some(o => o.kind === 'offEdge') && (
+                        <div className="mx-2 mt-2 p-2.5 rounded-lg bg-red-500/10 border border-red-500/40 text-[11px] text-red-300 leading-snug">
+                          <span className="font-bold">Cutting through the wall.</span>{' '}
+                          {gridfinityOversize.filter(o => o.kind === 'offEdge').map(o => `${o.label} runs ${o.mm.toFixed(1)} mm past the ${o.side} wall`).join('; ')}.{' '}
+                          The pocket will break out the side of the bin. Drag the tool back toward the center, or increase Grid X or Grid Y.
                         </div>
                       )}
 
