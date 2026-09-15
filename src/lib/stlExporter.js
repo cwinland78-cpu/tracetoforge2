@@ -509,34 +509,43 @@ function createCustomInsert(points, config) {
   const shallowerExtraTools = diffDepthExtraTools.filter(et => et.depth < cavityZ)
   const deeperExtraTools = diffDepthExtraTools.filter(et => et.depth > cavityZ)
 
-  // Helper: apply bevel CSG to a wall geometry
+  // Helper: apply bevel CSG to a wall geometry.
+  // One subtract per hole, each with its own bevel size, same as the Gridfinity
+  // path. Previously a single max(cavityBevel, notchBevel) was applied only to
+  // the unioned tool outline, so notches at their own depth (which are cut as
+  // separate holes) never got a bevel, and the notch slider just grew the tool
+  // cavity instead (reported Sep 2026).
+  const bevelItems = []
+  const clampBevel = (v, depth) => Math.min(v || 0, depth * 0.3, 5)
+  bevelItems.push({ pts: holePts, bevel: cb })
+  defaultNotchPts.forEach(pts => bevelItems.push({ pts, bevel: nbClamped }))
+  indepNotches.forEach(n => bevelItems.push({ pts: n.pts, bevel: clampBevel(nb, n.depth) }))
+  extraToolHolePts.forEach((et, i) => bevelItems.push({ pts: et.pts, bevel: clampBevel(extraToolViz[i]?.cavityBevel, et.depth) }))
+  const anyItemBevel = bevelItems.some(it => it.bevel > 0.1)
+
   const applyBevel = (wallGeo) => {
-    if (!anyBevel) return new THREE.Mesh(wallGeo, trayMat2)
+    if (!anyItemBevel) return new THREE.Mesh(wallGeo, trayMat2)
     try {
       const evaluator = new Evaluator()
       let resultMesh = new Brush(wallGeo)
       resultMesh.updateMatrixWorld()
 
-
-      const maxCb = Math.max(cb, nbClamped, ...extraToolViz.map(ev => ev.cavityBevel || 0))
-      if (maxCb > 0.1) {
-        // Apply bevel to unified holes (all tools + notches merged)
-        unifiedHolePtArrays.forEach(pts => {
-          const bevelShape = new THREE.Shape()
-          pts.forEach((p, i) => { if (i === 0) bevelShape.moveTo(p.x, p.y); else bevelShape.lineTo(p.x, p.y) })
-          bevelShape.closePath()
-          const bevelGeo = new THREE.ExtrudeGeometry(bevelShape, {
-            depth: 0.01, bevelEnabled: true,
-            bevelThickness: maxCb, bevelSize: maxCb, bevelSegments: 1, bevelOffset: 0,
-          })
-          bevelGeo.translate(0, 0, topSurface)
-          const bevelBrush = new Brush(bevelGeo)
-          bevelBrush.updateMatrixWorld()
-          const prevBrush = new Brush(resultMesh.geometry || resultMesh)
-          prevBrush.updateMatrixWorld()
-          resultMesh = evaluator.evaluate(prevBrush, bevelBrush, SUBTRACTION)
+      bevelItems.forEach(({ pts, bevel }) => {
+        if (bevel <= 0.1 || !pts || pts.length < 3) return
+        const bevelShape = new THREE.Shape()
+        pts.forEach((p, i) => { if (i === 0) bevelShape.moveTo(p.x, p.y); else bevelShape.lineTo(p.x, p.y) })
+        bevelShape.closePath()
+        const bevelGeo = new THREE.ExtrudeGeometry(bevelShape, {
+          depth: 0.01, bevelEnabled: true,
+          bevelThickness: bevel, bevelSize: bevel, bevelSegments: 1, bevelOffset: 0,
         })
-      }
+        bevelGeo.translate(0, 0, topSurface)
+        const bevelBrush = new Brush(bevelGeo)
+        bevelBrush.updateMatrixWorld()
+        const prevBrush = new Brush(resultMesh.geometry || resultMesh)
+        prevBrush.updateMatrixWorld()
+        resultMesh = evaluator.evaluate(prevBrush, bevelBrush, SUBTRACTION)
+      })
 
       resultMesh.material = trayMat2
       if (resultMesh.geometry) resultMesh.geometry.computeVertexNormals()
