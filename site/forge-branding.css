@@ -1,0 +1,20 @@
+/* Preserve accessible text and React ownership; display the shared approved mark. */
+.forge-brand-wordmark {
+  display: inline-block;
+  width: 192px;
+  height: 28px;
+  max-width: 100%;
+  flex-shrink: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-indent: -9999px;
+  background: url('/logo-nav.png') center / contain no-repeat;
+  vertical-align: middle;
+}
+.forge-brand-wordmark.forge-brand-account {
+  display: block;
+  width: 288px;
+  height: 42px;
+  margin-inline: auto;
+}
+footer .forge-footer-logo { display: block; width: 192px; height: auto; }
