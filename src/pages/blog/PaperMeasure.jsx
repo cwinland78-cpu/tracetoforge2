@@ -6,15 +6,15 @@ export default function PaperMeasure() {
   return (
     <BlogPost
       title="Measure a Tool from a Photo With a Sheet of Paper"
-      description="Skip the calipers. Photograph a tool on Letter, A4, or the calibration sheet and get real millimeter dimensions automatically. Paper size auto-detected, perspective corrected."
+      description="Use a reference sheet to scale a tool photo, then verify the dimensions and a small test print before making a full insert."
       canonical="https://tracetoforge.com/blog/measure-tool-from-photo-paper/"
       date="July 18, 2026"
-      updated="September 1, 2026"
+      updated="2026-09-18"
       readTime="8 min"
       tags={['Measuring', 'Photo Tracing', 'Workshop Tips']}
     >
-      <p><strong>Every custom drawer insert that ever came out wrong came out wrong for the same reason: a bad measurement.</strong> I printed a full tray once where one tool was measured 5 millimeters short. Everything else fit perfect. That one pocket gripped its tool like a vise, and the whole tray went in the scrap bin.</p>
-      <p>The fix turned out to be sitting in the printer tray all along. A sheet of printer paper is a precision reference object: every Letter sheet on earth is 279.4 by 215.9 millimeters, every A4 sheet is 297 by 210. Put your tool on one, photograph the whole sheet, and the software can work out the exact real-world size of anything sitting on it.</p>
+      <p>A scale error can spoil a full tray even when the outline looks convincing. Use the paper reference to start the trace, then check the dimensions against the physical tool. This guide describes that verification process; it does not report a controlled accuracy test.</p>
+      <p>Use a flat, undamaged reference sheet of known dimensions. Confirm its actual size and the paper option selected by the editor. A cropped, curled, or incorrectly identified sheet should not be treated as a reliable ruler.</p>
 
       <h2>How It Works</h2>
       <p>When you check the paper option in the TracetoForge editor, three things happen before the normal tracing even starts. The app finds the sheet in your photo, figures out whether it is Letter or A4 from the proportions, and corrects the perspective, remapping the image as if your camera had been perfectly overhead even if you shot at a slight angle. Since the paper's true size is known, the scale of everything on it is known too. Width and height fill in automatically, and you can still fine-tune them if you have caliper numbers you trust more.</p>
@@ -32,9 +32,9 @@ export default function PaperMeasure() {
       <p>Use plain paper for tool cavities where the tolerance setting absorbs a millimeter of error. Use the calibration sheet for gaskets, bolt patterns, and anything where a hole has to land in a specific spot.</p>
 
       <h2>What Kind of Accuracy to Expect</h2>
-      <p>We tested this against caliper measurements on real photos, indoors under a desk lamp and outdoors in shade. Dimensions landed within roughly 2 to 3 millimeters of true, and diameter-type measurements within about 1 millimeter. The measurement engine estimates the paper's brightness across the frame and ignores cast shadow, so a soft shadow under the tool does not inflate the numbers.</p>
-      <p>For drawer inserts, that accuracy plus the standard tolerance setting means first-print fits. For anything demanding true caliper precision, measure the critical dimension by hand and type it in. The auto-fill gets you to the right neighborhood instantly either way.</p>
-      <p>Where the error actually comes from is worth knowing, because it tells you what to fix. Most of it is camera angle, which the paper correction handles. The rest is the trace deciding where the edge of the object falls, which is a lighting problem. A hard side light casts a shadow lip that reads as part of the tool and inflates dimensions by a millimeter or two. Diffuse overhead light removes it. If your numbers come out consistently large, look at your lamp before you doubt the math.</p>
+      <p>We do not provide a universal millimeter accuracy guarantee for photo measurements. Check at least one length and one width against a ruler or calipers. Record the physical measurements alongside the values shown in the editor so you can see whether the error is a scale problem or a local outline problem.</p>
+      <p>Print a small cavity test before a complete tray. Photo error and printer clearance are different problems: correcting a scale error by increasing clearance can make other parts of the cavity too loose. Fix the scale first, then tune the fit.</p>
+      <p>If the measurements disagree, retake the photo with the camera centered over the reference and the tool lying flat. Inspect the outline for shadows or glare. A paper correction cannot recover an edge that is hidden or missing from the photo, and a raised tool surface is not in the same plane as the sheet.</p>
 
       <h2>It Measures Holes Too, Not Just Outlines</h2>
       <p>The same scale that sizes the outer profile sizes interior openings. Bolt holes, the center opening of a gasket, the eye of a hook, all of it comes through in the same pass and in the same real-world millimeters.</p>
@@ -58,6 +58,9 @@ export default function PaperMeasure() {
         { img: '/gear/cutting-mat.webp', href: 'https://www.amazon.com/s?k=cutting+mat+dark&tag=tracetoforge-20', title: 'Dark cutting mat', blurb: 'the ideal contrast surface under the paper' },
       ]} />
 
+      <h2>A Measurement Record You Can Reuse</h2>
+      <ol><li>Write down the tool model and the reference sheet dimensions.</li><li>Measure a length and width physically, then record the corresponding traced dimensions.</li><li>If both axes are wrong, check reference detection and scaling. If one edge is wrong, inspect the trace and photo.</li><li>Save a small fit-test result with the printer, material, and clearance settings.</li><li>Use those checked settings in the full layout, and inspect the new layout for wall intersections.</li></ol>
+      <p><strong>Correction, September 18, 2026:</strong> Earlier text described a personal print failure and caliper test results without a supporting test record. Those claims and the first-print-fit promise have been removed.</p>
       <h2>Where This Pays Off</h2>
       <p>Multi-tool trays are the obvious one, since a full drawer of tools measured by hand is an hour with calipers and a notepad. It also covers the tools calipers handle badly: pliers wider than your caliper jaws, odd-shaped scrapers, anything with a taper. And it is the backbone of making gasket templates, where the whole point is capturing a real-world size you cannot easily measure. One sheet of paper, one photo, and the numbers are just there.</p>
     </BlogPost>

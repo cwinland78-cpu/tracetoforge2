@@ -96,6 +96,7 @@ function makePage({ title, description, canonical, ogTitle, ogType = 'website', 
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="google-adsense-account" content="ca-pub-5879329589086028">
     <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17969979491"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -103,7 +104,6 @@ function makePage({ title, description, canonical, ogTitle, ogType = 'website', 
       gtag('js', new Date());
       gtag('config', 'AW-17969979491');
     </script>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5879329589086028" crossorigin="anonymous"></script>
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
     <link rel="apple-touch-icon" href="/icon-512.png" />
@@ -289,6 +289,7 @@ const notFoundHtml = `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="google-adsense-account" content="ca-pub-5879329589086028">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Page Not Found | TracetoForge</title>
     <meta name="robots" content="noindex, follow" />
@@ -971,7 +972,7 @@ for (const post of postConfigs) {
   const authorBioHtml = `
       <aside>
         <h3>About the author</h3>
-        <p>Chris Winland runs TracetoForge out of a small workshop in Northeast Ohio. Qwikymart LLC, the operator of this site, makes and ships precision-fit 3D printed tool inserts alongside the browser-based editor. Most posts on this blog come from real problems hit while tracing, printing, and selling inserts to other makers. Reach out at <!--email_off-->support@tracetoforge.com<!--/email_off--> with corrections, questions, or tracing problems.</p>
+        <p>TracetoForge publishes guides to using its photo tracing and insert-design tools. Measurements and example settings should be checked against your own tool and printer. Send corrections with the page URL and supporting information to <!--email_off-->support@tracetoforge.com<!--/email_off-->.</p>
         <p><a href="/about/">More about TracetoForge</a> | <a href="/contact/">Contact</a></p>
       </aside>`
 

@@ -1,41 +1,47 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, Calendar, Clock } from 'lucide-react'
 import SEOHead from '../../components/SEOHead'
 
 function AdUnit() {
+  const adRef = useRef(null)
+  useEffect(() => {
+    const ad = adRef.current
+    // Never request production inventory from local or deployment previews.
+    if (!ad || !['tracetoforge.com', 'www.tracetoforge.com'].includes(window.location.hostname)) return
+    const request = () => {
+      if (!ad.isConnected || ad.dataset.requested || !ad.getBoundingClientRect().width) return
+      ad.dataset.requested = 'true'
+      if (!document.querySelector('script[src*="/pagead/js/adsbygoogle.js"]')) {
+        const script = document.createElement('script')
+        script.async = true
+        script.crossOrigin = 'anonymous'
+        script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5879329589086028'
+        document.head.appendChild(script)
+      }
+      try { (window.adsbygoogle = window.adsbygoogle || []).push({}) } catch (e) { console.error('AdSense:', e) }
+    }
+    if (!('IntersectionObserver' in window)) { request(); return }
+    const observer = new IntersectionObserver(entries => {
+      if (entries.some(entry => entry.isIntersecting)) { request(); observer.disconnect() }
+    }, { rootMargin: '250px' })
+    observer.observe(ad)
+    return () => observer.disconnect()
+  }, [])
   return (
-    <div className="my-8">
-      <ins className="adsbygoogle"
-        style={{ display: 'block', minHeight: '100px' }}
+    <aside aria-label="Advertisements" className="my-12" style={{ clear: 'both', padding: '24px 0', borderTop: '1px solid #2A2A35' }}>
+      <p style={{ fontSize: 11, color: '#9999AA', marginBottom: 12 }}>Advertisements</p>
+      <ins ref={adRef} className="adsbygoogle"
+        style={{ display: 'block', minHeight: '100px', width: '100%' }}
         data-ad-client="ca-pub-5879329589086028"
-        data-ad-slot="auto"
+        data-ad-slot="9118825546"
         data-ad-format="auto"
         data-full-width-responsive="true" />
-    </div>
+    </aside>
   )
 }
 
 export default function BlogPost({ title, description, canonical, date, updated, readTime, tags, faq, children }) {
-  useEffect(() => {
-    const initAds = () => {
-      try {
-        document.querySelectorAll('.adsbygoogle').forEach((ad) => {
-          if (!ad.getAttribute('data-adsbygoogle-status')) {
-            (window.adsbygoogle = window.adsbygoogle || []).push({})
-          }
-        })
-      } catch (e) {
-        console.error('AdSense init error:', e)
-      }
-    }
-    if (window.adsbygoogle) {
-      initAds()
-    } else {
-      const timer = setTimeout(initAds, 1500)
-      return () => clearTimeout(timer)
-    }
-  }, [])
   // dateModified for the article schema falls back to date if not provided
   const dateModified = updated || date
   return (
@@ -94,7 +100,7 @@ export default function BlogPost({ title, description, canonical, date, updated,
               </div>
             )}
 
-            <AdUnit />
+            <p className="text-sm text-[#8888A0] mb-8">By the TracetoForge team · <a href="/about/" className="underline">About this site</a> · <a href="/contact/" className="underline">Report a correction</a></p>
 
             <div className="prose prose-invert prose-orange max-w-none
               [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mt-10 [&_h2]:mb-4
@@ -123,7 +129,7 @@ export default function BlogPost({ title, description, canonical, date, updated,
             </div>
           </article>
 
-          <AdUnit />
+          <AdUnit key={canonical} />
 
           {/* CTA */}
           <div className="mt-16 p-8 rounded-2xl bg-brand/5 border border-brand/20 text-center">
@@ -151,6 +157,9 @@ export default function BlogPost({ title, description, canonical, date, updated,
 
         <footer className="border-t border-[#2A2A35]/50 py-8 text-center text-xs text-[#555568]">
           <p>&copy; {new Date().getFullYear()} TracetoForge. All rights reserved.</p>
+          <nav aria-label="Site information" className="mt-4 flex gap-5 flex-wrap justify-center text-[#9999AA]">
+            <a href="/about/">About</a><a href="/contact/">Contact</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a>
+          </nav>
         </footer>
       </div>
     </>

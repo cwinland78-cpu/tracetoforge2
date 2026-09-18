@@ -42,8 +42,8 @@ export const BLOG_POSTS = [
   },
   {
     slug: 'image-to-stl-converter-free',
-    title: 'Image to STL Converter: Turn Any Photo into a 3D Printable File for Free',
-    excerpt: 'Convert photos of tools, parts, and objects into STL files for 3D printing. No CAD skills needed. Free browser-based converter with instant export.',
+    title: 'Image to STL: Free Tracing and Preview, Credit-Based Exports',
+    excerpt: 'Convert photos of tools, parts, and objects into STL files for 3D printing. No CAD skills needed. Free browser-based tracing and preview; file exports use credits.',
     date: '2026-03-10',
     readTime: '6 min',
     tags: ['STL', 'Photo to 3D', '3D Printing', 'Free Tool'],

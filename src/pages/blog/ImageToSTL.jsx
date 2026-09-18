@@ -5,18 +5,18 @@ import BlogPost from './BlogPost'
 export default function ImageToSTL() {
   return (
     <BlogPost
-      title="Image to STL Converter: Turn Any Photo into a 3D Printable File for Free"
-      description="Convert photos of tools, parts, and objects into STL files for 3D printing. No CAD skills needed. Free browser-based image to STL converter with instant export."
+      title="Image to STL: Free Tracing and Preview, Credit-Based Exports"
+      description="Convert photos of tools, parts, and objects into STL files for 3D printing. No CAD skills needed. Browser-based tracing and preview; file exports use credits."
       canonical="https://tracetoforge.com/blog/image-to-stl-converter-free/"
       date="2026-03-10"
-      updated="2026-05-07"
+      updated="2026-09-18"
       readTime="6 min"
       tags={['STL', 'Photo to 3D', '3D Printing', 'Free Tool']}
     >
       <div className="not-prose mb-8 p-5 rounded-lg border border-brand/30 bg-brand/5">
         <p className="text-xs font-semibold text-brand uppercase tracking-wider mb-2">Quick Answer</p>
         <p className="text-[#C8C8D0] leading-relaxed text-[15px]">
-          To convert a photo to an STL file for free, upload the image to TracetoForge in your browser.
+          To trace a photo for an STL export, upload the image to TracetoForge in your browser.
           OpenCV.js auto-detects the silhouette, you set real-world dimensions (width and depth in mm), and export as STL, 3MF, SVG, or DXF.
           All processing runs locally in the browser — no images upload to a server. Free to trace and preview; exports cost one credit (3 free on signup).
           Best results come from a top-down photo on a plain white background with even lighting.

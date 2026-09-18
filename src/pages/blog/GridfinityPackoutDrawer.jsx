@@ -9,7 +9,7 @@ export default function GridfinityPackoutDrawer() {
       description="How to install a Gridfinity baseplate inside a Milwaukee Packout drawer. Drawer dimensions, baseplate sizing, mounting, and custom tool inserts. Works with the 48-22-8443 3-Drawer and 48-22-8442 2-Drawer."
       canonical="https://tracetoforge.com/blog/gridfinity-in-packout-drawer/"
       date="2026-05-07"
-      updated="2026-05-07"
+      updated="2026-09-18"
       readTime="9 min"
       tags={['Gridfinity', 'Milwaukee Packout', 'Tool Organization']}
     >
@@ -142,19 +142,9 @@ export default function GridfinityPackoutDrawer() {
       </p>
 
       <ul>
-        <li><strong>1×1 (42&nbsp;mm cell):</strong> small parts — hex keys, drill bits, bits, fasteners.</li>
-        <li><strong>2×1 (84×42&nbsp;mm):</strong> small hand tools — utility knife, multimeter probe leads,
-          a single Knipex Pliers Wrench. Also {' '}
-          <Link to="/blog/wrench-set-gridfinity-bin/">stubby wrench sets</Link>.</li>
-        <li><strong>3×1 (126×42&nbsp;mm):</strong> standard pliers, mid-sized hand tools. The canonical bin for
-          a pair of <Link to="/blog/knipex-pliers-organizer-3d-printed/">Knipex Cobras</Link>.</li>
-        <li><strong>3×2 (126×84&nbsp;mm):</strong> a small set of screwdrivers, a multimeter, or a pair of pliers
-          plus accessory.</li>
-        <li><strong>6×1 (252×42&nbsp;mm):</strong> long tools. Combination wrenches up to ~250&nbsp;mm fit, but
-          anything longer overhangs the cell — see the{' '}
-          <Link to="/blog/wrench-set-gridfinity-bin/">wrench set Gridfinity bin</Link> guide for full-set
-          layouts.</li>
-        <li><strong>6×3 (252×126&nbsp;mm):</strong> a 12-piece combination wrench set or a Wera screwdriver set.</li>
+        <li>A 1×1 cell has a 42 mm grid pitch; 3×1 spans 126 × 42 mm and 6×3 spans 252 × 126 mm on the grid.</li>
+        <li>These are grid dimensions, not usable cavity dimensions. Allow for bin walls, clearance, and finger access.</li>
+        <li>Measure the actual tool or set before choosing a footprint. Model names such as Cobra or Wera do not establish that fit.</li>
       </ul>
 
       <p>
@@ -272,3 +262,4 @@ export default function GridfinityPackoutDrawer() {
     </BlogPost>
   )
 }
+

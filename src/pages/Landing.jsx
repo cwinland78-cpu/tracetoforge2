@@ -111,28 +111,6 @@ export default function Landing() {
     return () => hero.removeEventListener('mousemove', handleMove)
   }, [])
 
-  // Initialize AdSense ads - wait for script to load, then push all slots
-  useEffect(() => {
-    const initAds = () => {
-      try {
-        const ads = document.querySelectorAll('.adsbygoogle')
-        ads.forEach((ad) => {
-          if (!ad.getAttribute('data-adsbygoogle-status')) {
-            (window.adsbygoogle = window.adsbygoogle || []).push({})
-          }
-        })
-      } catch (e) {
-        console.error('AdSense init error:', e)
-      }
-    }
-    // Wait for AdSense script to be ready
-    if (window.adsbygoogle) {
-      initAds()
-    } else {
-      const timer = setTimeout(initAds, 1500)
-      return () => clearTimeout(timer)
-    }
-  }, [])
 
   return (
     <div className="min-h-screen bg-bg landing-page">
@@ -359,12 +337,6 @@ export default function Landing() {
 
       {/* Ad unit - below hero */}
       <div className="max-w-4xl mx-auto px-6 py-4">
-        <ins className="adsbygoogle"
-          style={{ display: 'block', minHeight: '100px' }}
-          data-ad-client="ca-pub-5879329589086028"
-          data-ad-slot="auto"
-          data-ad-format="auto"
-          data-full-width-responsive="true" />
       </div>
 
       {/* How It Works */}
@@ -533,12 +505,6 @@ export default function Landing() {
 
       {/* Ad unit - after pricing */}
       <div className="max-w-4xl mx-auto px-6 py-4">
-        <ins className="adsbygoogle"
-          style={{ display: 'block', minHeight: '100px' }}
-          data-ad-client="ca-pub-5879329589086028"
-          data-ad-slot="auto"
-          data-ad-format="auto"
-          data-full-width-responsive="true" />
       </div>
 
       {/* Anti-CAD messaging */}
@@ -653,12 +619,6 @@ export default function Landing() {
 
       {/* Ad unit - after stats */}
       <div className="max-w-4xl mx-auto px-6 py-4">
-        <ins className="adsbygoogle"
-          style={{ display: 'block', minHeight: '100px' }}
-          data-ad-client="ca-pub-5879329589086028"
-          data-ad-slot="auto"
-          data-ad-format="auto"
-          data-full-width-responsive="true" />
       </div>
 
       {/* Compatible Systems */}
@@ -798,12 +758,6 @@ export default function Landing() {
 
       {/* Ad unit - mid page */}
       <div className="max-w-4xl mx-auto px-6 py-4">
-        <ins className="adsbygoogle"
-          style={{ display: 'block', minHeight: '100px' }}
-          data-ad-client="ca-pub-5879329589086028"
-          data-ad-slot="auto"
-          data-ad-format="auto"
-          data-full-width-responsive="true" />
       </div>
 
       {/* What You Can Organize - SEO keyword section */}
@@ -939,12 +893,6 @@ export default function Landing() {
 
       {/* Ad unit - after blog */}
       <div className="max-w-4xl mx-auto px-6 py-4">
-        <ins className="adsbygoogle"
-          style={{ display: 'block', minHeight: '100px' }}
-          data-ad-client="ca-pub-5879329589086028"
-          data-ad-slot="auto"
-          data-ad-format="auto"
-          data-full-width-responsive="true" />
       </div>
 
       {/* Shop - Ready-Made Inserts */}

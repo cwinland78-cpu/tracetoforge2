@@ -6,40 +6,26 @@ import BlogPost from './BlogPost'
 export default function PhotoToGridfinityGuide() {
   return (
     <BlogPost
-      title="Photo to Gridfinity: Custom Bin in Under 2 Minutes"
+      title="Photo to Gridfinity: Measure, Trace, and Check the Fit"
       description="Turn a phone photo of any tool into a printable Gridfinity bin. Paper-based scaling, tolerance settings, STL and 3MF export. No CAD, runs entirely in your browser."
       canonical="https://tracetoforge.com/blog/photo-to-gridfinity-guide/"
       date="2026-05-07"
-      updated="2026-05-07"
-      readTime="14 min"
+      updated="2026-09-18"
+      readTime="11 min"
       tags={['Gridfinity', 'Photo to STL', 'Tool Organization', '3D Printing']}
       faq={[
-        { q: 'How do I make a Gridfinity bin from a photo?', a: 'Lay the tool flat on a sheet of Letter or A4 paper, photograph it from directly overhead with all four paper corners in frame, and upload it. The software detects the paper to establish real-world scale, traces the tool silhouette, and cuts that shape as a cavity into a Gridfinity-profile bin. Set your grid size and tolerance, then export STL or 3MF. Start to finish is usually under two minutes.' },
-        { q: 'How accurate is measuring a tool from a photo?', a: 'Tested against calipers, dimensions land within roughly 2 to 3 millimeters and diameter-type measurements within about 1 millimeter. That is comfortably inside working tolerance for drawer cavities. Most remaining error comes from camera angle, which the paper correction handles, and from hard side lighting casting a shadow that reads as part of the tool.' },
+        { q: 'How do I make a Gridfinity bin from a photo?', a: 'Lay the tool flat on a sheet of Letter or A4 paper, photograph it from directly overhead with all four paper corners in frame, and upload it. The software detects the paper to establish real-world scale, traces the tool silhouette, and cuts that shape as a cavity into a Gridfinity-profile bin. Set your grid size and tolerance, then export STL or 3MF. Allow time to verify scale and print a fit test before making the full bin.' },
+        { q: 'How accurate is measuring a tool from a photo?', a: 'There is no universal accuracy figure for a photo trace. Compare both axes with a physical measurement, inspect the outline, and print a small fit test. Camera angle, object height, lighting, and printer settings can each affect the result.' },
         { q: 'What tolerance should I use for a Gridfinity tool cavity?', a: 'Around 0.5mm of clearance suits most printers as a starting point. The number that matters is what your specific machine and filament actually produce, so print one cavity as a small test coupon before committing to a full bin. PETG typically needs slightly more clearance than PLA.' },
         { q: 'What is the best filament for Gridfinity bins?', a: 'PLA is fine for bins that stay in a shop at room temperature and it prints easily. PETG is the better choice for anything that rides in a vehicle, since a toolbox in a truck in summer can get hot enough to soften PLA. For bins holding sharp or heavy tools, PETG also resists cracking better.' },
       ]}
     >
       <div className="not-prose mb-8 p-5 rounded-lg border border-brand/30 bg-brand/5">
         <p className="text-xs font-semibold text-brand uppercase tracking-wider mb-2">Quick Answer</p>
-        <p className="text-[#C8C8D0] leading-relaxed text-[15px]">
-          To make a custom Gridfinity bin from a photo: place your tool on a sheet of paper, take a top-down phone photo,
-          and upload to a photo-based Gridfinity generator like <Link to="/editor/">TracetoForge</Link>, Tooltrace, or GridPilot.
-          The app traces the outline using OpenCV edge detection. Set your real-world dimensions, pick Gridfinity Bin mode,
-          and export STL. Print in PETG at <strong>0.2&nbsp;mm layer height</strong> with 15-20% infill and 3 perimeters.
-          Total time: under 5 minutes from photo to sliced file. Filament cost: roughly <strong>$1-3 per bin</strong>.
-        </p>
+        <p>Place the tool on a known-size reference sheet, take a top-down photo, and trace its outline in the <a href="/editor/">editor</a>. Verify the dimensions before choosing a Gridfinity footprint. Preview the cavity, then print a small fit test before committing to the full organizer. Tracing and preview are free; file exports use credits. Check the editor for current export options.</p>
       </div>
 
-      <p>
-        If you have ever tried to design a Gridfinity bin shaped like an actual tool, you know the wall. Parametric
-        generators expect rectangles, circles, and a list of dimensions. Real tools have curves, tapered handles, and
-        irregular profiles that no slider in Fusion 360 will reproduce in two minutes. The shortcut is to skip the
-        modeling step entirely. Your phone already captures the silhouette of any tool more accurately than any human
-        with calipers. If you point that pipeline at a top-down photo and tell it the paper size, you can go from a
-        photo on the workbench to a sliced STL in under five minutes — and that is what a photo-based Gridfinity
-        generator does.
-      </p>
+      <p>A photo provides a starting outline for an irregular tool. It does not replace measurement. The useful workflow is to capture the shape, verify the scale, and test the cavity with your own printer. This guide explains the checks between those steps.</p>
 
       <p>
         This guide is the canonical reference for the photo-to-Gridfinity workflow. It covers the toolchain, the print
@@ -55,7 +41,7 @@ export default function PhotoToGridfinityGuide() {
         Photo-to-Gridfinity is a workflow for generating <a href="https://gridfinity.xyz/" target="_blank" rel="noopener noreferrer">Gridfinity</a>-compatible
         bins where the cavity is shaped like a real tool, traced from a photograph instead of measured by hand. The
         Gridfinity standard itself is unchanged — 42&nbsp;mm grid, standard base profile, optional stacking lip — but
-        the bin's interior carries a precision cutout matched to whatever you photographed. A 12-inch crescent wrench,
+        the bin's interior carries a cutout based on the outline you traced. A 12-inch crescent wrench,
         a Knipex Cobra in closed position, a Forstner bit set, an irregular hardware kit: each becomes a Gridfinity bin
         with a cavity shaped exactly like the object.
       </p>
@@ -91,7 +77,7 @@ export default function PhotoToGridfinityGuide() {
         </li>
         <li>
           <strong>Pick Gridfinity Bin mode and set dimensions.</strong> The bin footprint snaps to 42&nbsp;mm
-          increments — pick a 1×1 for small parts, a 2×1 or 3×1 for hand tools, a 6×3 for full sets. Set cavity depth
+          increments — size the grid around the measured outline, clearance, and walls. Set cavity depth
           based on tool thickness plus 2-3&nbsp;mm finger clearance.
         </li>
         <li>
@@ -100,13 +86,7 @@ export default function PhotoToGridfinityGuide() {
         </li>
       </ol>
 
-      <p>
-        The full loop takes about five minutes per tool once you have done it once. The first attempt usually takes
-        ten to fifteen minutes while you learn the tools. After a half-dozen traces, the workflow becomes muscle
-        memory — phone in hand, paper on the bench, app already open in a browser tab. For step-by-step photo
-        technique (lighting, paper, angle, what to do with chrome and reflective tools), see the dedicated{' '}
-        <Link to="/blog/photo-tips-for-gridfinity-trace/">photo tips for a clean Gridfinity trace</Link> guide.
-      </p>
+      <p>Work through one tool first and save the confirmed settings with its model number. A familiar workflow may be quicker on subsequent tools, but a new handle shape or material still deserves a fit check. See the <a href="/blog/photo-tips-for-gridfinity-trace/">photo guide</a> if the trace includes shadows or misses an edge.</p>
 
 
       <div className="my-8 p-5 rounded-xl bg-brand/5 border border-brand/20">
@@ -128,21 +108,9 @@ export default function PhotoToGridfinityGuide() {
         and you have a print-ready file in thirty seconds.
       </p>
 
-      <p>
-        Where parametric falls down is irregular, real-world tool shapes. The cavity for a Knipex Cobra is not a rectangle.
-        It has a hammer head, a flared handle, a notch where the joint pivots. Modeling that in Fusion 360 takes 30 to
-        45 minutes per tool — and you have to remeasure with calipers, then sketch, then extrude, then check fit, then
-        iterate. For a single tool, manageable. For a drawer of fifteen mixed pliers and screwdrivers, it is a weekend
-        project that most people quietly abandon.
-      </p>
+      <p>A parametric sketch can be useful when the shape is described by measured circles, rectangles, or repeated features. A photograph is useful when the outside silhouette matters more than those construction dimensions. Choose based on the geometry you need, then verify the result physically.</p>
 
-      <p>
-        Photo skips the modeling. The cavity is not described by parameters; it is captured by the camera. A 30-second
-        photo replaces 30 minutes of CAD per tool. The trade is some loss of fine control — you cannot easily add
-        chamfers, fillets, or symmetry constraints to a traced shape — but for the use case of "a tool-shaped pocket
-        my actual tool drops into," that loss is invisible. For a deeper look at the trade-offs, see the dedicated{' '}
-        <Link to="/blog/gridfinity-generator-photo-vs-parametric/">photo-based vs parametric generators</Link> comparison.
-      </p>
+      <p>Tracing captures the visible outline; it cannot infer hidden geometry or the correct clearance for your printer. Inspect those separately. The <a href="/blog/gridfinity-generator-photo-vs-parametric/">generator comparison</a> discusses these different starting points.</p>
 
       <h2>What You Can Make</h2>
 
@@ -216,12 +184,7 @@ export default function PhotoToGridfinityGuide() {
       </p>
 
       <h3>Step 4: Configure as Gridfinity</h3>
-      <p>
-        Switch to Gridfinity Bin mode. Pick a 3×1 footprint (126×42&nbsp;mm) for standard 7-inch Cobras, or a 4×1
-        for the larger 10-inch model. Set cavity depth to 22&nbsp;mm (Cobras are about 18&nbsp;mm thick at the
-        joint). Tolerance: 0.5&nbsp;mm — Cobras have polished steel jaws that grip slightly tighter than that
-        suggests, so 0.5&nbsp;mm leaves them snug but liftable.
-      </p>
+      <p>Choose a bin from the measured tool envelope, including the planned clearance and wall thickness. KNIPEX lists the <a href="https://www.knipex.com/sites/default/files/Product%20data%20sheet%20EN%2087%2001%20180.pdf">87 01 180 Cobra as 180 mm long</a>. A 126 × 42 mm grid footprint cannot contain that tool flat, even before allowing for walls. Check the actual model rather than copying a bin size from a photograph. Measure its thickness separately and leave enough exposed to lift it.</p>
 
       <h3>Step 5: Add a Finger Notch</h3>
       <p>
@@ -230,23 +193,12 @@ export default function PhotoToGridfinityGuide() {
       </p>
 
       <h3>Step 6: Export and Print</h3>
-      <p>
-        Export STL. Slice in your slicer of choice. Recommended settings for a single 3×1 bin: PETG, 0.2&nbsp;mm
-        layer height, 15% gyroid infill, 3 perimeters, no supports. Print time: about 90 minutes. Filament cost:
-        about $1.50.
-      </p>
+      <p>Export the design and inspect it in your slicer. Use the filament maker's profile as your starting point, check the cavity and floor in layer view, and estimate material and print time from that actual file. A fixed price or print-time claim would be misleading without a printer, material, and slicer configuration.</p>
 
       <h3>Step 7: Drop In and Test</h3>
-      <p>
-        Place the printed bin in a Gridfinity baseplate. The Cobras drop in jaw-first and seat with a small click
-        when the joint clears the cavity wall. If they bind, sand the cavity walls or reprint with 0.7&nbsp;mm
-        tolerance. If they sit too loose and rattle, reprint with 0.3&nbsp;mm.
-      </p>
+      <p>Test whether the tool enters without force, sits where intended, and lifts out easily. A binding area may come from scale, the outline, clearance, or the print itself. Change one setting at a time and keep a note of the result. Do not infer a successful fit from the 3D preview alone.</p>
 
-      <p>
-        That is the whole workflow. After the first trace, the next ten will take about five minutes each, and you
-        can run several in parallel — multi-tool mode lets you trace a whole set onto a single bin (see below).
-      </p>
+      <p>Keep the test result with the saved trace before reusing it in a larger layout. Recheck spacing, cavity depth, and finger access whenever you move that outline into a different container.</p>
 
       <h2>Multi-Tool Layouts and the Reusable Tool Library</h2>
 
@@ -274,25 +226,9 @@ export default function PhotoToGridfinityGuide() {
 
       <h2>Photo-Based Gridfinity Tools Compared</h2>
 
-      <p>
-        Four tools currently occupy this niche: <strong>TracetoForge</strong>,{' '}
-        <a href="https://www.tooltrace.ai/" target="_blank" rel="noopener noreferrer">Tooltrace</a>,{' '}
-        <a href="https://gridpilot.us/" target="_blank" rel="noopener noreferrer">GridPilot</a>, and{' '}
-        <a href="https://gridfinity.tools/" target="_blank" rel="noopener noreferrer">gridfinity.tools</a>{' '}
-        (which combines parametric and photo modes). All four take a photo, trace the silhouette, and produce
-        Gridfinity-compatible STLs. They differ in workflow, output formats, free-tier limits, and a few specific
-        capabilities. The full feature-by-feature comparison lives in{' '}
-        <Link to="/blog/tracetoforge-vs-tooltrace-vs-gridpilot/">TracetoForge vs Tooltrace vs GridPilot</Link>.
-      </p>
+      <p>If you compare tools, try the same source photo and physical reference in each one. Check scale correction, manual editing, file formats, and the current export terms on the vendor's own site. Feature availability and pricing change; this guide does not establish a current ranking.</p>
 
-      <p>
-        The short version: pick TracetoForge if you want a free path from photo to STL, multi-tool layouts in a
-        single bin, and STL/3MF/SVG/DXF output (for laser cutting and CNC, not just printing). Pick Tooltrace if
-        foam shadow boxes are your primary use case alongside Gridfinity. Pick GridPilot for built-in label and
-        stacking-foot generation. Pick gridfinity.tools if you want both parametric and photo in the same tool.
-        The category as a whole is good — photo-based beats parametric for tool-shaped cutouts regardless of which
-        specific generator you use.
-      </p>
+      <p>Choose the workflow that lets you inspect and correct the geometry you need. Test with a small export before moving a whole tool collection into a new system.</p>
 
       <h2>Workshop Integration</h2>
 
@@ -394,12 +330,15 @@ export default function PhotoToGridfinityGuide() {
 
       <h3>Where does the Gridfinity standard come from?</h3>
       <p>
-        Gridfinity was created by Zack Freedman and released in 2022 under the MIT license. The system, baseplate,
-        and bin profiles are open and community-extended. The official wiki at{' '}
+        Gridfinity is a modular storage system with community-created models and designs. The system, baseplate,
+        and bin profiles are open and community-extended. The community reference at{' '}
         <a href="https://gridfinity.xyz/" target="_blank" rel="noopener noreferrer">gridfinity.xyz</a> is the
         canonical reference for the 42&nbsp;mm grid spec, base profile, and stacking lip dimensions.
       </p>
 
+      <h2>Record the Fit Check</h2>
+      <p>Keep a short worksheet with each saved tool: model number, measured length and width, traced length and width, chosen clearance, cavity depth, printer and filament, and the result of the trial print. Record a failed fit too. It tells you which assumption needs another check.</p>
+      <p><strong>Correction, September 18, 2026:</strong> Earlier versions recommended footprints too small for the stated Cobra models and quoted accuracy, completion time, and print costs without a published test record. Those recommendations have been replaced with measurement and fit checks.</p>
       <h2>Further Reading</h2>
 
       <p>
@@ -441,3 +380,4 @@ export default function PhotoToGridfinityGuide() {
     </BlogPost>
   )
 }
+
