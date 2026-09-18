@@ -245,7 +245,7 @@ export default function PhotoToGridfinityGuide() {
           <Link to="/blog/gridfinity-in-packout-drawer/">Gridfinity in Milwaukee Packout drawers</Link>.
         </li>
         <li>
-          <strong>Benchtop or wall mount.</strong> A magnetic baseplate (M3 magnets pressed into the print)
+          <strong>Benchtop or wall mount.</strong> A magnetic baseplate (magnets sized for the chosen model)
           mounts to a steel pegboard or workbench. Bins are removable but stay put when you want them to.
         </li>
         <li>
