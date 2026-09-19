@@ -262,6 +262,8 @@ export default function Editor() {
       if (cfg.objectEdgeRadius != null) setObjectEdgeRadius(cfg.objectEdgeRadius)
       if (cfg.tolerance) setTolerance(cfg.tolerance)
       if (cfg.contours) setContours(cfg.contours)
+      // Saved traces are the user's intent: lock so slider/restore changes can't re-run detection over them
+      if (cfg.contours && cfg.contours.length > 0) setLocked(true)
       setContourHoles(cfg.contourHoles || [])
       if (cfg.selectedContour != null) setSelectedContour(cfg.selectedContour)
       if (cfg.cornerRadius != null) setCornerRadius(cfg.cornerRadius)
@@ -281,9 +283,9 @@ export default function Editor() {
           if (t.image) {
             const img = new Image()
             img.src = t.image
-            return { ...t, imageEl: img }
+            return { ...t, imageEl: img, locked: t.locked || (t.contours?.length > 0) }
           }
-          return { ...t, imageEl: null }
+          return { ...t, imageEl: null, locked: t.locked || (t.contours?.length > 0) }
         })
         setTools(restoredTools)
         if (cfg.activeToolIdx != null) setActiveToolIdx(cfg.activeToolIdx)
@@ -1911,7 +1913,7 @@ export default function Editor() {
     const config = {
       contours: fullState.contours,
       selectedContour: fullState.selectedContour,
-      locked: fullState.locked,
+      locked: true, // a library save is always the user's chosen trace
       image: fullState.image,
       imageSize: fullState.imageSize,
       realWidth: fullState.realWidth,
@@ -1960,7 +1962,7 @@ export default function Editor() {
       name: data.name || `Tool ${tools.length + 1}`,
       contours: cfg.contours || [],
       selectedContour: cfg.selectedContour || 0,
-      locked: cfg.locked ?? true, // saved tools default to locked: the saved trace IS the user's intent
+      locked: true, // saved trace IS the user's intent; older entries were saved with locked:false and got re-detected on import
       image: cfg.image || null,
       imageSize: cfg.imageSize || { w: 0, h: 0 },
       imageEl: loadedImg,
