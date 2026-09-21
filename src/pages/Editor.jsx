@@ -74,6 +74,25 @@ function ParamRow({ label, tooltip, children, tooltipPos }) {
 }
 
 /* ════════════════════════════════════════════════════════ */
+// Plain backdrop for a tool that has a trace but no photo. Sized to cover the
+// trace's pixel coordinates plus a margin; returns null if there is no trace.
+function blankToolBackdrop(contours) {
+  const pts = (contours || []).flat().filter(p => p && Number.isFinite(p.x) && Number.isFinite(p.y))
+  if (pts.length < 3) return null
+  let maxX = 0, maxY = 0, minX = Infinity, minY = Infinity
+  for (const p of pts) { maxX = Math.max(maxX, p.x); maxY = Math.max(maxY, p.y); minX = Math.min(minX, p.x); minY = Math.min(minY, p.y) }
+  const margin = Math.max(40, 0.15 * Math.max(maxX - minX, maxY - minY))
+  const c = document.createElement('canvas')
+  c.width = Math.ceil(maxX + margin)
+  c.height = Math.ceil(maxY + margin)
+  const ctx = c.getContext('2d')
+  ctx.fillStyle = '#E6E6EA'
+  ctx.fillRect(0, 0, c.width, c.height)
+  c.naturalWidth = c.width
+  c.naturalHeight = c.height
+  return c
+}
+
 export default function Editor() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -1847,7 +1866,15 @@ export default function Editor() {
   const restoreToolState = useCallback((t) => {
     setImage(t.image || null)
     setImageSize(t.imageSize || { w: 0, h: 0 })
-    imageRef.current = t.imageEl || null
+    // Tools without a photo (community tools, library entries saved without
+    // one, projects whose image didn't come back) used to leave imageRef null
+    // or pointing at an empty Image. drawCanvas bails on null, so the previous
+    // tool's photo and labels stayed on screen; an empty Image sized the canvas
+    // to 0 and showed black. Give them a plain backdrop in the trace's own
+    // pixel space so the outline and labels always belong to this tool.
+    const el = t.imageEl
+    const hasPhoto = el && (el.src || el.width) && !(el.complete && el.src && !el.naturalWidth)
+    imageRef.current = hasPhoto ? el : blankToolBackdrop(t.contours)
     setContours(t.contours || [])
     setContourHoles(t.contourHoles || [])
     setSelectedContour(t.selectedContour || 0)
