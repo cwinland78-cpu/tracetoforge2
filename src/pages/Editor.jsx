@@ -103,6 +103,7 @@ export default function Editor() {
   const [showPaywall, setShowPaywall] = useState(false)
   const [credits, setCredits] = useState(0)
   const [projectId, setProjectId] = useState(null)
+  const pendingCommunityToolRef = useRef(null)
   const [projectName, setProjectName] = useState('Untitled Project')
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState('')
@@ -214,11 +215,32 @@ export default function Editor() {
       if (!raw) return
       sessionStorage.removeItem('ttf:loadCommunityTool')
       const tool = JSON.parse(raw)
-      if (tool?.contour) handleUseCommunityTool(tool)
+      if (!tool?.contour) return
+      // Returning to a project: wait until it has loaded, then add the tool
+      // to it (see effect below). Otherwise load into a fresh editor.
+      if (searchParams.get('project')) pendingCommunityToolRef.current = tool
+      else handleUseCommunityTool(tool)
     } catch {}
   // run once on mount
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Remember the open project so /community can send the user back to it
+  useEffect(() => {
+    try {
+      if (projectId) sessionStorage.setItem('ttf:lastProject', projectId)
+      else sessionStorage.removeItem('ttf:lastProject')
+    } catch {}
+  }, [projectId])
+
+  // Add a community tool picked on /community once the project it came from is loaded
+  useEffect(() => {
+    const tool = pendingCommunityToolRef.current
+    if (!tool || !projectId || projectId !== searchParams.get('project')) return
+    pendingCommunityToolRef.current = null
+    handleUseCommunityTool(tool)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId, step])
 
   // Fetch credits (server-side, login required)
   useEffect(() => {

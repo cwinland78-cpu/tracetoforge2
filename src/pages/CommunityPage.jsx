@@ -62,7 +62,11 @@ export default function CommunityPage() {
                 try {
                   sessionStorage.setItem('ttf:loadCommunityTool', JSON.stringify(tool))
                 } catch {}
-                navigate('/editor/')
+                // Go back to the project the user came from so the tool is
+                // added to it, instead of starting a blank editor.
+                let pid = null
+                try { pid = sessionStorage.getItem('ttf:lastProject') } catch {}
+                navigate(pid ? `/editor/?project=${encodeURIComponent(pid)}` : '/editor/')
               }}
             />
           </div>
