@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback } from 'react'
+import React, { useMemo, useRef, useEffect, useCallback } from 'react'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { createInsertMesh } from '../lib/stlExporter'
@@ -76,7 +76,13 @@ export default function ThreePreview({ contourPoints, config, onToolDrag, onNotc
     }
   }, [])
 
+  // Latest props for buildScene, which is keyed on content (sceneKey below)
+  // rather than object identity.
+  const latestRef = useRef({ contourPoints, config })
+  latestRef.current = { contourPoints, config }
+
   const buildScene = useCallback(() => {
+    const { contourPoints, config } = latestRef.current
     if (!mountRef.current || !contourPoints || contourPoints.length < 3) return
     const el = mountRef.current, w = el.clientWidth, h = el.clientHeight
     const prevCamera = cameraRef.current, prevControls = controlsRef.current
@@ -146,9 +152,30 @@ export default function ThreePreview({ contourPoints, config, onToolDrag, onNotc
     if (frameRef.current) cancelAnimationFrame(frameRef.current)
     const animate = () => { frameRef.current = requestAnimationFrame(animate); controls.update(); rendererRef.current.render(scene, camera) }
     animate()
-  }, [contourPoints, config])
+  }, [])
 
-  useEffect(() => { buildScene(); return () => { if (frameRef.current) cancelAnimationFrame(frameRef.current); if (controlsRef.current) controlsRef.current.dispose() } }, [buildScene])
+  // The editor passes a freshly built config object on every render, so the
+  // old [contourPoints, config] deps rebuilt the whole scene (CSG for every
+  // cavity) on any state change at all, and on every keystroke or spinner
+  // click in a dimension field. Rebuild only when the content changes, and
+  // debounce edits so a burst of changes costs one rebuild.
+  const sceneKey = useMemo(() => {
+    try { return JSON.stringify([contourPoints, config]) } catch { return String(Date.now()) }
+  }, [contourPoints, config])
+  useEffect(() => {
+    const rebuild = () => {
+      if (frameRef.current) cancelAnimationFrame(frameRef.current)
+      if (controlsRef.current) controlsRef.current.dispose()
+      buildScene()
+    }
+    if (!meshGroupRef.current) { rebuild(); return }
+    const t = setTimeout(rebuild, 150)
+    return () => clearTimeout(t)
+  }, [sceneKey, buildScene])
+  useEffect(() => () => {
+    if (frameRef.current) cancelAnimationFrame(frameRef.current)
+    if (controlsRef.current) controlsRef.current.dispose()
+  }, [])
 
   useEffect(() => {
     const renderer = rendererRef.current
