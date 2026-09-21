@@ -2606,7 +2606,7 @@ export default function Editor() {
                 )}
                 <h3 className="text-xs font-semibold text-[#8888A0] uppercase tracking-wider mb-3">Crop</h3>
                 {!isCropping ? (
-                  <button onClick={() => { setIsCropping(true); setCropRect(null) }}
+                  <button onClick={() => { setIsCropping(true); setCropRect(null) }} disabled={!image && contours.length > 0}
                     className="w-full py-2 rounded-lg bg-[#2A2A35] hover:bg-[#3A3A45] text-[#C8C8D0] text-sm font-medium transition-colors flex items-center justify-center gap-2">
                     <Crop size={14} /> Crop Image
                   </button>
@@ -2638,7 +2638,9 @@ export default function Editor() {
                     <div className="flex-1 min-w-0">
                       <div className="text-xs font-medium text-amber-300">Edits locked</div>
                       <div className="text-[11px] text-amber-300/70 leading-snug">Sensitivity changes won't re-trace. Switching tools preserves your edits.</div>
-                      <button
+                      {!image ? (
+                        <div className="mt-1.5 text-[11px] text-amber-300/70 leading-snug">No photo came with this tool, so it can't be re-traced.</div>
+                      ) : <button
                         onClick={() => {
                           if (confirm('Unlock and re-run edge detection? Your manual edits to this tool will be lost.')) {
                             setLocked(false)
@@ -2647,7 +2649,7 @@ export default function Editor() {
                         }}
                         className="mt-1.5 text-[11px] font-medium text-amber-300 hover:text-amber-200 underline">
                         Unlock and re-detect
-                      </button>
+                      </button>}
                     </div>
                   </div>
                 )}
@@ -2692,7 +2694,7 @@ export default function Editor() {
                       </div>
                     )}
                   </div>
-                  <button onClick={runEdgeDetection} disabled={!cvReady || processing}
+                  <button onClick={runEdgeDetection} disabled={!cvReady || processing || (!image && contours.length > 0)}
                     className="w-full py-2 rounded-lg bg-brand hover:bg-brand-light disabled:bg-[#2A2A35] disabled:text-[#555566] text-white text-sm font-medium transition-colors">
                     {processing ? 'Detecting...' : !cvReady ? 'Loading OpenCV...' : 'Detect Edges'}
                   </button>
@@ -3341,12 +3343,12 @@ export default function Editor() {
                     className="w-full flex items-center justify-center gap-2 py-2 rounded-md bg-[#1C1C24] hover:bg-blue-900/20 text-blue-400 text-xs font-bold transition-colors">
                     <Library size={13} /> My Library
                   </button>
-                  <Link
-                    to="/community/"
+                  <button
+                    onClick={() => { setLibraryTab('community'); setShowLibrary(true); refreshLibrary() }}
                     title="Browse traces shared by other users — free to use"
                     className="w-full flex items-center justify-center gap-2 py-2 rounded-md bg-[#1C1C24] hover:bg-purple-900/20 text-purple-400 text-xs font-bold transition-colors">
                     <Globe size={13} /> Community
-                  </Link>
+                  </button>
                 </div>
                 {libraryMsg && (
                   <p className="text-[11px] text-[#8888A0] mt-1.5">{libraryMsg}</p>
