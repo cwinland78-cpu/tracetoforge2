@@ -1956,8 +1956,15 @@ export default function Editor() {
 
     // Build the tool object that lives in the tools[] array.
     // Shape matches what addTool/cloneTool create.
+    // Wait for the photo to decode before restoring. The canvas sizes itself
+    // from img.width and does not redraw on image load, so restoring an
+    // undecoded image left a black canvas (seen on phones, where large data
+    // URLs decode slowly). Before tools stayed locked, the auto-redetect pass
+    // happened to trigger a redraw after load and masked this.
     const loadedImg = new Image()
-    loadedImg.src = cfg.image || ''
+    if (cfg.image) {
+      await new Promise(res => { loadedImg.onload = res; loadedImg.onerror = res; loadedImg.src = cfg.image })
+    }
     const newTool = {
       name: data.name || `Tool ${tools.length + 1}`,
       contours: cfg.contours || [],
