@@ -2452,6 +2452,32 @@ export default function Editor() {
     return scaleToolPoints(pts, w, h)
   }
 
+  /* ── 3D preview updates on demand ──
+   * Rebuilding the preview re-cuts every cavity and bevel, which freezes the
+   * page for a moment with several tools. So edits no longer rebuild it live:
+   * the preview shows a snapshot, and the Update Preview button (next to Back
+   * to Editor) lights up when the live settings differ from it. Drags in the
+   * 3D view apply straight away since the user is already looking at them. */
+  const [previewSnap, setPreviewSnap] = useState(null)
+  const autoCommitPreviewRef = useRef(false)
+  let livePreviewKey = null
+  let livePreview = null
+  if (showPreview) {
+    livePreview = { points: getPreviewPoints(), config: buildConfig() }
+    try { livePreviewKey = JSON.stringify(livePreview) } catch { livePreviewKey = String(Date.now()) }
+  }
+  const commitPreview = () => { if (livePreview) setPreviewSnap({ ...livePreview, key: livePreviewKey }) }
+  const previewStale = !!(showPreview && previewSnap && previewSnap.key !== livePreviewKey)
+  useEffect(() => {
+    if (!showPreview) { if (previewSnap) setPreviewSnap(null); return }
+    if (!previewSnap || autoCommitPreviewRef.current) {
+      autoCommitPreviewRef.current = false
+      commitPreview()
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showPreview, livePreviewKey])
+
+
   /* ═══════════════════ RENDER ═══════════════════ */
   return (
     <div className="h-screen flex flex-col bg-bg overflow-hidden">
@@ -3862,12 +3888,22 @@ export default function Editor() {
           {/* 3D Preview */}
           {showPreview && (
             <div className="relative h-full">
+              <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
               <button onClick={() => setShowPreview(false)}
-                className="absolute top-4 left-4 z-10 flex items-center gap-1.5 px-3 py-2 bg-[#131318]/90 border border-[#2A2A35] rounded-lg text-sm text-[#8888A0] hover:text-white transition-colors backdrop-blur-sm">
+                className="flex items-center gap-1.5 px-3 py-2 bg-[#131318]/90 border border-[#2A2A35] rounded-lg text-sm text-[#8888A0] hover:text-white transition-colors backdrop-blur-sm">
                 <ChevronLeft size={14} /> Back to Editor
               </button>
-              <ThreePreview contourPoints={getPreviewPoints()} config={buildConfig()}
+              <button onClick={commitPreview} disabled={!previewStale}
+                title={previewStale ? 'You changed something. Click to rebuild the 3D preview.' : 'Preview is up to date'}
+                className={previewStale
+                  ? 'flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-white bg-brand hover:bg-brand-light border border-brand shadow-[0_0_14px_rgba(234,101,10,0.6)] animate-pulse transition-colors'
+                  : 'flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-[#555566] bg-[#131318]/90 border border-[#2A2A35] cursor-default'}>
+                <Eye size={14} /> {previewStale ? 'Update Preview' : 'Preview up to date'}
+              </button>
+              </div>
+              {previewSnap && <ThreePreview contourPoints={previewSnap.points} config={previewSnap.config}
                 onToolDrag={(meshToolIdx, dx, dy) => {
+                  autoCommitPreviewRef.current = true // a drag is already shown in 3D; apply it without the button
                   // meshToolIdx: -1 = primary cavity (tool 0), 0+ = additional tools (tool 1+)
                   const toolIdx = meshToolIdx === -1 ? 0 : meshToolIdx + 1
                   if (toolIdx === activeToolIdx) {
@@ -3880,12 +3916,13 @@ export default function Editor() {
                   }
                 }}
                 onNotchDrag={(notchIdx, dx, dy) => {
+                  autoCommitPreviewRef.current = true
                   if (fingerNotches[notchIdx]) {
                     updateNotch(notchIdx, 'x', Math.round((fingerNotches[notchIdx].x || 0) + dx))
                     updateNotch(notchIdx, 'y', Math.round((fingerNotches[notchIdx].y || 0) + dy))
                   }
                 }}
-              />
+              />}
             </div>
           )}
         </main>
