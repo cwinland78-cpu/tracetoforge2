@@ -154,36 +154,50 @@ export default function ThreePreview({ contourPoints, config, onToolDrag, onNotc
     const renderer = rendererRef.current
     if (!renderer) return
     const dom = renderer.domElement
+    // Drag moves only the tool's (or notch's) highlight meshes, which is
+    // instant. The real tray is rebuilt once, on release. Previously every
+    // 1mm of movement changed the offset and re-ran the full CSG rebuild of
+    // every cavity, so dragging lagged badly with several tools.
     const onDown = (e) => {
       if (e.button !== 0) return
       const hit = getToolAtMouse(e)
       if (!hit) return
       e.stopPropagation(); e.preventDefault()
-      if (hit.notchIndex !== undefined) {
-        dragRef.current = { notchIndex: hit.notchIndex, startX: e.clientX, startY: e.clientY, accumX: 0, accumY: 0 }
-      } else {
-        dragRef.current = { toolIndex: hit.toolIndex, startX: e.clientX, startY: e.clientY, accumX: 0, accumY: 0 }
-      }
+      const targets = []
+      const group = meshGroupRef.current
+      if (group) group.traverse(obj => {
+        if (!obj.isMesh || !obj.userData.vizOnly) return
+        const match = hit.notchIndex !== undefined
+          ? obj.userData.notchIndex === hit.notchIndex
+          : obj.userData.toolIndex === hit.toolIndex && obj.userData.notchIndex === undefined
+        if (match) targets.push({ obj, x: obj.position.x, y: obj.position.y })
+      })
+      dragRef.current = { ...hit, lastX: e.clientX, lastY: e.clientY, totalX: 0, totalY: 0, targets }
       if (controlsRef.current) controlsRef.current.enabled = false
       dom.style.cursor = 'grabbing'
     }
     const onMove = (e) => {
-      if (!dragRef.current) { dom.style.cursor = getToolAtMouse(e) ? 'grab' : ''; return }
-      const dx = e.clientX - dragRef.current.startX, dy = e.clientY - dragRef.current.startY
-      dragRef.current.startX = e.clientX; dragRef.current.startY = e.clientY
-      const wd = screenToWorldDelta(dx, dy)
-      dragRef.current.accumX += wd.x; dragRef.current.accumY += wd.y
-      if (Math.abs(dragRef.current.accumX) >= 1 || Math.abs(dragRef.current.accumY) >= 1) {
-        const sx = Math.round(dragRef.current.accumX), sy = Math.round(dragRef.current.accumY)
-        if (dragRef.current.notchIndex !== undefined) {
-          if (onNotchDragRef.current) onNotchDragRef.current(dragRef.current.notchIndex, sx, sy)
-        } else {
-          if (onToolDragRef.current) onToolDragRef.current(dragRef.current.toolIndex, sx, sy)
-        }
-        dragRef.current.accumX -= sx; dragRef.current.accumY -= sy
-      }
+      const d = dragRef.current
+      if (!d) { dom.style.cursor = getToolAtMouse(e) ? 'grab' : ''; return }
+      const wd = screenToWorldDelta(e.clientX - d.lastX, e.clientY - d.lastY)
+      d.lastX = e.clientX; d.lastY = e.clientY
+      d.totalX += wd.x; d.totalY += wd.y
+      for (const t of d.targets) { t.obj.position.x = t.x + d.totalX; t.obj.position.y = t.y + d.totalY }
     }
-    const onUp = () => { if (!dragRef.current) return; dragRef.current = null; if (controlsRef.current) controlsRef.current.enabled = true; dom.style.cursor = '' }
+    const onUp = () => {
+      const d = dragRef.current
+      if (!d) return
+      dragRef.current = null
+      if (controlsRef.current) controlsRef.current.enabled = true
+      dom.style.cursor = ''
+      const sx = Math.round(d.totalX), sy = Math.round(d.totalY)
+      if (sx === 0 && sy === 0) {
+        for (const t of d.targets) { t.obj.position.x = t.x; t.obj.position.y = t.y }
+        return
+      }
+      if (d.notchIndex !== undefined) { if (onNotchDragRef.current) onNotchDragRef.current(d.notchIndex, sx, sy) }
+      else if (onToolDragRef.current) onToolDragRef.current(d.toolIndex, sx, sy)
+    }
     dom.addEventListener('mousedown', onDown)
     window.addEventListener('mousemove', onMove)
     window.addEventListener('mouseup', onUp)
