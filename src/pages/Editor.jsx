@@ -2476,7 +2476,7 @@ export default function Editor() {
                       )}
                     </div>
                   ))}
-                  {tools.length < 5 && (
+                  {tools.length < 12 && (
                     <>
                       <button onClick={addTool}
                         className="text-[11px] px-2.5 py-1 rounded-md bg-[#1C1C24] text-brand hover:bg-brand/20 transition-colors font-bold">
