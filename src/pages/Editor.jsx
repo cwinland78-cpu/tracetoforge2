@@ -18,6 +18,7 @@ import { exportSTL, checkGridfinityFit, snapGridUnits } from '../lib/stlExporter
 import { exportSVG, exportDXF, export3MF, bundleAsZip } from '../lib/exportFormats'
 import { hasCredits, useCredit, getCredits, initPurchases } from '../lib/purchases'
 import { queryTable } from '../lib/supabase'
+import { stashDraft, peekDraft, clearDraft } from '../lib/draftStash'
 import { createProject, updateProject, getProject } from './Dashboard'
 import {
   listSavedTools, getSavedTool, createSavedTool, deleteSavedTool, makeThumbnail
@@ -282,9 +283,40 @@ export default function Editor() {
     if (pid && isAuthenticated && user?.id) loadProjectData(pid)
   }, [searchParams, isAuthenticated, loading])
 
-  async function loadProjectData(pid) {
+  // Coming back from sign-in: restore the work that was on screen when the
+  // user was sent to log in. Runs once auth has settled.
+  const draftCheckedRef = useRef(false)
+  useEffect(() => {
+    if (loading || draftCheckedRef.current) return
+    draftCheckedRef.current = true
+    ;(async () => {
+      const d = await peekDraft()
+      if (!d) return
+      const pid = searchParams.get('project')
+      if (pid && pid !== d.projectId) return // user opened a different project; leave the draft for later
+      await clearDraft()
+      await loadProjectData(d.projectId, { id: d.projectId || null, name: d.projectName || 'Untitled Project', config: d.config })
+      setIsDirty(true)
+      setSaveMsg('Your project was restored after sign-in. Save it to keep it.')
+      setTimeout(() => setSaveMsg(''), 6000)
+    })()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading])
+
+  // Every route to the login page goes through here so the current work
+  // survives the round trip (see draftStash.js).
+  async function goToLogin() {
     try {
-      const proj = await getProject(pid)
+      if (step >= 1 && (image || contours.length > 0 || tools.length > 1)) {
+        await stashDraft({ projectId, projectName, config: buildProjectConfig() })
+      }
+    } catch (err) { console.error('Could not stash draft before login:', err) }
+    navigate('/login/')
+  }
+
+  async function loadProjectData(pid, draftProj = null) {
+    try {
+      const proj = draftProj || await getProject(pid)
       if (!proj) return
       setProjectId(proj.id)
       setProjectName(proj.name)
@@ -409,7 +441,7 @@ export default function Editor() {
   async function handleSaveProject() {
     if (!isAuthenticated || !user?.id) {
       console.warn('[Save] Not authenticated or no user ID', { isAuthenticated, userId: user?.id })
-      navigate('/login/')
+      goToLogin()
       return
     }
     setSaving(true)
@@ -448,7 +480,7 @@ export default function Editor() {
   }
 
   async function handleSaveAsProject() {
-    if (!isAuthenticated || !user?.id) { navigate('/login/'); return }
+    if (!isAuthenticated || !user?.id) { goToLogin(); return }
     const input = prompt('Save as new project name:', projectName + ' (copy)')
     if (!input) return
     setSaving(true)
@@ -485,7 +517,7 @@ export default function Editor() {
 
     try {
       // Deduct credit (server-side, login required)
-      if (!user?.id) { navigate('/login/'); return }
+      if (!user?.id) { goToLogin(); return }
       const spent = await useCredit(user.id, { outputMode })
       if (!spent) {
         setShowPaywall(true)
@@ -2384,7 +2416,7 @@ export default function Editor() {
     const pts = tool0?.contours?.[tool0?.selectedContour ?? 0]
     if (!pts || pts.length < 3) return
     // Login required for all exports
-    if (!isAuthenticated) { navigate('/login/'); return }
+    if (!isAuthenticated) { goToLogin(); return }
     if (credits <= 0) {
       setShowPaywall(true)
       return
@@ -2498,7 +2530,7 @@ export default function Editor() {
             </>
           ) : (
             <>
-              <button onClick={() => navigate('/login/')}
+              <button onClick={() => goToLogin()}
                 className="px-3 py-1.5 text-xs text-[#C8C8D0] hover:text-white border border-[#444] rounded-lg transition-colors">
                 Sign In
               </button>
