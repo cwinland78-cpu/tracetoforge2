@@ -207,7 +207,13 @@ function createCustomInsert(points, config) {
   } = config
 
   const group = new THREE.Group()
-  const cavityZ = toolDepth || (trayDepth - floorThickness)
+  // Cavities can never be deeper than the tray. Before this, a tool deeper
+  // than trayDepth silently grew the tray (a floor was forced under the
+  // deepest cavity), so a 10.5mm tray with 17mm tools exported about 20mm
+  // tall. A tool at or past trayDepth now cuts clean through and the tray
+  // stays trayDepth.
+  const clampDepth = d => Math.min(d, trayDepth)
+  const cavityZ = clampDepth(toolDepth || (trayDepth - floorThickness))
 
   // Rotation helper
   const rad = (toolRotation * Math.PI) / 180
@@ -296,7 +302,7 @@ function createCustomInsert(points, config) {
     allNotchPts.push(pts)
     const isIndep = fn.depth > 0 && Math.abs(fn.depth - cavityZ) > 0.01
     if (isIndep) {
-      indepNotches.push({ pts, depth: fn.depth })
+      indepNotches.push({ pts, depth: clampDepth(fn.depth) })
     } else {
       defaultNotchPts.push(pts)
     }
@@ -344,7 +350,10 @@ function createCustomInsert(points, config) {
   const hasBevel = edgeProfile !== 'straight' && es > 0
 
   const baseDepth = trayDepth - cavityZ
-  const actualBaseDepth = Math.max(baseDepth, floorThickness)
+  // No forced floor: total height stays exactly trayDepth. 0 means the
+  // cavities open out the bottom of the tray.
+  const actualBaseDepth = Math.max(0, baseDepth)
+  const hasFloor = actualBaseDepth > 0.01
 
   const trayMat = new THREE.MeshPhongMaterial({
     color: 0x888899, transparent: true, opacity: 0.92, side: THREE.DoubleSide,
@@ -353,7 +362,7 @@ function createCustomInsert(points, config) {
     color: 0x888899, transparent: true, opacity: 0.85, side: THREE.DoubleSide,
   })
 
-  if (hasBevel) {
+  if (hasBevel && actualBaseDepth > es + 0.01) {
     // Full body from z=es to z=actualBaseDepth (no bevel, clean)
     const bodyGeo = new THREE.ExtrudeGeometry(outerShape, { depth: actualBaseDepth - es, bevelEnabled: false })
     bodyGeo.translate(0, 0, es)
@@ -405,7 +414,7 @@ function createCustomInsert(points, config) {
     // Skip flat base here if deeper notches/tools will build layered base later
     const hasDeeperNotches = indepNotches.some(n => n.depth > cavityZ)
     const hasDeeperTools = (config.additionalTools || []).some(at => (at.toolDepth || cavityZ) > cavityZ)
-    if (!hasDeeperNotches && !hasDeeperTools) {
+    if (!hasDeeperNotches && !hasDeeperTools && hasFloor) {
       const baseGeo = new THREE.ExtrudeGeometry(outerShape, { depth: actualBaseDepth, bevelEnabled: false })
       group.add(new THREE.Mesh(baseGeo, trayMat))
     }
@@ -446,7 +455,7 @@ function createCustomInsert(points, config) {
         if (ClipperLib.Clipper.Area(sol[0]) < 0) atHolePts.reverse()
       }
     } catch (e) { /* fallback */ }
-    const atDepth = at.toolDepth || cavityZ // default to primary cavity depth
+    const atDepth = clampDepth(at.toolDepth || cavityZ) // default to primary cavity depth; never deeper than the tray
     extraToolHolePts.push({ pts: atHolePts, depth: atDepth })
     extraToolViz.push({ shape: atShape, scale: atScale, rad: atRad, ox: atOx, oy: atOy, cutShape: atHolePts, cavityBevel: at.cavityBevel || 0, depth: atDepth })
   })
@@ -763,7 +772,7 @@ function createCustomInsert(points, config) {
 
   // Additional tool visualizations
   extraToolViz.forEach((ev, evIdx) => {
-    const evDepth = ev.depth || cavityZ
+    const evDepth = clampDepth(ev.depth || cavityZ)
     const evGeo = new THREE.ExtrudeGeometry(ev.shape, { depth: evDepth + 0.5, bevelEnabled: false })
     evGeo.scale(ev.scale, ev.scale, 1)
     evGeo.rotateZ(ev.rad)
@@ -782,7 +791,7 @@ function createCustomInsert(points, config) {
   const grabHandleMat = new THREE.MeshBasicMaterial({ visible: false }) // invisible but raycastable
   allNotchPts.forEach((nPts, ni) => {
     const fn = fingerNotches[ni]
-    const notchDepth = (fn && fn.depth > 0) ? fn.depth : cavityZ
+    const notchDepth = (fn && fn.depth > 0) ? clampDepth(fn.depth) : cavityZ
     const nShape = new THREE.Shape()
     nPts.forEach((p, i) => { if (i === 0) nShape.moveTo(p.x, p.y); else nShape.lineTo(p.x, p.y) })
     nShape.closePath()
