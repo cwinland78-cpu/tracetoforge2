@@ -2239,14 +2239,20 @@ export default function Editor() {
         }
       ])
     } else {
-      setTools(prev => [...prev, {
-        name: `Tool ${prev.length + 1}`,
+      const currentState = saveCurrentToolState()
+      setTools(prev => {
+        const updated = [...prev]
+        // Keep the active tool's live edits (width, tolerance, offsets) before appending
+        if (updated[activeToolIdx]) updated[activeToolIdx] = { ...updated[activeToolIdx], ...currentState }
+        return [...updated, {
+        name: `Tool ${updated.length + 1}`,
         contours: [], selectedContour: 0, locked: false,
         image: null, imageSize: { w: 0, h: 0 }, imageEl: null,
         realWidth: 100, realHeight: 100, toolDepth: 25, tolerance: 1.5,
         toolOffsetX: 0, toolOffsetY: 0, toolRotation: 0, cavityBevel: 0,
         sensitivity: 6, simplification: 0.5, minContourPct: 0.05, step: 0,
-      }])
+        }]
+      })
     }
   }
 
@@ -2286,7 +2292,10 @@ export default function Editor() {
     if (tools.length <= 1) return // Can't remove the only tool
 
     if (idx === 0) {
-      // Removing the primary tool: promote tool 1 to primary
+      // Removing the primary tool: promote tool 1 to primary. Save the active
+      // tool's live edits first so they survive the renumbering.
+      const currentState = saveCurrentToolState()
+      setTools(prev => prev.map((t, i) => i === activeToolIdx ? { ...t, ...currentState } : t))
       const nextTool = tools[1]
       if (nextTool) {
         // Restore tool 1's state as top-level (making it the new primary)
@@ -2319,7 +2328,7 @@ export default function Editor() {
   }
 
   const addNotch = () => {
-    if (fingerNotches.length >= 5) return
+    if (fingerNotches.length >= 12) return
     setFingerNotches(prev => [...prev, { shape: 'circle', radius: 12, w: 24, h: 16, x: 0, y: 0, depth: 1 }])
     setActiveNotchIdx(fingerNotches.length)
   }
@@ -2591,11 +2600,12 @@ export default function Editor() {
                     </div>
                   ))}
                   {tools.length < 12 && (
-                    <>
                       <button onClick={addTool}
                         className="text-[11px] px-2.5 py-1 rounded-md bg-[#1C1C24] text-brand hover:bg-brand/20 transition-colors font-bold">
                         + New
                       </button>
+                  )}
+                  <>
                       {contours.length > 0 && (
                         <button onClick={() => cloneTool(activeToolIdx)}
                           className="text-[11px] px-2.5 py-1 rounded-md bg-[#1C1C24] text-green-400 hover:bg-green-900/20 transition-colors font-bold">
@@ -2627,8 +2637,7 @@ export default function Editor() {
                           </button>
                         </>
                       )}
-                    </>
-                  )}
+                  </>
                 </div>
                 {libraryMsg && (
                   <p className="text-[11px] text-[#8888A0] mt-1.5">{libraryMsg}</p>
@@ -3084,7 +3093,7 @@ export default function Editor() {
                             {activeNotchIdx === ni ? '▸ ' : ''}{ni + 1}
                           </button>
                         ))}
-                        {fingerNotches.length < 5 && (
+                        {fingerNotches.length < 12 && (
                           <button onClick={addNotch} className="px-2.5 py-1.5 text-sm font-bold rounded-md bg-green-600/20 text-green-400 hover:bg-green-600/30 border border-green-500/30 transition-colors">+ Add</button>
                         )}
                       </div>
@@ -3270,7 +3279,7 @@ export default function Editor() {
                             {activeNotchIdx === ni ? '▸ ' : ''}{ni + 1}
                           </button>
                         ))}
-                        {fingerNotches.length < 5 && (
+                        {fingerNotches.length < 12 && (
                           <button onClick={addNotch} className="px-2.5 py-1.5 text-sm font-bold rounded-md bg-green-600/20 text-green-400 hover:bg-green-600/30 border border-green-500/30 transition-colors">+ Add</button>
                         )}
                       </div>
