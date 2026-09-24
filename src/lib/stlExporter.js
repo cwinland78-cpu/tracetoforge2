@@ -362,11 +362,19 @@ function createCustomInsert(points, config) {
     color: 0x888899, transparent: true, opacity: 0.85, side: THREE.DoubleSide,
   })
 
+  // Notches/extra tools deeper than the main cavity cut into the base. When
+  // any exist, the base is built later as cut layers (straight or beveled).
+  const hasDeeperNotches = indepNotches.some(n => n.depth > cavityZ)
+  const hasDeeperTools = (config.additionalTools || []).some(at => (at.toolDepth || cavityZ) > cavityZ)
+  const baseIsLayered = (hasDeeperNotches || hasDeeperTools) && hasFloor
+
   if (hasBevel && actualBaseDepth > es + 0.01) {
     // Full body from z=es to z=actualBaseDepth (no bevel, clean)
-    const bodyGeo = new THREE.ExtrudeGeometry(outerShape, { depth: actualBaseDepth - es, bevelEnabled: false })
-    bodyGeo.translate(0, 0, es)
-    group.add(new THREE.Mesh(bodyGeo, trayMat))
+    if (!baseIsLayered) {
+      const bodyGeo = new THREE.ExtrudeGeometry(outerShape, { depth: actualBaseDepth - es, bevelEnabled: false })
+      bodyGeo.translate(0, 0, es)
+      group.add(new THREE.Mesh(bodyGeo, trayMat))
+    }
 
     // Chamfer/fillet skirt at bottom: full-size outline at z=es, inset outline at z=0
     const pts = outerShape.getPoints(256)
@@ -402,7 +410,8 @@ function createCustomInsert(points, config) {
     skirtGeo.computeVertexNormals()
     group.add(new THREE.Mesh(skirtGeo, trayMat))
 
-    // Bottom cap at z=0 (the inset face)
+    // Bottom cap at z=0 (the inset face). Layered base supplies its own.
+    if (!baseIsLayered) {
     const capShape = new THREE.Shape()
     pts.forEach((p, i) => {
       const x = p.x * scaleX, y = p.y * scaleY
@@ -410,11 +419,10 @@ function createCustomInsert(points, config) {
     })
     capShape.closePath()
     group.add(new THREE.Mesh(new THREE.ShapeGeometry(capShape), trayMat))
+    }
   } else {
     // Skip flat base here if deeper notches/tools will build layered base later
-    const hasDeeperNotches = indepNotches.some(n => n.depth > cavityZ)
-    const hasDeeperTools = (config.additionalTools || []).some(at => (at.toolDepth || cavityZ) > cavityZ)
-    if (!hasDeeperNotches && !hasDeeperTools && hasFloor) {
+    if (!baseIsLayered && hasFloor) {
       const baseGeo = new THREE.ExtrudeGeometry(outerShape, { depth: actualBaseDepth, bevelEnabled: false })
       group.add(new THREE.Mesh(baseGeo, trayMat))
     }
@@ -584,8 +592,20 @@ function createCustomInsert(points, config) {
   }
 
   // For deeper notches/tools in custom tray: cut into the base (only for flat base, not edge-profiled)
-  const hasEdgeProfile = edgeProfile && edgeProfile !== 'none' && edgeSize > 0
-  if ((deeperIndep.length > 0 || deeperExtraTools.length > 0) && actualBaseDepth > 0.01 && !hasEdgeProfile) {
+  // Beveled trays (chamfer/fillet) use the same cut layers. Below z=es the
+  // layer is the inset bottom outline; the skirt built earlier is the outer face.
+  const bevelLayered = hasBevel && actualBaseDepth > es + 0.01
+  let insetShape = null
+  if (bevelLayered) {
+    const hw = trayWidth / 2, hh = trayHeight / 2
+    const isx = (hw - es) / hw, isy = (hh - es) / hh
+    insetShape = new THREE.Shape()
+    outerShape.getPoints(256).forEach((p, i) => {
+      i === 0 ? insetShape.moveTo(p.x * isx, p.y * isy) : insetShape.lineTo(p.x * isx, p.y * isy)
+    })
+    insetShape.closePath()
+  }
+  if ((deeperIndep.length > 0 || deeperExtraTools.length > 0) && actualBaseDepth > 0.01 && (!hasBevel || bevelLayered)) {
     const baseCuts = [
       ...deeperIndep.map(n => {
         const extraDepth = Math.min(n.depth - cavityZ, actualBaseDepth)
@@ -596,7 +616,7 @@ function createCustomInsert(points, config) {
         return { pts: et.pts, cutStart: actualBaseDepth - extraDepth }
       })
     ]
-    const baseBreaks = [0, ...baseCuts.map(c => c.cutStart), actualBaseDepth]
+    const baseBreaks = [0, ...baseCuts.map(c => c.cutStart), actualBaseDepth, ...(bevelLayered ? [es] : [])]
     const uniqueBaseBreaks = [...new Set(baseBreaks)].filter(h => h >= 0 && h <= actualBaseDepth).sort((a, b) => a - b)
 
     for (let bi = 0; bi < uniqueBaseBreaks.length - 1; bi++) {
@@ -604,7 +624,7 @@ function createCustomInsert(points, config) {
       const layTop = uniqueBaseBreaks[bi + 1]
       const layH = layTop - layBot
       if (layH < 0.01) continue
-      const baseLayerShape = outerShape.clone()
+      const baseLayerShape = (bevelLayered && layTop <= es + 0.001) ? insetShape.clone() : outerShape.clone()
       baseCuts.forEach(c => {
         if (layBot >= c.cutStart - 0.001) {
           baseLayerShape.holes.push(new THREE.Path(c.pts.map(p => new THREE.Vector2(p.x, p.y))))
