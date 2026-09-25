@@ -300,9 +300,10 @@ function createCustomInsert(points, config) {
     }
     if (pts.length < 3) return
     allNotchPts.push(pts)
-    const isIndep = fn.depth > 0 && Math.abs(fn.depth - cavityZ) > 0.01
+    const nd = clampDepth(fn.depth || 0)
+    const isIndep = nd > 0 && Math.abs(nd - cavityZ) > 0.01
     if (isIndep) {
-      indepNotches.push({ pts, depth: clampDepth(fn.depth) })
+      indepNotches.push({ pts, depth: nd })
     } else {
       defaultNotchPts.push(pts)
     }
