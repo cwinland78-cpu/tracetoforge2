@@ -82,8 +82,7 @@ export default function GridfinityCustomCutout() {
       <h3>Step 3: Configure the Bin</h3>
       <p>
         Set the grid size (how many Gridfinity units wide and deep), cutout depth, and
-        whether you want a finger notch for easy removal. You can place up to 5 tools
-        in a single bin and position each one independently.
+        whether you want a finger notch for easy removal. You can place up to 12 tools in a single bin and position each one independently.
       </p>
 
       <h3>Step 4: Export and Print</h3>

@@ -47,7 +47,7 @@ function makePage({ title, description, canonical, ogTitle, ogType = 'website', 
         "Custom tray insert generation",
         "Gridfinity-compatible bin export",
         "STL, 3MF, SVG, DXF export",
-        "Real-time 3D preview"
+        "Interactive 3D preview"
       ]
     },
     {
@@ -360,7 +360,7 @@ writePage('/guide', makePage({
 
       <h2>Step 5: Fine-Tune Tolerance and Notches</h2>
       <p>The Tolerance slider adds clearance around your tool so it slides in and out without sticking. Start at 0.5mm and adjust based on your printer's calibration. Tighter prints can use 0.3mm; looser prints might need 0.7mm.</p>
-      <p>Add a Finger Notch if you want a curved cutout for grabbing the tool. The notch can be positioned at either end of the tool cavity. For multiple tools in one tray, each tool can have its own independent notch.</p>
+      <p>Add Finger Notches if you want cutouts for grabbing your tools. Pick a circle, square, or rectangle, then drag each notch in the 3D preview to where you want to grip. A tray can have up to 12 notches.</p>
 
       <h2>Step 6: Add Multiple Tools (Optional)</h2>
       <p>Up to five tools fit in a single insert. Click "Add Tool" and trace a new photo. Each tool can be repositioned by dragging in the 3D preview. Each has independent settings for cavity depth, tolerance, rotation, and finger notch. This is the fastest way to build a complete drawer of pliers, screwdrivers, or wrenches in a single print.</p>
@@ -526,7 +526,7 @@ writePage('/editor', makePage({
         "Custom tray insert generation",
         "Gridfinity-compatible bin export (42mm grid)",
         "STL, 3MF, SVG, DXF export formats",
-        "Real-time 3D preview"
+        "Interactive 3D preview"
       ]
     }
   ]

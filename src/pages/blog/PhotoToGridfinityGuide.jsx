@@ -188,7 +188,7 @@ export default function PhotoToGridfinityGuide() {
 
       <h3>Step 5: Add a Finger Notch</h3>
       <p>
-        Click on the 3D preview at the handle end of the cavity to add a finger notch. Without it, the Cobras sit
+        Click + Add in the Finger Notches section, then drag the green notch in the 3D preview to the handle end of the cavity. Without it, the Cobras sit
         flush in the bin and you have to dig them out. Notch depth: 8-10&nbsp;mm.
       </p>
 
@@ -206,7 +206,7 @@ export default function PhotoToGridfinityGuide() {
         The single-bin, single-tool workflow above is the starting point. The interesting capability — and the
         feature that separates TracetoForge from most photo-based generators — is multi-tool layout. Photograph
         five tools laid out side by side on one sheet of paper, and each becomes its own cavity in the same bin.
-        The bin has independent depths, tolerances, and finger notches per tool. A drawer of pliers, screwdrivers,
+        Each tool gets its own depth and tolerance, and you can add up to 12 finger notches anywhere you need a grip. A drawer of pliers, screwdrivers,
         wrenches, and a multimeter becomes one print.
       </p>
 

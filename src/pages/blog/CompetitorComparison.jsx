@@ -93,7 +93,7 @@ export default function CompetitorComparison() {
           </thead>
           <tbody className="text-[#BBBBCC]">
             <tr className="border-b border-[#2A2A35]/50"><td className="py-2 px-3">Photo-to-bin</td><td className="text-center">✓</td><td className="text-center">✓</td><td className="text-center">✓</td><td className="text-center">✓</td></tr>
-            <tr className="border-b border-[#2A2A35]/50"><td className="py-2 px-3">Multi-tool layouts (one bin)</td><td className="text-center">✓ (up to 5)</td><td className="text-center text-[#666680]">limited</td><td className="text-center">✓</td><td className="text-center">✓</td></tr>
+            <tr className="border-b border-[#2A2A35]/50"><td className="py-2 px-3">Multi-tool layouts (one bin)</td><td className="text-center">✓ (up to 12)</td><td className="text-center text-[#666680]">limited</td><td className="text-center">✓</td><td className="text-center">✓</td></tr>
             <tr className="border-b border-[#2A2A35]/50"><td className="py-2 px-3">Export formats</td><td className="text-center">STL, 3MF, SVG, DXF</td><td className="text-center">STL</td><td className="text-center">STL, 3MF</td><td className="text-center">STL</td></tr>
             <tr className="border-b border-[#2A2A35]/50"><td className="py-2 px-3">Parametric bins</td><td className="text-center text-[#666680]">—</td><td className="text-center text-[#666680]">—</td><td className="text-center text-[#666680]">—</td><td className="text-center">✓</td></tr>
             <tr className="border-b border-[#2A2A35]/50"><td className="py-2 px-3">In-browser processing</td><td className="text-center">✓</td><td className="text-center">✓</td><td className="text-center">✓</td><td className="text-center">✓</td></tr>

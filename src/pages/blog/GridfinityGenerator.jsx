@@ -95,7 +95,7 @@ export default function GridfinityGenerator() {
       </p>
 
       <p>
-        Multi-tool trays are another strength. Place 3 to 5 tools on a single tray,
+        Multi-tool trays are another strength. Place up to 12 tools on a single tray,
         trace each one, and position them for the most space-efficient layout. A
         parametric generator has no concept of tool shapes, so this kind of
         optimization is impossible.

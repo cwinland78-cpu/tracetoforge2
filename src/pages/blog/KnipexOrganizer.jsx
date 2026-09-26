@@ -88,7 +88,7 @@ export default function KnipexOrganizer() {
         plier on a white sheet of paper and take a top-down photo. Upload
         to <Link to="/editor/">TracetoForge</Link> and the app traces the exact
         outline, including the jaw shape, pivot bolt, and handle curves. You can
-        combine up to 5 tools in a single tray and position each one independently.
+        combine up to 12 tools in a single tray and position each one independently.
       </p>
 
       <p>

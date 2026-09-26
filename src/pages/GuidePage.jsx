@@ -63,7 +63,7 @@ const TUTORIAL_STEPS = [
     title: 'Add Finger Notches',
     content: [
       'Finger notches are cutouts that let you grab the tool out of the tray.',
-      'Click "+ Add" in the Finger Notches section to add one (up to 5).',
+      'Click "+ Add" in the Finger Notches section to add one (up to 12).',
       'Choose circle, square, or rectangle shape and set the size.',
       'In the 3D preview, drag the green notch to position it exactly where you want to grip.',
     ],

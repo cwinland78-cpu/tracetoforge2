@@ -3082,7 +3082,7 @@ export default function Editor() {
                       <div className="border-t border-[#2A2A35]/50 pt-3 mt-1">
                         <h4 className="text-[11px] font-semibold text-brand/80 uppercase tracking-wider mb-3 flex items-center">
                           Finger Notches
-                          <Tooltip text="Cutouts so you can grab tools out of the tray. Add up to 5. Drag them in 3D preview to reposition." position="above" />
+                          <Tooltip text="Cutouts so you can grab tools out of the tray. Add up to 12. Drag them in 3D preview to reposition." position="above" />
                         </h4>
                       </div>
                       {/* Notch tabs */}
@@ -3269,7 +3269,7 @@ export default function Editor() {
                       <div className="border-t border-[#2A2A35]/50 pt-3 mt-1">
                         <h4 className="text-[11px] font-semibold text-brand/80 uppercase tracking-wider mb-3 flex items-center">
                           Finger Notches
-                          <Tooltip text="Cutouts so you can grab tools out of the bin. Add up to 5. Drag them in 3D preview to reposition." position="above" />
+                          <Tooltip text="Cutouts so you can grab tools out of the bin. Add up to 12. Drag them in 3D preview to reposition." position="above" />
                         </h4>
                       </div>
                       <div className="flex items-center gap-1 mb-2 flex-wrap">
