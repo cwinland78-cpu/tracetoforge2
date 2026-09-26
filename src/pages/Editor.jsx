@@ -94,6 +94,16 @@ function blankToolBackdrop(contours) {
   return c
 }
 
+// Amazon affiliate links for the boxes that have editor templates (tag tracetoforge-20).
+// Shown under the template picker when that template is active.
+const AMAZON_TAG = 'tracetoforge-20'
+const BOX_AFFILIATE = {
+  'packout-compact': { name: 'Milwaukee PACKOUT Compact Organizer 48-22-8435', url: `https://www.amazon.com/dp/B076NP9DCT?tag=${AMAZON_TAG}` },
+  'packout-slim': { name: 'Milwaukee PACKOUT Low-Profile Organizer 48-22-8436', url: `https://www.amazon.com/dp/B07J2LH6X1?tag=${AMAZON_TAG}` },
+  'packout-shockwave': { name: 'Milwaukee SHOCKWAVE Customizable Case 48-32-9921', url: `https://www.amazon.com/dp/B0FHH3WHHY?tag=${AMAZON_TAG}` },
+  'dewalt-ts2-small': { name: 'DeWalt ToughSystem 2.0 Tool Box DWST08165', url: `https://www.amazon.com/dp/B08D3KRHJQ?tag=${AMAZON_TAG}` },
+}
+
 export default function Editor() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -3025,6 +3035,19 @@ export default function Editor() {
                             <span className="text-yellow-400 text-sm flex-shrink-0">✓</span>
                           )}
                         </button>
+                        {BOX_AFFILIATE[activeTemplate] && (
+                          <a href={BOX_AFFILIATE[activeTemplate].url} target="_blank" rel="sponsored noopener noreferrer"
+                            className="mt-2 flex items-center gap-2 p-2.5 rounded-lg bg-[#1C1C24] border border-[#2A2A35] hover:border-brand/60 transition-colors">
+                            <div className="flex-1 min-w-0">
+                              <div className="text-[11px] font-semibold text-[#C8C8D0]">Don't have this box yet?</div>
+                              <div className="text-[10px] text-[#8888A0]">{BOX_AFFILIATE[activeTemplate].name}</div>
+                            </div>
+                            <span className="text-[11px] font-bold text-brand whitespace-nowrap">Get it on Amazon ↗</span>
+                          </a>
+                        )}
+                        {BOX_AFFILIATE[activeTemplate] && (
+                          <p className="text-[9px] text-[#555568] mt-1">As an Amazon Associate I earn from qualifying purchases.</p>
+                        )}
                         <p className="text-[10px] text-[#555568] mt-1.5 italic">More templates coming soon: ToughSystem drawers, Packout Toolbox, Large Toolbox</p>
                       </div>
                       <ParamRow label="Width" tooltip="Total tray width (left to right) in mm.">
