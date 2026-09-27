@@ -9,10 +9,11 @@ export const PRINT_PRICING = {
   bedMm: 260,           // Creality K2 bed: 260 x 260 x 260
   maxFootprintMm: 520,  // largest we split and print (4 sections)
   maxHeightMm: 260,
-  // Filament model: a shell (walls + top/bottom skins) plus sparse infill.
-  // Calibrate shellMm/infill against a real slicer weight before trusting prices.
-  shellMm: 1.1,
-  infill: 0.15,
+  // Filament model: grams = solid volume x PLA density x fillRatio.
+  // fillRatio calibrated Sep 26, 2026 against Chris's slicer: a 251.5 x 125.5 x 31 mm
+  // Gridfinity bin (592 cm3 solid) sliced to 164 g, so 164 / 1.24 / 592 = 0.223.
+  // (A shell-over-surface model overcounted thin-walled parts about 2.6x.)
+  fillRatio: 0.223,
   densityGcm3: 1.24,    // PLA
 }
 
@@ -49,8 +50,7 @@ export function analyzeSTL(input, pricing = PRINT_PRICING) {
 
   const volumeCm3 = Math.abs(vol6) / 6 / 1000
   const areaCm2 = area2 / 2 / 100
-  const shell = Math.min(volumeCm3, areaCm2 * (pricing.shellMm / 10))
-  const grams = Math.max(1, Math.round((shell + (volumeCm3 - shell) * pricing.infill) * pricing.densityGcm3))
+  const grams = Math.max(1, Math.round(volumeCm3 * pricing.densityGcm3 * pricing.fillRatio))
 
   const bbox = { x: +(maxX - minX).toFixed(1), y: +(maxY - minY).toFixed(1), z: +(maxZ - minZ).toFixed(1) }
   const bed = pricing.bedMm
