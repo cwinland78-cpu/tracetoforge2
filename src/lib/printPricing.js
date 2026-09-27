@@ -75,3 +75,10 @@ export function fitMessage(a, pricing = PRINT_PRICING) {
 }
 
 export const dollars = cents => `$${(cents / 100).toFixed(2)}`
+
+/** Filament colors offered for print orders (worker rejects anything else). */
+export const FILAMENT_COLORS = [
+  { name: 'Gray', hex: '#8a8d91' },
+  { name: 'Black', hex: '#1b1b1d' },
+  { name: 'White', hex: '#f2f2ee' },
+]

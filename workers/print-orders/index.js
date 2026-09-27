@@ -3,7 +3,7 @@
 // POST /stripe-webhook  Stripe tells us the order was paid; we store the shipping address
 // GET  /admin?key=      Chris's order list with STL downloads
 // Orders and STL files live in the ORDERS KV namespace.
-import { analyzeSTL, fitMessage, dollars, PRINT_PRICING } from '../../src/lib/printPricing.js'
+import { analyzeSTL, fitMessage, dollars, PRINT_PRICING, FILAMENT_COLORS } from '../../src/lib/printPricing.js'
 
 const MAX_STL_BYTES = 20 * 1024 * 1024 // KV values cap at 25 MiB
 
@@ -13,7 +13,7 @@ function cors(env, req) {
   return {
     'Access-Control-Allow-Origin': allowed,
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Project-Name, X-Output-Mode, X-Terms-Accepted, X-Stl-Bytes',
+    'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Project-Name, X-Output-Mode, X-Terms-Accepted, X-Stl-Bytes, X-Filament-Color',
     'Vary': 'Origin',
   }
 }
@@ -56,6 +56,8 @@ async function handleCheckout(req, env) {
   if (!user?.id) return json({ error: 'Please sign in to order a print.' }, 401, h)
   if (isTestMode(env) && !isTester(env, user)) return json({ error: 'Ordering is not switched on yet.' }, 503, h)
   if (req.headers.get('X-Terms-Accepted') !== 'yes') return json({ error: 'Please accept the fit terms first.' }, 400, h)
+  const color = FILAMENT_COLORS.find(c => c.name === req.headers.get('X-Filament-Color'))?.name
+  if (!color) return json({ error: 'Please pick a filament color.' }, 400, h)
 
   const body = await req.arrayBuffer()
   // Body = STL, optionally followed by a 3MF of the same design (X-Stl-Bytes marks the split)
@@ -78,7 +80,7 @@ async function handleCheckout(req, env) {
   const mode = (req.headers.get('X-Output-Mode') || '').slice(0, 20)
   const order = {
     id, user_id: user.id, email: user.email, name, mode,
-    grams: a.grams, bbox: a.bbox, pieces: a.pieces, fit: a.fit,
+    grams: a.grams, bbox: a.bbox, pieces: a.pieces, fit: a.fit, color,
     print_cents: a.printCents, shipping_cents: a.shippingCents, total_cents: a.totalCents,
     terms_accepted_at: new Date().toISOString(),
     status: 'pending', created_at: new Date().toISOString(),
@@ -93,7 +95,7 @@ async function handleCheckout(req, env) {
     'line_items[0][price_data][currency]': 'usd',
     'line_items[0][price_data][unit_amount]': a.printCents,
     'line_items[0][price_data][product_data][name]': `Printed insert: ${name}`,
-    'line_items[0][price_data][product_data][description]': `${a.bbox.x} x ${a.bbox.y} x ${a.bbox.z} mm, about ${a.grams} g${section}. Printed exactly as designed.`,
+    'line_items[0][price_data][product_data][description]': `${color} filament. ${a.bbox.x} x ${a.bbox.y} x ${a.bbox.z} mm, about ${a.grams} g${section}. Printed exactly as designed.`,
     'shipping_address_collection[allowed_countries][0]': 'US',
     'shipping_options[0][shipping_rate_data][type]': 'fixed_amount',
     'shipping_options[0][shipping_rate_data][display_name]': 'Standard shipping',
@@ -102,6 +104,7 @@ async function handleCheckout(req, env) {
     'metadata[order_id]': id,
     'metadata[grams]': a.grams,
     'metadata[pieces]': a.pieces,
+    'metadata[color]': color,
     'metadata[user_id]': user.id,
     'metadata[name]': name,
     'metadata[mode]': mode,
@@ -147,7 +150,7 @@ async function handleWebhook(req, env) {
       const [bx, by, bz] = String(m.bbox || '0x0x0').split('x').map(Number)
       const fromMeta = {
         id, user_id: m.user_id, email: s.customer_details?.email, name: m.name || 'Custom insert', mode: m.mode || '',
-        grams: Number(m.grams) || 0, bbox: { x: bx, y: by, z: bz }, pieces: Number(m.pieces) || 1,
+        color: m.color || '', grams: Number(m.grams) || 0, bbox: { x: bx, y: by, z: bz }, pieces: Number(m.pieces) || 1,
         print_cents: Number(m.print_cents) || null, total_cents: s.amount_total,
         has_3mf: m.has_3mf === 'yes',
         stripe_session_id: s.id, created_at: new Date((s.created || Date.now() / 1000) * 1000).toISOString(),
@@ -163,7 +166,7 @@ async function handleWebhook(req, env) {
       // Phone push via ntfy (app subscribed to the private NTFY_TOPIC). No address or admin key in the message.
       if (firstTime && env.NTFY_TOPIC) {
         const b = base.bbox || {}
-        const msg = `${dollars(s.amount_total || 0)} paid. ${base.name}: ${b.x} x ${b.y} x ${b.z} mm, about ${base.grams} g, ${base.pieces} piece${base.pieces > 1 ? 's' : ''}.${s.livemode ? '' : ' (TEST)'}`
+        const msg = `${dollars(s.amount_total || 0)} paid. ${base.color ? base.color + ' filament. ' : ''}${base.name}: ${b.x} x ${b.y} x ${b.z} mm, about ${base.grams} g, ${base.pieces} piece${base.pieces > 1 ? 's' : ''}.${s.livemode ? '' : ' (TEST)'}`
         try {
           await fetch(`https://ntfy.sh/${env.NTFY_TOPIC}`, { method: 'POST', body: msg, headers: { Title: 'New TraceToForge print order', Tags: 'printer', Priority: 'high' } })
         } catch {}
@@ -215,7 +218,7 @@ async function handleAdmin(req, env, url) {
   }
   const rows = show.map(o => `<tr>
     <td>${esc(o.created_at?.slice(0, 16).replace('T', ' '))}</td>
-    <td><b>${esc(o.status)}</b></td>
+    <td><b>${esc(o.status)}</b>${o.color ? `<br><span style="display:inline-block;margin-top:4px;padding:1px 8px;border-radius:9px;border:1px solid #555;background:${esc((FILAMENT_COLORS.find(c => c.name === o.color) || {}).hex || '#333')};color:${o.color === 'White' ? '#111' : '#fff'}">${esc(o.color)}</span>` : ''}</td>
     <td>${esc(o.name)}<br><small>${esc(o.mode)} · ${o.bbox.x} x ${o.bbox.y} x ${o.bbox.z} mm · ${o.grams} g · ${o.pieces} piece${o.pieces > 1 ? 's' : ''}</small></td>
     <td>${dollars(o.amount_paid_cents ?? o.total_cents)}</td>
     <td><pre>${addr(o.shipping)}</pre><small>${esc(o.customer_email || o.email)}</small></td>

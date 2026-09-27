@@ -19,7 +19,7 @@ import { exportSVG, exportDXF, export3MF, bundleAsZip } from '../lib/exportForma
 import { hasCredits, useCredit, getCredits, initPurchases } from '../lib/purchases'
 import { queryTable } from '../lib/supabase'
 import { stashDraft, peekDraft, clearDraft } from '../lib/draftStash'
-import { analyzeSTL, fitMessage, dollars, PRINT_PRICING } from '../lib/printPricing'
+import { analyzeSTL, fitMessage, dollars, PRINT_PRICING, FILAMENT_COLORS } from '../lib/printPricing'
 
 const PRINT_ORDERS_URL = 'https://tracetoforge-print-orders.cwinland78.workers.dev'
 import { createProject, updateProject, getProject } from './Dashboard'
@@ -2490,7 +2490,7 @@ export default function Editor() {
   }
 
   const submitPrintOrder = async () => {
-    if (!printOrder?.stl || !printOrder.accepted || printOrder.sending) return
+    if (!printOrder?.stl || !printOrder.accepted || !printOrder.color || printOrder.sending) return
     setPrintOrder(p => ({ ...p, sending: true, error: null }))
     try {
       let token = null
@@ -2504,6 +2504,7 @@ export default function Editor() {
           'X-Project-Name': encodeURIComponent(projectName || 'Custom insert'),
           'X-Output-Mode': outputMode,
           'X-Terms-Accepted': 'yes',
+          'X-Filament-Color': printOrder.color,
           // Body is the STL followed by the 3MF (when it finished building)
           'X-Stl-Bytes': String(printOrder.stl.byteLength),
         },
@@ -3577,6 +3578,20 @@ export default function Editor() {
                         </div>
                         <p className={`text-[12px] leading-snug ${tooBig ? 'text-red-400' : a.fit === 'split' ? 'text-amber-300' : 'text-green-400'}`}>{fitMessage(a)}</p>
                         {!tooBig && (
+                          <div>
+                            <div className="text-[12px] text-[#C8C8D0] mb-1.5">Filament color</div>
+                            <div className="flex gap-2">
+                              {FILAMENT_COLORS.map(c => (
+                                <button key={c.name} type="button" onClick={() => setPrintOrder(p => ({ ...p, color: c.name }))}
+                                  className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg border text-[12px] transition-colors ${printOrder.color === c.name ? 'border-brand bg-brand/15 text-white' : 'border-[#2A2A35] bg-[#1C1C24] text-[#C8C8D0] hover:border-[#444455]'}`}>
+                                  <span className="w-3.5 h-3.5 rounded-full border border-[#555566]" style={{ background: c.hex }} />
+                                  {c.name}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {!tooBig && (
                           <label className="flex items-start gap-2 text-[12px] text-[#C8C8D0] leading-snug cursor-pointer">
                             <input type="checkbox" className="mt-0.5" checked={!!printOrder.accepted} onChange={e => setPrintOrder(p => ({ ...p, accepted: e.target.checked }))} />
                             <span>I understand it is printed exactly as designed. I checked my measurements, and a reprint because of wrong measurements is at my cost.</span>
@@ -3584,9 +3599,9 @@ export default function Editor() {
                         )}
                         {printOrder.error && <p className="text-red-400 text-[12px]">{printOrder.error}</p>}
                         {!tooBig && (
-                          <button onClick={submitPrintOrder} disabled={!printOrder.accepted || printOrder.sending}
+                          <button onClick={submitPrintOrder} disabled={!printOrder.accepted || !printOrder.color || printOrder.sending}
                             className="w-full py-2.5 rounded-lg bg-brand hover:bg-brand-light text-white font-semibold disabled:opacity-40 disabled:cursor-not-allowed">
-                            {printOrder.sending ? 'Opening checkout...' : `Continue to payment (${dollars(a.totalCents)})`}
+                            {printOrder.sending ? 'Opening checkout...' : !printOrder.color ? 'Pick a filament color' : `Continue to payment (${dollars(a.totalCents)})`}
                           </button>
                         )}
                         <p className="text-[11px] text-[#666680]">US shipping only. Payment and your address are handled by Stripe. Ordering does not use a credit.</p>
