@@ -1,0 +1,19 @@
+name = "tracetoforge-print-orders"
+main = "index.js"
+compatibility_date = "2026-09-01"
+workers_dev = true
+
+kv_namespaces = [
+  { binding = "ORDERS", id = "d74ae29bd32849d0a5786be0ed8bfa3d" }
+]
+
+[vars]
+SITE_URL = "https://tracetoforge.com"
+SUPABASE_URL = "https://pzmykycxmbzbrzkyotkc.supabase.co"
+# Public anon key (already shipped in the site bundle); used only to verify the user's session token.
+SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6bXlreWN4bWJ6YnJ6a3lvdGtjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA1NjUxNjYsImV4cCI6MjA4NjE0MTE2Nn0.382YBaplfZJVl_ngKbGSpEPm1w3urlrxYAQFzRJW3z0"
+
+# Secrets (set with `wrangler secret put`, never committed):
+#   STRIPE_SECRET_KEY      restricted key: Checkout Sessions write
+#   STRIPE_WEBHOOK_SECRET  signing secret of the /stripe-webhook endpoint
+#   ADMIN_KEY              random string; open https://tracetoforge-print-orders.cwinland78.workers.dev/admin?key=ADMIN_KEY

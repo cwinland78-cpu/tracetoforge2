@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import {
   Upload, Download, ChevronLeft, Pencil, MousePointer, Eye,
   Info, ZoomIn, ZoomOut, Save, FolderOpen, X, Camera, Sun, Contrast, Crop, FilePlus2, Copy,
-  Library, Bookmark, Trash2, Globe, Share2
+  Library, Bookmark, Trash2, Globe, Share2, Printer
 } from 'lucide-react'
 import ThreePreview from '../components/ThreePreview'
 import PaywallModal from '../components/PaywallModal'
@@ -19,6 +19,9 @@ import { exportSVG, exportDXF, export3MF, bundleAsZip } from '../lib/exportForma
 import { hasCredits, useCredit, getCredits, initPurchases } from '../lib/purchases'
 import { queryTable } from '../lib/supabase'
 import { stashDraft, peekDraft, clearDraft } from '../lib/draftStash'
+import { analyzeSTL, fitMessage, dollars, PRINT_PRICING } from '../lib/printPricing'
+
+const PRINT_ORDERS_URL = 'https://tracetoforge-print-orders.cwinland78.workers.dev'
 import { createProject, updateProject, getProject } from './Dashboard'
 import {
   listSavedTools, getSavedTool, createSavedTool, deleteSavedTool, makeThumbnail
@@ -138,6 +141,12 @@ export default function Editor() {
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState('')
   const [showDisclaimer, setShowDisclaimer] = useState(false)
+  const [printOrder, setPrintOrder] = useState(null) // order-a-print modal state
+  const [notice, setNotice] = useState('')           // banner shown after returning from checkout
+  const [printOrdersOn, setPrintOrdersOn] = useState(false) // button hidden until the worker has Stripe configured
+  useEffect(() => {
+    fetch(`${PRINT_ORDERS_URL}/status`).then(r => r.json()).then(d => setPrintOrdersOn(!!d.enabled)).catch(() => {})
+  }, [])
   const [exportFormats, setExportFormats] = useState({ stl: false, svg: false, dxf: false, '3mf': true })
   const [imageSize, setImageSize] = useState({ w: 0, h: 0 })
   const [contours, setContours] = useState([])
@@ -300,6 +309,9 @@ export default function Editor() {
     if (loading || draftCheckedRef.current) return
     draftCheckedRef.current = true
     ;(async () => {
+      const po = searchParams.get('print_order')
+      if (po === 'paid') setNotice('Order received. We will print it and email you when it ships.')
+      else if (po === 'cancelled') setNotice('Checkout cancelled. Nothing was charged.')
       const d = await peekDraft()
       if (!d) return
       const pid = searchParams.get('project')
@@ -307,8 +319,10 @@ export default function Editor() {
       await clearDraft()
       await loadProjectData(d.projectId, { id: d.projectId || null, name: d.projectName || 'Untitled Project', config: d.config })
       setIsDirty(true)
-      setSaveMsg('Your project was restored after sign-in. Save it to keep it.')
-      setTimeout(() => setSaveMsg(''), 6000)
+      if (!po) {
+        setSaveMsg('Your project was restored after sign-in. Save it to keep it.')
+        setTimeout(() => setSaveMsg(''), 6000)
+      }
     })()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading])
@@ -2443,6 +2457,57 @@ export default function Editor() {
     setShowDisclaimer(true)
   }
 
+  /* ── Order a printed copy ──
+   * Builds the same STL Export would, prices it with the shared pricing module,
+   * and sends it to the print-orders worker, which re-prices it server-side and
+   * returns a Stripe Checkout URL. Ordering does not spend a credit. */
+  const openPrintOrder = () => {
+    const tool0 = activeToolIdx === 0
+      ? { contours, selectedContour, realWidth, realHeight }
+      : tools[0]
+    const pts = tool0?.contours?.[tool0?.selectedContour ?? 0]
+    if (!pts || pts.length < 3) return
+    if (!isAuthenticated || !user?.id) { goToLogin(); return }
+    setPrintOrder({ busy: true })
+    setTimeout(() => { // let the modal paint before the geometry work
+      try {
+        const scaledPts = scaleToolPoints(pts, tool0.realWidth ?? realWidth, tool0.realHeight ?? realHeight)
+        const stl = exportSTL(scaledPts, buildConfig())
+        setPrintOrder({ stl, analysis: analyzeSTL(stl), accepted: false })
+      } catch (err) {
+        setPrintOrder({ error: err?.message || 'Could not build this design.' })
+      }
+    }, 30)
+  }
+
+  const submitPrintOrder = async () => {
+    if (!printOrder?.stl || !printOrder.accepted || printOrder.sending) return
+    setPrintOrder(p => ({ ...p, sending: true, error: null }))
+    try {
+      let token = null
+      try { token = JSON.parse(localStorage.getItem('sb-pzmykycxmbzbrzkyotkc-auth-token'))?.access_token } catch {}
+      if (!token) { setPrintOrder(null); goToLogin(); return }
+      const r = await fetch(`${PRINT_ORDERS_URL}/checkout`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/octet-stream',
+          'X-Project-Name': encodeURIComponent(projectName || 'Custom insert'),
+          'X-Output-Mode': outputMode,
+          'X-Terms-Accepted': 'yes',
+        },
+        body: printOrder.stl,
+      })
+      const data = await r.json().catch(() => ({}))
+      if (!r.ok || !data.url) throw new Error(data.error || `Order failed (${r.status})`)
+      // Keep the design across the Stripe round trip, same as sign-in
+      try { await stashDraft({ projectId, projectName, config: buildProjectConfig() }) } catch {}
+      window.location.href = data.url
+    } catch (err) {
+      setPrintOrder(p => ({ ...p, sending: false, error: err?.message || 'Order failed' }))
+    }
+  }
+
   /* ── Gridfinity fit check (tools no longer auto-shrink, so warn instead) ── */
   const gridfinityOversize = useMemo(() => {
     if (outputMode !== 'gridfinity') return []
@@ -3457,7 +3522,66 @@ export default function Editor() {
                   className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-brand hover:bg-brand-light text-white text-sm font-medium transition-colors">
                   <Download size={15} /> Export {credits > 0 ? `(${credits} credits)` : ''}
                 </button>
+                {printOrdersOn && <button onClick={openPrintOrder}
+                  title="No printer? We print it and ship it to you."
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-[#1C1C24] hover:bg-[#2A2A35] text-sm font-medium transition-colors border border-brand/40">
+                  <Printer size={15} /> Order it printed
+                </button>}
               </div>
+            )}
+
+            {/* Order-a-print modal */}
+            {printOrder && ReactDOM.createPortal(
+              <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4" onClick={() => !printOrder.sending && setPrintOrder(null)}>
+                <div className="w-full max-w-md rounded-xl bg-[#131318] border border-[#2A2A35] p-5 text-sm" onClick={e => e.stopPropagation()}>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-base font-bold flex items-center gap-2"><Printer size={16} /> Order it printed</h3>
+                    <button onClick={() => !printOrder.sending && setPrintOrder(null)} className="text-[#8888A0] hover:text-white"><X size={16} /></button>
+                  </div>
+                  {printOrder.busy && <p className="text-[#8888A0]">Measuring your design...</p>}
+                  {printOrder.error && !printOrder.analysis && <p className="text-red-400">{printOrder.error}</p>}
+                  {printOrder.analysis && (() => {
+                    const a = printOrder.analysis
+                    const tooBig = a.fit === 'too-big'
+                    return (
+                      <div className="space-y-3">
+                        <p className="text-[#C8C8D0]">No printer? We print this exact design and ship it to you.</p>
+                        <div className="rounded-lg bg-[#1C1C24] border border-[#2A2A35] p-3 space-y-1.5">
+                          <div className="flex justify-between"><span className="text-[#8888A0]">Size</span><span>{a.bbox.x} x {a.bbox.y} x {a.bbox.z} mm</span></div>
+                          <div className="flex justify-between"><span className="text-[#8888A0]">Print fee</span><span>{dollars(PRINT_PRICING.feeCents)}</span></div>
+                          <div className="flex justify-between"><span className="text-[#8888A0]">Filament, about {a.grams} g</span><span>{dollars(a.printCents - PRINT_PRICING.feeCents)}</span></div>
+                          <div className="flex justify-between"><span className="text-[#8888A0]">Shipping (US)</span><span>{dollars(a.shippingCents)}</span></div>
+                          <div className="flex justify-between font-bold border-t border-[#2A2A35] pt-1.5"><span>Total</span><span>{dollars(a.totalCents)}</span></div>
+                        </div>
+                        <p className={`text-[12px] leading-snug ${tooBig ? 'text-red-400' : a.fit === 'split' ? 'text-amber-300' : 'text-green-400'}`}>{fitMessage(a)}</p>
+                        {!tooBig && (
+                          <label className="flex items-start gap-2 text-[12px] text-[#C8C8D0] leading-snug cursor-pointer">
+                            <input type="checkbox" className="mt-0.5" checked={!!printOrder.accepted} onChange={e => setPrintOrder(p => ({ ...p, accepted: e.target.checked }))} />
+                            <span>I understand it is printed exactly as designed. I checked my measurements, and a reprint because of wrong measurements is at my cost.</span>
+                          </label>
+                        )}
+                        {printOrder.error && <p className="text-red-400 text-[12px]">{printOrder.error}</p>}
+                        {!tooBig && (
+                          <button onClick={submitPrintOrder} disabled={!printOrder.accepted || printOrder.sending}
+                            className="w-full py-2.5 rounded-lg bg-brand hover:bg-brand-light text-white font-semibold disabled:opacity-40 disabled:cursor-not-allowed">
+                            {printOrder.sending ? 'Opening checkout...' : `Continue to payment (${dollars(a.totalCents)})`}
+                          </button>
+                        )}
+                        <p className="text-[11px] text-[#666680]">US shipping only. Payment and your address are handled by Stripe. Ordering does not use a credit.</p>
+                      </div>
+                    )
+                  })()}
+                </div>
+              </div>,
+              document.body
+            )}
+
+            {notice && ReactDOM.createPortal(
+              <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[110] max-w-[92vw] flex items-center gap-3 px-4 py-3 rounded-lg bg-[#131318] border border-brand/60 shadow-lg text-sm">
+                <span>{notice}</span>
+                <button onClick={() => setNotice('')} className="text-[#8888A0] hover:text-white"><X size={14} /></button>
+              </div>,
+              document.body
             )}
 
             {/* Paywall Modal */}
