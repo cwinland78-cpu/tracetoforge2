@@ -176,8 +176,16 @@ async function handleWebhook(req, env) {
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
 
 async function handleAdmin(req, env, url) {
-  if (!env.ADMIN_KEY || url.searchParams.get('key') !== env.ADMIN_KEY) return new Response('Not found', { status: 404 })
-  const key = encodeURIComponent(env.ADMIN_KEY)
+  // Access: the long admin key, or a signed-in Supabase session for an ADMIN_EMAILS account
+  // (the editor's Orders link passes the session token as ?t=). `auth` is carried on every link.
+  let auth = null
+  if (env.ADMIN_KEY && url.searchParams.get('key') === env.ADMIN_KEY) auth = `key=${encodeURIComponent(env.ADMIN_KEY)}`
+  else if (url.searchParams.get('t')) {
+    const u = await supabaseUser(env, url.searchParams.get('t'))
+    const admins = (env.ADMIN_EMAILS || '').toLowerCase().split(',').map(x => x.trim())
+    if (u?.email && admins.includes(u.email.toLowerCase())) auth = `t=${encodeURIComponent(url.searchParams.get('t'))}`
+  }
+  if (!auth) return new Response('Not found. If you opened this from the Orders link, your sign-in may have expired: go back to the editor and click Orders again.', { status: 404 })
   const m = url.pathname.match(/^\/admin\/(stl|3mf)\/([\w-]+)$/)
   if (m) {
     const file = await env.ORDERS.get(`${m[1]}:${m[2]}`, 'arrayBuffer')
@@ -190,7 +198,7 @@ async function handleAdmin(req, env, url) {
     const id = f.get('id'), status = f.get('status')
     const cur = await env.ORDERS.get(`order:${id}`, 'json')
     if (cur && ['paid', 'printing', 'shipped', 'cancelled'].includes(status)) await env.ORDERS.put(`order:${id}`, JSON.stringify({ ...cur, status, [`${status}_at`]: new Date().toISOString() }))
-    return Response.redirect(`${url.origin}/admin?key=${key}`, 303)
+    return Response.redirect(`${url.origin}/admin?${auth}`, 303)
   }
   const orders = []
   let cursor
@@ -199,7 +207,7 @@ async function handleAdmin(req, env, url) {
     for (const k of page.keys) { const o = await env.ORDERS.get(k.name, 'json'); if (o) orders.push(o) }
     cursor = page.list_complete ? null : page.cursor
   } while (cursor)
-  const show = url.searchParams.get('all') ? orders : orders.filter(o => o.status !== 'pending')
+  const show = url.searchParams.get('all') ? orders : orders.filter(o => o.status !== 'pending' && o.status !== 'cancelled')
   show.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''))
   const addr = s => {
     const a = s?.address; if (!a) return ''
@@ -211,13 +219,13 @@ async function handleAdmin(req, env, url) {
     <td>${esc(o.name)}<br><small>${esc(o.mode)} · ${o.bbox.x} x ${o.bbox.y} x ${o.bbox.z} mm · ${o.grams} g · ${o.pieces} piece${o.pieces > 1 ? 's' : ''}</small></td>
     <td>${dollars(o.amount_paid_cents ?? o.total_cents)}</td>
     <td><pre>${addr(o.shipping)}</pre><small>${esc(o.customer_email || o.email)}</small></td>
-    <td>${o.has_3mf ? `<a href="/admin/3mf/${o.id}?key=${key}">3MF</a> · ` : ''}<a href="/admin/stl/${o.id}?key=${key}">STL</a></td>
-    <td><form method="post" action="/admin?key=${key}"><input type="hidden" name="id" value="${o.id}">
+    <td>${o.has_3mf ? `<a href="/admin/3mf/${o.id}?${auth}">3MF</a> · ` : ''}<a href="/admin/stl/${o.id}?${auth}">STL</a></td>
+    <td><form method="post" action="/admin?${auth}"><input type="hidden" name="id" value="${o.id}">
       <select name="status">${['paid', 'printing', 'shipped', 'cancelled'].map(s => `<option${s === o.status ? ' selected' : ''}>${s}</option>`).join('')}</select>
       <button>Save</button></form></td></tr>`).join('')
   return new Response(`<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Print orders</title>
 <style>body{font:14px system-ui;margin:16px;background:#111;color:#eee}table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid #333;padding:8px;text-align:left;vertical-align:top}pre{margin:0;font:inherit;white-space:pre-wrap}small{color:#999}a{color:#ffc38e}</style>
-<h1>Print orders</h1><p><small>${show.length} shown. ${url.searchParams.get('all') ? `<a href="/admin?key=${key}">Hide unpaid</a>` : `<a href="/admin?key=${key}&all=1">Show unpaid checkouts too</a>`}</small></p>
+<h1>Print orders</h1><p><small>${show.length} shown. ${url.searchParams.get('all') ? `<a href="/admin?${auth}">Hide unpaid and cancelled</a>` : `<a href="/admin?${auth}&all=1">Show unpaid and cancelled too</a>`}</small></p>
 <table><tr><th>Created</th><th>Status</th><th>Design</th><th>Paid</th><th>Ship to</th><th>File</th><th></th></tr>${rows || '<tr><td colspan=7>No orders yet.</td></tr>'}</table>`,
     { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' } })
 }

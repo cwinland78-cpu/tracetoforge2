@@ -2636,6 +2636,17 @@ export default function Editor() {
                 <FilePlus2 size={13} /> New
               </button>
               {saveMsg && <span className={`text-xs ${saveMsg.includes('failed') ? 'text-red-400 font-bold' : 'text-green-400'}`}>{saveMsg}</span>}
+              {(user?.email || '').toLowerCase() === 'cwinland78@yahoo.com' && (
+                <button onClick={() => {
+                  let token = null
+                  try { token = JSON.parse(localStorage.getItem('sb-pzmykycxmbzbrzkyotkc-auth-token'))?.access_token } catch {}
+                  if (token) window.open(`${PRINT_ORDERS_URL}/admin?t=${encodeURIComponent(token)}`, '_blank', 'noopener')
+                }}
+                  title="Print orders (only you can see this)"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-[#8888A0] hover:text-white hover:bg-[#1C1C24] transition-colors">
+                  <Printer size={13} /> Orders
+                </button>
+              )}
               <button onClick={() => {
                 if (isDirty) { pendingNavigationRef.current = '/dashboard'; setShowUnsavedModal(true) }
                 else navigate('/dashboard/')
