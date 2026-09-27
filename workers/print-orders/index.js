@@ -13,7 +13,7 @@ function cors(env, req) {
   return {
     'Access-Control-Allow-Origin': allowed,
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Project-Name, X-Output-Mode, X-Terms-Accepted',
+    'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Project-Name, X-Output-Mode, X-Terms-Accepted, X-Stl-Bytes',
     'Vary': 'Origin',
   }
 }
@@ -57,7 +57,15 @@ async function handleCheckout(req, env) {
   if (isTestMode(env) && !isTester(env, user)) return json({ error: 'Ordering is not switched on yet.' }, 503, h)
   if (req.headers.get('X-Terms-Accepted') !== 'yes') return json({ error: 'Please accept the fit terms first.' }, 400, h)
 
-  const stl = await req.arrayBuffer()
+  const body = await req.arrayBuffer()
+  // Body = STL, optionally followed by a 3MF of the same design (X-Stl-Bytes marks the split)
+  const stlBytes = Number(req.headers.get('X-Stl-Bytes')) || body.byteLength
+  const stl = body.slice(0, Math.min(stlBytes, body.byteLength))
+  let threemf = stlBytes < body.byteLength ? body.slice(stlBytes) : null
+  if (threemf) {
+    const sig = new Uint8Array(threemf, 0, 2)
+    if (sig[0] !== 0x50 || sig[1] !== 0x4b || threemf.byteLength > MAX_STL_BYTES) threemf = null // must be a zip ("PK")
+  }
   if (stl.byteLength > MAX_STL_BYTES) return json({ error: 'This design is too detailed to order online. Email us and we will sort it out.' }, 413, h)
   let a
   try { a = analyzeSTL(stl) } catch (e) { return json({ error: `Could not read the design: ${e.message}` }, 400, h) }
@@ -99,12 +107,14 @@ async function handleCheckout(req, env) {
     'metadata[mode]': mode,
     'metadata[bbox]': `${a.bbox.x}x${a.bbox.y}x${a.bbox.z}`,
     'metadata[print_cents]': a.printCents,
+    'metadata[has_3mf]': threemf ? 'yes' : 'no',
     'payment_intent_data[metadata][order_id]': id,
     success_url: `${env.SITE_URL}/editor/?print_order=paid&id=${id}`,
     cancel_url: `${env.SITE_URL}/editor/?print_order=cancelled`,
   })
   order.stripe_session_id = session.id
   await env.ORDERS.put(`stl:${id}`, stl)
+  if (threemf) { await env.ORDERS.put(`3mf:${id}`, threemf); order.has_3mf = true }
   await env.ORDERS.put(`order:${id}`, JSON.stringify(order))
   return json({ url: session.url, id }, 200, h)
 }
@@ -139,15 +149,25 @@ async function handleWebhook(req, env) {
         id, user_id: m.user_id, email: s.customer_details?.email, name: m.name || 'Custom insert', mode: m.mode || '',
         grams: Number(m.grams) || 0, bbox: { x: bx, y: by, z: bz }, pieces: Number(m.pieces) || 1,
         print_cents: Number(m.print_cents) || null, total_cents: s.amount_total,
+        has_3mf: m.has_3mf === 'yes',
         stripe_session_id: s.id, created_at: new Date((s.created || Date.now() / 1000) * 1000).toISOString(),
       }
       const cur = await env.ORDERS.get(`order:${id}`, 'json')
       const base = { ...fromMeta, ...(cur || {}) }
+      const firstTime = !base.status || base.status === 'pending'
       const ship = s.collected_information?.shipping_details || s.shipping_details || null
       await env.ORDERS.put(`order:${id}`, JSON.stringify({
         ...base, status: !base.status || base.status === 'pending' ? 'paid' : base.status, paid_at: new Date().toISOString(),
         amount_paid_cents: s.amount_total, shipping: ship, customer_email: s.customer_details?.email || base.email,
       }))
+      // Phone push via ntfy (app subscribed to the private NTFY_TOPIC). No address or admin key in the message.
+      if (firstTime && env.NTFY_TOPIC) {
+        const b = base.bbox || {}
+        const msg = `${dollars(s.amount_total || 0)} paid. ${base.name}: ${b.x} x ${b.y} x ${b.z} mm, about ${base.grams} g, ${base.pieces} piece${base.pieces > 1 ? 's' : ''}.${s.livemode ? '' : ' (TEST)'}`
+        try {
+          await fetch(`https://ntfy.sh/${env.NTFY_TOPIC}`, { method: 'POST', body: msg, headers: { Title: 'New TraceToForge print order', Tags: 'printer', Priority: 'high' } })
+        } catch {}
+      }
     }
   }
   return new Response('ok')
@@ -158,11 +178,12 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': 
 async function handleAdmin(req, env, url) {
   if (!env.ADMIN_KEY || url.searchParams.get('key') !== env.ADMIN_KEY) return new Response('Not found', { status: 404 })
   const key = encodeURIComponent(env.ADMIN_KEY)
-  const m = url.pathname.match(/^\/admin\/stl\/([\w-]+)$/)
+  const m = url.pathname.match(/^\/admin\/(stl|3mf)\/([\w-]+)$/)
   if (m) {
-    const stl = await env.ORDERS.get(`stl:${m[1]}`, 'arrayBuffer')
-    if (!stl) return new Response('Not found', { status: 404 })
-    return new Response(stl, { headers: { 'Content-Type': 'application/octet-stream', 'Content-Disposition': `attachment; filename="order-${m[1].slice(0, 8)}.stl"` } })
+    const file = await env.ORDERS.get(`${m[1]}:${m[2]}`, 'arrayBuffer')
+    if (!file) return new Response('Not found', { status: 404 })
+    const type = m[1] === '3mf' ? 'application/vnd.ms-package.3dmanufacturing-3dmodel+xml' : 'application/octet-stream'
+    return new Response(file, { headers: { 'Content-Type': type, 'Content-Disposition': `attachment; filename="order-${m[2].slice(0, 8)}.${m[1]}"` } })
   }
   if (req.method === 'POST') {
     const f = await req.formData()
@@ -190,7 +211,7 @@ async function handleAdmin(req, env, url) {
     <td>${esc(o.name)}<br><small>${esc(o.mode)} · ${o.bbox.x} x ${o.bbox.y} x ${o.bbox.z} mm · ${o.grams} g · ${o.pieces} piece${o.pieces > 1 ? 's' : ''}</small></td>
     <td>${dollars(o.amount_paid_cents ?? o.total_cents)}</td>
     <td><pre>${addr(o.shipping)}</pre><small>${esc(o.customer_email || o.email)}</small></td>
-    <td><a href="/admin/stl/${o.id}?key=${key}">STL</a></td>
+    <td>${o.has_3mf ? `<a href="/admin/3mf/${o.id}?key=${key}">3MF</a> · ` : ''}<a href="/admin/stl/${o.id}?key=${key}">STL</a></td>
     <td><form method="post" action="/admin?key=${key}"><input type="hidden" name="id" value="${o.id}">
       <select name="status">${['paid', 'printing', 'shipped', 'cancelled'].map(s => `<option${s === o.status ? ' selected' : ''}>${s}</option>`).join('')}</select>
       <button>Save</button></form></td></tr>`).join('')

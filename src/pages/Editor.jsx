@@ -2476,8 +2476,13 @@ export default function Editor() {
     setTimeout(() => { // let the modal paint before the geometry work
       try {
         const scaledPts = scaleToolPoints(pts, tool0.realWidth ?? realWidth, tool0.realHeight ?? realHeight)
-        const stl = exportSTL(scaledPts, buildConfig())
+        const cfg = buildConfig()
+        const stl = exportSTL(scaledPts, cfg)
         setPrintOrder({ stl, analysis: analyzeSTL(stl), accepted: false })
+        // 3MF for the print shop, same file Export would give; attached to the order
+        export3MF(stl, scaledPts, cfg).then(b => b.arrayBuffer())
+          .then(buf => setPrintOrder(p => (p && p.stl === stl ? { ...p, threemf: buf } : p)))
+          .catch(() => {})
       } catch (err) {
         setPrintOrder({ error: err?.message || 'Could not build this design.' })
       }
@@ -2499,8 +2504,10 @@ export default function Editor() {
           'X-Project-Name': encodeURIComponent(projectName || 'Custom insert'),
           'X-Output-Mode': outputMode,
           'X-Terms-Accepted': 'yes',
+          // Body is the STL followed by the 3MF (when it finished building)
+          'X-Stl-Bytes': String(printOrder.stl.byteLength),
         },
-        body: printOrder.stl,
+        body: printOrder.threemf ? new Blob([printOrder.stl, printOrder.threemf]) : printOrder.stl,
       })
       const data = await r.json().catch(() => ({}))
       if (!r.ok || !data.url) throw new Error(data.error || `Order failed (${r.status})`)
