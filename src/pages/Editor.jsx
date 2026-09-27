@@ -145,8 +145,12 @@ export default function Editor() {
   const [notice, setNotice] = useState('')           // banner shown after returning from checkout
   const [printOrdersOn, setPrintOrdersOn] = useState(false) // button hidden until the worker has Stripe configured
   useEffect(() => {
-    fetch(`${PRINT_ORDERS_URL}/status`).then(r => r.json()).then(d => setPrintOrdersOn(!!d.enabled)).catch(() => {})
-  }, [])
+    // Signed-in token lets the worker show ordering to testers while Stripe is in test mode
+    let token = null
+    try { token = JSON.parse(localStorage.getItem('sb-pzmykycxmbzbrzkyotkc-auth-token'))?.access_token } catch {}
+    fetch(`${PRINT_ORDERS_URL}/status`, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined)
+      .then(r => r.json()).then(d => setPrintOrdersOn(!!d.enabled)).catch(() => {})
+  }, [user?.id])
   const [exportFormats, setExportFormats] = useState({ stl: false, svg: false, dxf: false, '3mf': true })
   const [imageSize, setImageSize] = useState({ w: 0, h: 0 })
   const [contours, setContours] = useState([])

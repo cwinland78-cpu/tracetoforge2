@@ -9,6 +9,8 @@ kv_namespaces = [
 
 [vars]
 SITE_URL = "https://tracetoforge.com"
+# While STRIPE_SECRET_KEY is a test key, only these signed-in emails can see or use ordering.
+TEST_USERS = "cwinland78@yahoo.com"
 SUPABASE_URL = "https://pzmykycxmbzbrzkyotkc.supabase.co"
 # Public anon key (already shipped in the site bundle); used only to verify the user's session token.
 SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6bXlreWN4bWJ6YnJ6a3lvdGtjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA1NjUxNjYsImV4cCI6MjA4NjE0MTE2Nn0.382YBaplfZJVl_ngKbGSpEPm1w3urlrxYAQFzRJW3z0"

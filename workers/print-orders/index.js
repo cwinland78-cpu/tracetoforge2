@@ -19,6 +19,10 @@ function cors(env, req) {
 }
 const json = (obj, status, headers) => new Response(JSON.stringify(obj), { status, headers: { 'Content-Type': 'application/json', ...headers } })
 
+// While the Stripe key is a test key, only testers can see or use ordering.
+const isTestMode = env => /^(sk|rk)_test_/.test(env.STRIPE_SECRET_KEY || '')
+const isTester = (env, user) => !!user?.email && (env.TEST_USERS || '').toLowerCase().split(',').map(s => s.trim()).includes(user.email.toLowerCase())
+
 async function supabaseUser(env, token) {
   if (!token) return null
   const r = await fetch(`${env.SUPABASE_URL}/auth/v1/user`, { headers: { apikey: env.SUPABASE_ANON_KEY, Authorization: `Bearer ${token}` } })
@@ -50,6 +54,7 @@ async function handleCheckout(req, env) {
   const token = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '')
   const user = await supabaseUser(env, token)
   if (!user?.id) return json({ error: 'Please sign in to order a print.' }, 401, h)
+  if (isTestMode(env) && !isTester(env, user)) return json({ error: 'Ordering is not switched on yet.' }, 503, h)
   if (req.headers.get('X-Terms-Accepted') !== 'yes') return json({ error: 'Please accept the fit terms first.' }, 400, h)
 
   const stl = await req.arrayBuffer()
@@ -89,6 +94,11 @@ async function handleCheckout(req, env) {
     'metadata[order_id]': id,
     'metadata[grams]': a.grams,
     'metadata[pieces]': a.pieces,
+    'metadata[user_id]': user.id,
+    'metadata[name]': name,
+    'metadata[mode]': mode,
+    'metadata[bbox]': `${a.bbox.x}x${a.bbox.y}x${a.bbox.z}`,
+    'metadata[print_cents]': a.printCents,
     'payment_intent_data[metadata][order_id]': id,
     success_url: `${env.SITE_URL}/editor/?print_order=paid&id=${id}`,
     cancel_url: `${env.SITE_URL}/editor/?print_order=cancelled`,
@@ -119,12 +129,24 @@ async function handleWebhook(req, env) {
   if (event.type === 'checkout.session.completed' || event.type === 'checkout.session.async_payment_succeeded') {
     const s = event.data.object
     const id = s.metadata?.order_id || s.client_reference_id
-    const cur = id && await env.ORDERS.get(`order:${id}`, 'json')
-    if (cur && s.payment_status === 'paid') {
+    if (id && s.payment_status === 'paid') {
+      // KV is eventually consistent: the order written at checkout may not be visible
+      // at this edge yet. Rebuild the record from session metadata so a paid order is
+      // never dropped, and keep anything the stored copy has on top.
+      const m = s.metadata || {}
+      const [bx, by, bz] = String(m.bbox || '0x0x0').split('x').map(Number)
+      const fromMeta = {
+        id, user_id: m.user_id, email: s.customer_details?.email, name: m.name || 'Custom insert', mode: m.mode || '',
+        grams: Number(m.grams) || 0, bbox: { x: bx, y: by, z: bz }, pieces: Number(m.pieces) || 1,
+        print_cents: Number(m.print_cents) || null, total_cents: s.amount_total,
+        stripe_session_id: s.id, created_at: new Date((s.created || Date.now() / 1000) * 1000).toISOString(),
+      }
+      const cur = await env.ORDERS.get(`order:${id}`, 'json')
+      const base = { ...fromMeta, ...(cur || {}) }
       const ship = s.collected_information?.shipping_details || s.shipping_details || null
       await env.ORDERS.put(`order:${id}`, JSON.stringify({
-        ...cur, status: cur.status === 'pending' ? 'paid' : cur.status, paid_at: new Date().toISOString(),
-        amount_paid_cents: s.amount_total, shipping: ship, customer_email: s.customer_details?.email || cur.email,
+        ...base, status: !base.status || base.status === 'pending' ? 'paid' : base.status, paid_at: new Date().toISOString(),
+        amount_paid_cents: s.amount_total, shipping: ship, customer_email: s.customer_details?.email || base.email,
       }))
     }
   }
@@ -188,7 +210,16 @@ export default {
       if (url.pathname === '/stripe-webhook' && req.method === 'POST') return await handleWebhook(req, env)
       if (url.pathname.startsWith('/admin')) return await handleAdmin(req, env, url)
       if (url.pathname === '/pricing') return json({ ...PRINT_PRICING }, 200, cors(env, req))
-      if (url.pathname === '/status') return json({ enabled: !!(env.STRIPE_SECRET_KEY && env.STRIPE_WEBHOOK_SECRET) }, 200, { ...cors(env, req), 'Cache-Control': 'no-store' })
+      if (url.pathname === '/status') {
+        const configured = !!(env.STRIPE_SECRET_KEY && env.STRIPE_WEBHOOK_SECRET)
+        const test = isTestMode(env)
+        let enabled = configured && !test
+        if (configured && test) {
+          const token = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '')
+          enabled = isTester(env, await supabaseUser(env, token))
+        }
+        return json({ enabled, test }, 200, { ...cors(env, req), 'Cache-Control': 'no-store' })
+      }
       return new Response('Not found', { status: 404 })
     } catch (e) {
       return json({ error: e.message || 'Something went wrong' }, 500, cors(env, req))
