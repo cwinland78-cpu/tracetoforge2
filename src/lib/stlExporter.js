@@ -189,6 +189,77 @@ function createObjectExtrusion(points, config) {
  * Chamfer/fillet on BOTTOM edge only: the tray is full-size at the top,
  * with the bottom face inset by edgeSize all around the perimeter.
  */
+// ─── Stacking rim for custom trays ───
+export const RIM_CLEARANCE = 0.4  // mm, horizontal gap between rim and the bevel of the tray above
+export const RIM_TOP_WIDTH = 0.8  // mm, flat on top of the rim (about two extrusion lines)
+
+/**
+ * Rim that mates with the bottom edge profile of a tray with the same settings.
+ * Uses the Edge Profile (chamfer or fillet) and its size; a straight profile
+ * falls back to a chamfer of the same size. Returns null when the size is too
+ * small to leave a usable rim.
+ */
+export function stackingRimSpec({ edgeProfile = 'straight', edgeSize = 2, trayWidth = 150, trayHeight = 100 }) {
+  const es = Math.min(edgeSize, trayWidth * 0.25, trayHeight * 0.25)
+  const profile = edgeProfile === 'fillet' ? 'fillet' : 'chamfer'
+  const g = RIM_CLEARANCE, top = RIM_TOP_WIDTH
+  if (es <= g + top) return null
+  // The fillet bottom is a quarter circle of radius es around the tray's outer
+  // bottom corner, so the rim is the same circle shrunk by the clearance (an
+  // even gap all the way round). The chamfer rim is the 45-degree line moved in.
+  const rf = es - g
+  const height = profile === 'fillet' ? Math.sqrt(Math.max(0, rf * rf - top * top)) : es - g - top
+  if (height < 0.6) return null
+  // Width of the rim (from the outer edge inward) at height h above the tray top
+  const widthAt = h => (profile === 'fillet' ? Math.sqrt(Math.max(0, rf * rf - h * h)) : es - h - g)
+  return { es, profile, height, baseWidth: widthAt(0), widthAt }
+}
+
+function buildRimGeometry(outerShape, trayWidth, trayHeight, rim, z0) {
+  const hw = trayWidth / 2, hh = trayHeight / 2
+  let pts = outerShape.getPoints(256)
+  if (pts.length > 1 && pts[0].distanceTo(pts[pts.length - 1]) < 1e-6) pts = pts.slice(0, -1)
+  // Cross-section loop: outer bottom, outer top, then the inner face from top down.
+  // Scaled per axis exactly like the bottom edge skirt so the two profiles match.
+  const loop = [[1, 1, z0], [1, 1, z0 + rim.height]]
+  const steps = rim.profile === 'fillet' ? 10 : 1
+  for (let s = steps; s >= 0; s--) {
+    const h = rim.height * (s / steps)
+    const w = rim.widthAt(h)
+    loop.push([1 - w / hw, 1 - w / hh, z0 + h])
+  }
+  const verts = []
+  const n = pts.length
+  for (let k = 0; k < loop.length; k++) {
+    const [ax, ay, az] = loop[k]
+    const [bx, by, bz] = loop[(k + 1) % loop.length]
+    for (let i = 0; i < n; i++) {
+      const j = (i + 1) % n
+      const p = pts[i], q = pts[j]
+      const a0 = [p.x * ax, p.y * ay, az], a1 = [q.x * ax, q.y * ay, az]
+      const b0 = [p.x * bx, p.y * by, bz], b1 = [q.x * bx, q.y * by, bz]
+      verts.push(...a0, ...a1, ...b1, ...a0, ...b1, ...b0)
+    }
+  }
+  // Orient outward: flip every triangle if the signed volume is negative
+  let vol = 0
+  for (let t = 0; t < verts.length; t += 9) {
+    const [x1, y1, z1, x2, y2, z2, x3, y3, z3] = verts.slice(t, t + 9)
+    vol += x1 * (y2 * z3 - z2 * y3) - y1 * (x2 * z3 - z2 * x3) + z1 * (x2 * y3 - y2 * x3)
+  }
+  if (vol < 0) {
+    for (let t = 0; t < verts.length; t += 9) {
+      for (let c = 0; c < 3; c++) {
+        const tmp = verts[t + 3 + c]; verts[t + 3 + c] = verts[t + 6 + c]; verts[t + 6 + c] = tmp
+      }
+    }
+  }
+  const geo = new THREE.BufferGeometry()
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3))
+  geo.computeVertexNormals()
+  return geo
+}
+
 function createCustomInsert(points, config) {
   const {
     trayWidth = 150,
@@ -764,6 +835,68 @@ function createCustomInsert(points, config) {
     const topGeo = new THREE.ExtrudeGeometry(topShape, { depth: cavityZ, bevelEnabled: false })
     topGeo.translate(0, 0, actualBaseDepth)
     group.add(applyBevel(topGeo))
+  }
+
+  // ─── Stacking rim (custom trays) ───
+  // Raised lip on the top perimeter whose inner face is the bottom edge
+  // profile (chamfer or fillet) of a tray with the same settings, pushed out by
+  // a clearance. The tray above drops its beveled bottom into it and locks.
+  // It hides inside that bevel, so a stack is exactly the sum of tray depths.
+  // Separate closed solid on the top face, same as the Gridfinity stacking lip.
+  if (config.stackingRim) {
+    const rim = stackingRimSpec({ edgeProfile, edgeSize, trayWidth, trayHeight })
+    if (rim) {
+      const rimGeo = buildRimGeometry(outerShape, trayWidth, trayHeight, rim, topSurface)
+      // Cut the rim away wherever a cavity (plus its top bevel) reaches under it
+      const hw = trayWidth / 2, hh = trayHeight / 2
+      const cutters = bevelItems
+        .filter(it => it.pts && it.pts.length >= 3)
+        .map(it => (it.bevel > 0.1 ? offsetPolygon(it.pts, it.bevel) : it.pts))
+      const sc = 1000
+      const toPath = (arr, fx = 1, fy = 1) => arr.map(p => ({ X: Math.round(p.x * fx * sc), Y: Math.round(p.y * fy * sc) }))
+      const outlinePts = outerShape.getPoints(256)
+      const inSx = 1 - rim.baseWidth / hw, inSy = 1 - rim.baseWidth / hh
+      let hitsRim = false
+      try {
+        const cl = new ClipperLib.Clipper()
+        cl.AddPath(toPath(outlinePts), ClipperLib.PolyType.ptSubject, true)
+        cl.AddPath(toPath(outlinePts, inSx, inSy), ClipperLib.PolyType.ptClip, true)
+        const band = new ClipperLib.Paths()
+        cl.Execute(ClipperLib.ClipType.ctXor, band, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero)
+        const cl2 = new ClipperLib.Clipper()
+        cl2.AddPaths(band, ClipperLib.PolyType.ptSubject, true)
+        cutters.forEach(c => cl2.AddPath(toPath(c), ClipperLib.PolyType.ptClip, true))
+        const hit = new ClipperLib.Paths()
+        cl2.Execute(ClipperLib.ClipType.ctIntersection, hit, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero)
+        hitsRim = hit.some(p => Math.abs(ClipperLib.Clipper.Area(p)) > 0.01 * sc * sc)
+      } catch (e) { hitsRim = cutters.length > 0 }
+
+      let rimMesh = new THREE.Mesh(rimGeo, trayMat)
+      if (hitsRim) {
+        try {
+          const ev = new Evaluator()
+          ev.attributes = ['position', 'normal']
+          let brush = new Brush(rimGeo)
+          brush.updateMatrixWorld()
+          cutters.forEach(c => {
+            const s = new THREE.Shape()
+            c.forEach((p, i) => (i === 0 ? s.moveTo(p.x, p.y) : s.lineTo(p.x, p.y)))
+            s.closePath()
+            const g = new THREE.ExtrudeGeometry(s, { depth: rim.height + 2, bevelEnabled: false })
+            g.translate(0, 0, topSurface - 1)
+            g.deleteAttribute('uv')
+            const cut = new Brush(g)
+            cut.updateMatrixWorld()
+            brush = ev.evaluate(brush, cut, SUBTRACTION)
+          })
+          brush.geometry.computeVertexNormals()
+          rimMesh = new THREE.Mesh(brush.geometry, trayMat)
+        } catch (e) {
+          console.error('Rim cavity cut failed:', e)
+        }
+      }
+      group.add(rimMesh)
+    }
   }
 
   const cavityGeo = new THREE.ExtrudeGeometry(toolShape, { depth: cavityZ + 0.5, bevelEnabled: false })

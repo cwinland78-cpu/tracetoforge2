@@ -14,7 +14,7 @@ import packoutSlim from '../data/packout_slim_profile.json'
 import packoutShockwave from '../data/packout_shockwave_profile.json'
 import dewaltTs2Small from '../data/dewalt_ts2_small_profile.json'
 import { useAuth } from '../components/AuthContext'
-import { exportSTL, checkGridfinityFit, snapGridUnits } from '../lib/stlExporter'
+import { exportSTL, checkGridfinityFit, snapGridUnits, stackingRimSpec } from '../lib/stlExporter'
 import { exportSVG, exportDXF, export3MF, bundleAsZip } from '../lib/exportFormats'
 import { hasCredits, useCredit, getCredits, initPurchases } from '../lib/purchases'
 import { queryTable } from '../lib/supabase'
@@ -100,6 +100,14 @@ function blankToolBackdrop(contours) {
 // Amazon affiliate links for the boxes that have editor templates (tag tracetoforge-20).
 // Shown under the template picker when that template is active.
 const AMAZON_TAG = 'tracetoforge-20'
+// Full inside height of each template box, used to split it into stacked levels
+const TEMPLATE_DEPTH = {
+  'packout-compact': 82,
+  'packout-slim': Math.round(packoutSlim.height),
+  'packout-shockwave': Math.round(packoutShockwave.height),
+  'dewalt-ts2-small': Math.round(dewaltTs2Small.height),
+}
+
 const BOX_AFFILIATE = {
   'packout-compact': { name: 'Milwaukee PACKOUT Compact Organizer 48-22-8435', url: `https://www.amazon.com/dp/B076NP9DCT?tag=${AMAZON_TAG}` },
   'packout-slim': { name: 'Milwaukee PACKOUT Low-Profile Organizer 48-22-8436', url: `https://www.amazon.com/dp/B07J2LH6X1?tag=${AMAZON_TAG}` },
@@ -196,6 +204,9 @@ export default function Editor() {
   const [floorThickness, setFloorThickness] = useState(2)
   const [edgeProfile, setEdgeProfile] = useState('straight')
   const [edgeSize, setEdgeSize] = useState(2)
+  const [stackingRim, setStackingRim] = useState(false) // custom trays: raised rim the tray above locks into
+  const [stackLevels, setStackLevels] = useState(1)     // template split into 1-3 stacked trays
+  const [stackPos, setStackPos] = useState('bottom')    // which level this tray is: bottom / middle / top
   const [cavityBevel, setCavityBevel] = useState(0)
   const [fingerNotches, setFingerNotches] = useState([]) // array of { shape, radius, w, h, x, y }
   const [activeNotchIdx, setActiveNotchIdx] = useState(0)
@@ -405,6 +416,9 @@ export default function Editor() {
       if (cfg.step != null) setStep(cfg.step)
       if (cfg.edgeProfile) setEdgeProfile(cfg.edgeProfile)
       if (cfg.edgeSize != null) setEdgeSize(cfg.edgeSize)
+      setStackingRim(!!cfg.stackingRim)
+      setStackLevels(cfg.stackLevels || 1)
+      setStackPos(cfg.stackPos || 'bottom')
       if (cfg.outerShapeType) setOuterShapeType(cfg.outerShapeType)
       if (cfg.outerShapePoints) setOuterShapePoints(cfg.outerShapePoints)
       if (cfg.activeTemplate) setActiveTemplate(cfg.activeTemplate)
@@ -434,7 +448,7 @@ export default function Editor() {
       cavityBevel, toolRotation, toolOffsetX, toolOffsetY,
       fingerNotches, activeToolIdx, notchBevel,
       tools: savedTools, step: step, trayWidth, trayHeight, trayDepth, depth, objectEdgeRadius,
-      edgeProfile, edgeSize, outerShapeType, outerShapePoints, activeTemplate,
+      edgeProfile, edgeSize, stackingRim, stackLevels, stackPos, outerShapeType, outerShapePoints, activeTemplate,
       gridX: snapGridUnits(gridX), gridY: snapGridUnits(gridY),
       gridHeight, stackingLip, threshold, simplification, sensitivity, minContourPct, holeMinPct,
       image: image || null,
@@ -2421,7 +2435,7 @@ export default function Editor() {
       if (outerShapeType === 'custom' && outerShapePoints && outerShapePoints.length >= 3) {
         outerPts = outerShapePoints
       }
-      return { ...base, trayWidth, trayHeight, trayDepth, wallThickness, cornerRadius, floorThickness, edgeProfile, edgeSize, cavityBevel: t0.cavityBevel ?? 0, notchBevel, fingerNotches, outerShapeType, outerShapePoints: outerPts, additionalTools, activeToolIdx, activeNotchIdx }
+      return { ...base, trayWidth, trayHeight, trayDepth, wallThickness, cornerRadius, floorThickness, edgeProfile, edgeSize, stackingRim, cavityBevel: t0.cavityBevel ?? 0, notchBevel, fingerNotches, outerShapeType, outerShapePoints: outerPts, additionalTools, activeToolIdx, activeNotchIdx }
     }
     if (outputMode === 'gridfinity') {
       return { ...base, gridX: snapGridUnits(gridX), gridY: snapGridUnits(gridY), gridHeight, stackingLip, cavityBevel: t0.cavityBevel ?? 0, notchBevel, fingerNotches, additionalTools, activeToolIdx, activeNotchIdx }
@@ -2980,6 +2994,8 @@ export default function Editor() {
                             <button
                               onClick={() => {
                                 setActiveTemplate(null)
+                                setStackLevels(1)
+                                setStackingRim(false)
                                 setOuterShapeType('rectangle')
                                 setOuterShapePoints([])
                                 setTrayWidth(150)
@@ -2997,6 +3013,8 @@ export default function Editor() {
                           onClick={() => {
                             const pts = packoutCompact.inner.map(([x, y]) => ({ x, y }))
                             setActiveTemplate('packout-compact')
+                            setStackLevels(1)
+                            setStackingRim(false)
                             setOuterShapeType('custom')
                             setOuterShapePoints(pts)
                             setTrayWidth(211)
@@ -3031,6 +3049,8 @@ export default function Editor() {
                           onClick={() => {
                             const pts = packoutSlim.inner.map(([x, y]) => ({ x, y }))
                             setActiveTemplate('packout-slim')
+                            setStackLevels(1)
+                            setStackingRim(false)
                             setOuterShapeType('custom')
                             setOuterShapePoints(pts)
                             setTrayWidth(Math.round(packoutSlim.cavity_width))
@@ -3063,6 +3083,8 @@ export default function Editor() {
                           onClick={() => {
                             const pts = packoutShockwave.inner.map(([x, y]) => ({ x, y }))
                             setActiveTemplate('packout-shockwave')
+                            setStackLevels(1)
+                            setStackingRim(false)
                             setOuterShapeType('custom')
                             setOuterShapePoints(pts)
                             setTrayWidth(Math.round(packoutShockwave.cavity_width))
@@ -3095,6 +3117,8 @@ export default function Editor() {
                           onClick={() => {
                             const pts = dewaltTs2Small.inner.map(([x, y]) => ({ x, y }))
                             setActiveTemplate('dewalt-ts2-small')
+                            setStackLevels(1)
+                            setStackingRim(false)
                             setOuterShapeType('custom')
                             setOuterShapePoints(pts)
                             setTrayWidth(Math.round(dewaltTs2Small.cavity_width))
@@ -3136,6 +3160,60 @@ export default function Editor() {
                         {BOX_AFFILIATE[activeTemplate] && (
                           <p className="text-[9px] text-[#555568] mt-1">As an Amazon Associate I earn from qualifying purchases.</p>
                         )}
+                        {TEMPLATE_DEPTH[activeTemplate] && (() => {
+                          const full = TEMPLATE_DEPTH[activeTemplate]
+                          const levelDepth = n => Math.floor((full / n) * 10) / 10
+                          const applyLevels = (n, pos) => {
+                            setStackLevels(n)
+                            setStackPos(pos)
+                            if (n === 1) {
+                              setTrayDepth(full)
+                              setStackingRim(false)
+                              return
+                            }
+                            // Same edge settings on every level so each bottom mates with the rim below
+                            setTrayDepth(levelDepth(n))
+                            setEdgeProfile('chamfer')
+                            setEdgeSize(4)
+                            setStackingRim(pos !== 'top')
+                          }
+                          const positions = stackLevels === 3 ? ['bottom', 'middle', 'top'] : ['bottom', 'top']
+                          const each = levelDepth(stackLevels)
+                          return (
+                            <div className="mt-3 p-2.5 rounded-lg bg-[#16161D] border border-[#2A2A35]">
+                              <div className="flex items-center justify-between">
+                                <span className="text-[11px] font-semibold text-[#8888A0] uppercase tracking-wider flex items-center gap-1">
+                                  Stack Levels
+                                  <Tooltip text="Split the box height into 2 or 3 trays that stack and lock together. Design and export each level as its own tray. Lower levels get a rim on top, every level gets a chamfered bottom that drops into the rim below, and the top tray doubles as a lid." position="above" />
+                                </span>
+                                <div className="grid grid-cols-3 gap-1 bg-[#131318] rounded-lg p-0.5">
+                                  {[1, 2, 3].map(n => (
+                                    <button key={n} onClick={() => applyLevels(n, 'bottom')}
+                                      className={`px-2.5 py-1 text-xs font-medium rounded-md transition-all ${stackLevels === n ? 'bg-[#2A2A35] text-white' : 'text-[#8888A0] hover:text-white'}`}>
+                                      {n}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                              {stackLevels > 1 && (
+                                <>
+                                  <div className="text-[10px] text-[#8888A0] mt-2 mb-1">This tray is the</div>
+                                  <div className={`grid ${stackLevels === 3 ? 'grid-cols-3' : 'grid-cols-2'} gap-1 bg-[#131318] rounded-lg p-0.5`}>
+                                    {positions.map(pos => (
+                                      <button key={pos} onClick={() => applyLevels(stackLevels, pos)}
+                                        className={`py-1 text-xs font-medium rounded-md transition-all capitalize ${stackPos === pos ? 'bg-[#2A2A35] text-white' : 'text-[#8888A0] hover:text-white'}`}>
+                                        {pos}
+                                      </button>
+                                    ))}
+                                  </div>
+                                  <p className="text-[10px] text-[#666680] mt-1.5">
+                                    {stackLevels} trays at {each} mm = {Math.round(each * stackLevels * 10) / 10} mm stacked (box is {full} mm). Keep the edge profile the same on every level.
+                                  </p>
+                                </>
+                              )}
+                            </div>
+                          )
+                        })()}
                         <p className="text-[10px] text-[#555568] mt-1.5 italic">More templates coming soon: ToughSystem drawers, Packout Toolbox, Large Toolbox</p>
                       </div>
                       <ParamRow label="Width" tooltip="Total tray width (left to right) in mm.">
@@ -3171,11 +3249,46 @@ export default function Editor() {
                           </button>
                         ))}
                       </div>
-                      {edgeProfile !== 'straight' && (
-                        <ParamRow label={edgeProfile === 'chamfer' ? 'Chamfer' : 'Fillet R'} tooltip={edgeProfile === 'chamfer' ? 'Size of 45-degree cut on bottom edges.' : 'Radius of rounded bottom edges.'} tooltipPos="above">
+                      {(edgeProfile !== 'straight' || stackingRim) && (
+                        <ParamRow label={edgeProfile === 'fillet' ? 'Fillet R' : 'Chamfer'} tooltip={edgeProfile === 'fillet' ? 'Radius of rounded bottom edges.' : 'Size of 45-degree cut on bottom edges.'} tooltipPos="above">
                           <input type="number" value={edgeSize} onChange={e => setEdgeSize(+e.target.value)} className="w-[4.5rem] text-right" min="0.5" step="0.5" max="10" />
                           <span className="text-xs text-[#8888A0] w-7">mm</span>
                         </ParamRow>
+                      )}
+                      {/* Stacking rim toggle */}
+                      <div className="flex items-center justify-between gap-3 px-2 py-1.5 mt-1 rounded-md hover:bg-[#1C1C24]/50 transition-colors">
+                        <div className="flex items-center gap-1.5">
+                          <label htmlFor="stackingRimChk" className="text-xs text-[#BBBBCC] cursor-pointer select-none">
+                            Stacking rim
+                          </label>
+                          <Tooltip text="Adds a raised rim around the top edge. A tray with the same Edge Profile and size stacks on top: its chamfered or rounded bottom drops into the rim and locks in place. Prints without supports." position="above" />
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            id="stackingRimChk"
+                            type="checkbox"
+                            className="sr-only peer"
+                            checked={stackingRim}
+                            onChange={e => setStackingRim(e.target.checked)}
+                          />
+                          <div className="w-9 h-5 bg-[#2A2A35] rounded-full peer peer-checked:bg-brand transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-transform peer-checked:after:translate-x-4" />
+                        </label>
+                      </div>
+                      {stackingRim && (() => {
+                        const rim = stackingRimSpec({ edgeProfile, edgeSize, trayWidth, trayHeight })
+                        if (!rim) return <p className="text-[10px] text-amber-400 px-2">Set the {edgeProfile === 'fillet' ? 'fillet' : 'chamfer'} to at least 2 mm to get a rim. 4 mm locks best.</p>
+                        return (
+                          <p className="text-[10px] text-[#666680] px-2">
+                            Adds a {rim.height.toFixed(1)} mm rim on top. It tucks into the bottom edge of the tray above, so stacked trays add up to exactly their depths.
+                            {edgeProfile === 'straight' && ` The tray above needs a ${edgeSize} mm chamfer.`}
+                          </p>
+                        )
+                      })()}
+                      {edgeProfile === 'fillet' && (stackingRim || stackLevels > 1) && (
+                        <p className="text-[10px] text-amber-400/80 px-2 mt-1">The fillet curves out almost flat at its top edge, a small overhang that can sag without supports. Chamfer prints clean.</p>
+                      )}
+                      {(stackingRim || stackLevels > 1) && Math.max(toolDepth || 0, ...tools.map(t => t.toolDepth || 0)) >= trayDepth && (
+                        <p className="text-[10px] text-amber-400/80 px-2 mt-1">A pocket goes all the way through this tray, so it will be open to the tray below.</p>
                       )}
 
 
