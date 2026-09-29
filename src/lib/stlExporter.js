@@ -189,6 +189,47 @@ function createObjectExtrusion(points, config) {
  * Chamfer/fillet on BOTTOM edge only: the tray is full-size at the top,
  * with the bottom face inset by edgeSize all around the perimeter.
  */
+// ─── Cut holes out of a tray layer robustly ───
+// A layer used to be the outline with every cavity pushed in as a hole. That
+// breaks when a hole crosses the outline (a notch dragged over the wall) or
+// holes overlap in ways the union missed: the triangulator gives up and the
+// cavity silently disappears from the export (Rich, Sep 2026: a notch that
+// cut through the tray vanished). This runs outline minus union(holes) in
+// Clipper and returns clean shapes, so a notch past the wall opens the wall
+// the way the Gridfinity CSG path does. Same outline vertices as a plain
+// extrude (curveSegments 12), so it still lines up with the body and skirt.
+function solidifyShape(shape) {
+  if (!shape.holes || shape.holes.length === 0) return shape
+  try {
+    const { shape: outline, holes } = shape.extractPoints(12)
+    const sc = 1000
+    const toPath = pts => pts.map(p => ({ X: Math.round(p.x * sc), Y: Math.round(p.y * sc) }))
+    const c = new ClipperLib.Clipper()
+    c.AddPath(toPath(outline), ClipperLib.PolyType.ptSubject, true)
+    holes.forEach(h => { if (h.length >= 3) c.AddPath(toPath(h), ClipperLib.PolyType.ptClip, true) })
+    const tree = new ClipperLib.PolyTree()
+    c.Execute(ClipperLib.ClipType.ctDifference, tree, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero)
+    const shapes = []
+    const toVecs = contour => contour.map(p => new THREE.Vector2(p.X / sc, p.Y / sc))
+    const walk = node => {
+      node.Childs().forEach(outer => {
+        if (outer.Contour().length < 3) return
+        const sh = new THREE.Shape(toVecs(outer.Contour()))
+        outer.Childs().forEach(hole => {
+          if (hole.Contour().length >= 3) sh.holes.push(new THREE.Path(toVecs(hole.Contour())))
+          walk(hole) // islands inside a hole are outers again
+        })
+        shapes.push(sh)
+      })
+    }
+    walk(tree)
+    return shapes.length ? shapes : shape
+  } catch (e) {
+    console.error('solidifyShape failed, using raw holes:', e)
+    return shape
+  }
+}
+
 // ─── Stacking rim for custom trays ───
 export const RIM_CLEARANCE = 0.4  // mm, horizontal gap between rim and the bevel of the tray above
 export const RIM_TOP_WIDTH = 0.8  // mm, flat on top of the rim (about two extrusion lines)
@@ -347,8 +388,11 @@ function createCustomInsert(points, config) {
 
   // ─── Finger notches ───
   const { fingerNotches = [] } = config
+  // Each notch has its own bevel; older projects only have the tray-wide notchBevel
+  const notchBevelOf = fn => Math.max(0, fn.bevel ?? config.notchBevel ?? 0)
   const allNotchPts = []          // ALL notch point sets (for visualization)
   const defaultNotchPts = []      // default-depth notches (same as cavity depth)
+  const defaultNotchBevels = []   // bevel for each default-depth notch, same order
   const indepNotches = []         // independent-depth notches
   fingerNotches.forEach(fn => {
     let pts = []
@@ -374,9 +418,10 @@ function createCustomInsert(points, config) {
     const nd = clampDepth(fn.depth || 0)
     const isIndep = nd > 0 && Math.abs(nd - cavityZ) > 0.01
     if (isIndep) {
-      indepNotches.push({ pts, depth: nd })
+      indepNotches.push({ pts, depth: nd, bevel: notchBevelOf(fn) })
     } else {
       defaultNotchPts.push(pts)
+      defaultNotchBevels.push(notchBevelOf(fn))
     }
   })
 
@@ -587,7 +632,7 @@ function createCustomInsert(points, config) {
   const { cavityBevel = 0, notchBevel: nb = 0 } = config
   const cb = Math.min(cavityBevel, cavityZ * 0.3, 5) // clamp
   const nbClamped = Math.min(nb, cavityZ * 0.3, 5)
-  const anyBevel = cb > 0.1 || nbClamped > 0.1 || extraToolViz.some(ev => (ev.cavityBevel || 0) > 0.1)
+  const anyBevel = cb > 0.1 || nbClamped > 0.1 || fingerNotches.some(fn => notchBevelOf(fn) > 0.1) || extraToolViz.some(ev => (ev.cavityBevel || 0) > 0.1)
   const topSurface = actualBaseDepth + cavityZ
 
   // Split independent notches by relation to cavity depth
@@ -607,8 +652,8 @@ function createCustomInsert(points, config) {
   const bevelItems = []
   const clampBevel = (v, depth) => Math.min(v || 0, depth * 0.3, 5)
   bevelItems.push({ pts: holePts, bevel: cb })
-  defaultNotchPts.forEach(pts => bevelItems.push({ pts, bevel: nbClamped }))
-  indepNotches.forEach(n => bevelItems.push({ pts: n.pts, bevel: clampBevel(nb, n.depth) }))
+  defaultNotchPts.forEach((pts, i) => bevelItems.push({ pts, bevel: clampBevel(defaultNotchBevels[i], cavityZ) }))
+  indepNotches.forEach(n => bevelItems.push({ pts: n.pts, bevel: clampBevel(n.bevel, n.depth) }))
   extraToolHolePts.forEach((et, i) => bevelItems.push({ pts: et.pts, bevel: clampBevel(extraToolViz[i]?.cavityBevel, et.depth) }))
   const anyItemBevel = bevelItems.some(it => it.bevel > 0.1)
 
@@ -677,7 +722,10 @@ function createCustomInsert(points, config) {
     })
     insetShape.closePath()
   }
-  if ((deeperIndep.length > 0 || deeperExtraTools.length > 0) && actualBaseDepth > 0.01 && (!hasBevel || bevelLayered)) {
+  // When the floor is thinner than the edge chamfer there is no skirt (the
+  // base is built straight, same as without deeper cuts); this used to skip
+  // the base entirely and leave the whole tray with no floor.
+  if ((deeperIndep.length > 0 || deeperExtraTools.length > 0) && actualBaseDepth > 0.01) {
     const baseCuts = [
       ...deeperIndep.map(n => {
         const extraDepth = Math.min(n.depth - cavityZ, actualBaseDepth)
@@ -703,7 +751,7 @@ function createCustomInsert(points, config) {
         }
       })
       const baseOv = (bi < uniqueBaseBreaks.length - 2) ? 0.01 : 0
-      const baseLayerGeo = new THREE.ExtrudeGeometry(baseLayerShape, { depth: layH + baseOv, bevelEnabled: false })
+      const baseLayerGeo = new THREE.ExtrudeGeometry(solidifyShape(baseLayerShape), { depth: layH + baseOv, bevelEnabled: false })
       baseLayerGeo.translate(0, 0, layBot)
       group.add(new THREE.Mesh(baseLayerGeo, trayMat))
     }
@@ -779,7 +827,7 @@ function createCustomInsert(points, config) {
       }
 
       const ov = 0.01
-      const layerGeo = new THREE.ExtrudeGeometry(layerShape, { depth: layerHeight + (isTopLayer ? 0 : ov), bevelEnabled: false })
+      const layerGeo = new THREE.ExtrudeGeometry(solidifyShape(layerShape), { depth: layerHeight + (isTopLayer ? 0 : ov), bevelEnabled: false })
       layerGeo.translate(0, 0, actualBaseDepth + layerBottom)
 
       if (isTopLayer) {
@@ -832,7 +880,7 @@ function createCustomInsert(points, config) {
         topShape.holes.push(hp)
       })
     }
-    const topGeo = new THREE.ExtrudeGeometry(topShape, { depth: cavityZ, bevelEnabled: false })
+    const topGeo = new THREE.ExtrudeGeometry(solidifyShape(topShape), { depth: cavityZ, bevelEnabled: false })
     topGeo.translate(0, 0, actualBaseDepth)
     group.add(applyBevel(topGeo))
   }
@@ -1020,6 +1068,7 @@ function createGridfinityInsert(points, config) {
 
   // ─── Finger notches for Gridfinity ───
   const { fingerNotches: gfNotches = [] } = config
+  const notchBevelOf = fn => Math.max(0, fn.bevel ?? config.notchBevel ?? 0) // per notch, falls back to the old tray-wide value
 
   function buildNotchPts(fn) {
     let pts = []
@@ -1048,7 +1097,7 @@ function createGridfinityInsert(points, config) {
   gfNotches.forEach((fn, fnIdx) => {
     const pts = buildNotchPts(fn)
     if (pts.length < 3) return
-    allNotchData.push({ pts, depth: fn.depth || 0, origIdx: fnIdx })
+    allNotchData.push({ pts, depth: fn.depth || 0, bevel: notchBevelOf(fn), origIdx: fnIdx })
   })
 
   const trayMat = new THREE.MeshPhongMaterial({
@@ -1195,11 +1244,10 @@ function createGridfinityInsert(points, config) {
   })
 
   // Finger notches (each is its own cavity item)
-  const notchBev = config.notchBevel || 0
   allNotchData.forEach(nd => {
     // depth=0 means use the primary tool's cavity depth
     const notchDepth = nd.depth > 0 ? Math.min(nd.depth, maxCavity) : cavityZ
-    allCavityItems.push({ pts: nd.pts, depth: notchDepth, bevel: notchBev, label: `notch${nd.origIdx}` })
+    allCavityItems.push({ pts: nd.pts, depth: notchDepth, bevel: nd.bevel, label: `notch${nd.origIdx}` })
   })
 
   // ─── Floor ───

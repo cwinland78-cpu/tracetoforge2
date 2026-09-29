@@ -3362,16 +3362,14 @@ export default function Editor() {
                             <input type="number" value={n.depth || 0} onChange={e => updateNotch(ni, 'depth', Math.max(0, +e.target.value))} className="w-[4.5rem] text-right" min="0" step="1" />
                             <span className="text-xs text-[#8888A0] w-7">mm</span>
                           </ParamRow>
+                          <ParamRow label="Bevel" tooltip="45-degree chamfer around the top edge of this notch. Each notch has its own. 0 = no bevel.">
+                            <input type="number" value={n.bevel ?? notchBevel} onChange={e => updateNotch(ni, 'bevel', Math.max(0, +e.target.value))} className="w-[4.5rem] text-right" min="0" step="0.5" max="5" />
+                            <span className="text-xs text-[#8888A0] w-7">mm</span>
+                          </ParamRow>
                           <button onClick={() => removeNotch(ni)} className="w-full text-xs text-red-400 hover:text-red-300 py-1 transition-colors">Remove Notch {ni + 1}</button>
                         </>
                         )
                       })()}
-                      {fingerNotches.length > 0 && (
-                        <ParamRow label="Notch Bevel" tooltip="Bevel around the top edge of all finger notches.">
-                          <input type="number" value={notchBevel} onChange={e => setNotchBevel(Math.max(0, +e.target.value))} className="w-[4.5rem] text-right" min="0" step="0.5" />
-                          <span className="text-[11px] text-[#666] ml-1">mm</span>
-                        </ParamRow>
-                      )}
 
                       {/* Outer Shape */}
                       <div className="border-t border-[#2A2A35]/50 pt-3 mt-1">
@@ -3548,16 +3546,14 @@ export default function Editor() {
                             <input type="number" value={n.depth || 0} onChange={e => updateNotch(ni, 'depth', Math.max(0, +e.target.value))} className="w-[4.5rem] text-right" min="0" step="1" />
                             <span className="text-xs text-[#8888A0] w-7">mm</span>
                           </ParamRow>
+                          <ParamRow label="Bevel" tooltip="45-degree chamfer around the top edge of this notch. Each notch has its own. 0 = no bevel.">
+                            <input type="number" value={n.bevel ?? notchBevel} onChange={e => updateNotch(ni, 'bevel', Math.max(0, +e.target.value))} className="w-[4.5rem] text-right" min="0" step="0.5" max="5" />
+                            <span className="text-xs text-[#8888A0] w-7">mm</span>
+                          </ParamRow>
                           <button onClick={() => removeNotch(ni)} className="w-full text-xs text-red-400 hover:text-red-300 py-1 transition-colors">Remove Notch {ni + 1}</button>
                         </>
                         )
                       })()}
-                      {fingerNotches.length > 0 && (
-                        <ParamRow label="Notch Bevel" tooltip="Bevel around the top edge of all finger notches.">
-                          <input type="number" value={notchBevel} onChange={e => setNotchBevel(Math.max(0, +e.target.value))} className="w-[4.5rem] text-right" min="0" step="0.5" />
-                          <span className="text-[11px] text-[#666] ml-1">mm</span>
-                        </ParamRow>
-                      )}
                     </>
                   )}
                 </div>
