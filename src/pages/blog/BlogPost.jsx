@@ -2,41 +2,38 @@ import React, { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, Calendar, Clock } from 'lucide-react'
 import SEOHead from '../../components/SEOHead'
+import { getAdvertisingConsent, onAdvertisingConsentChange, initAdvertisingChoices } from '../../lib/adsterraConsent'
 
 function AdUnit() {
   const adRef = useRef(null)
   useEffect(() => {
     const ad = adRef.current
+    let observer = null
+    initAdvertisingChoices()
     // Never request production inventory from local or deployment previews.
     if (!ad || !['tracetoforge.com', 'www.tracetoforge.com'].includes(window.location.hostname)) return
     const request = () => {
-      if (!ad.isConnected || ad.dataset.requested || !ad.getBoundingClientRect().width) return
+      if (getAdvertisingConsent() !== 'accepted' || !ad.isConnected || ad.dataset.requested) return
       ad.dataset.requested = 'true'
-      if (!document.querySelector('script[src*="/pagead/js/adsbygoogle.js"]')) {
-        const script = document.createElement('script')
-        script.async = true
-        script.crossOrigin = 'anonymous'
-        script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5879329589086028'
-        document.head.appendChild(script)
-      }
-      try { (window.adsbygoogle = window.adsbygoogle || []).push({}) } catch (e) { console.error('AdSense:', e) }
+      const frame = document.createElement('iframe')
+      frame.title = 'Advertisement'; frame.width = '300'; frame.height = '250'; frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox')
+      frame.style.cssText = 'display:block;width:300px;height:250px;border:0;margin:0 auto'
+      frame.srcdoc = '<!doctype html><html><head><style>html,body{margin:0;padding:0;width:300px;height:250px;overflow:hidden}</style></head><body><script>atOptions={key:"ff5b07361e6277a87ae2951b256bd803",format:"iframe",height:250,width:300,params:{}};<\/script><script src="https://www.highrevenueformat.com/ff5b07361e6277a87ae2951b256bd803/invoke.js"><\/script></body></html>'
+      ad.appendChild(frame)
     }
-    if (!('IntersectionObserver' in window)) { request(); return }
-    const observer = new IntersectionObserver(entries => {
-      if (entries.some(entry => entry.isIntersecting)) { request(); observer.disconnect() }
+    if (!('IntersectionObserver' in window)) { request() } else {
+    observer = new IntersectionObserver(entries => {
+      if (entries.some(entry => entry.isIntersecting)) { request(); if (observer) observer.disconnect(); observer = null }
     }, { rootMargin: '250px' })
     observer.observe(ad)
-    return () => observer.disconnect()
+    }
+    const remove = onAdvertisingConsentChange((value) => { if (value === 'accepted') request(); else { if (observer) { observer.disconnect(); observer = null }; ad.textContent = ''; delete ad.dataset.requested } })
+    return () => { if (observer) observer.disconnect(); remove() }
   }, [])
   return (
     <aside aria-label="Advertisements" className="my-12" style={{ clear: 'both', padding: '24px 0', borderTop: '1px solid #2A2A35' }}>
       <p style={{ fontSize: 11, color: '#9999AA', marginBottom: 12 }}>Advertisements</p>
-      <ins ref={adRef} className="adsbygoogle"
-        style={{ display: 'block', minHeight: '100px', width: '100%' }}
-        data-ad-client="ca-pub-5879329589086028"
-        data-ad-slot="9118825546"
-        data-ad-format="auto"
-        data-full-width-responsive="true" />
+      <div ref={adRef} className="tf-adsterra-mount" data-adsterra-key="ff5b07361e6277a87ae2951b256bd803" style={{ width: 300, maxWidth: 'calc(100vw - 20px)', height: 250, margin: '0', position: 'relative', left: '50%', transform: 'translateX(-50%)' }} />
     </aside>
   )
 }

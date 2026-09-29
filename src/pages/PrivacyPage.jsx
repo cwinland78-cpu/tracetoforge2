@@ -63,44 +63,14 @@ export default function PrivacyPage() {
             </p>
             <p>
               <strong className="text-white">Third-party cookies:</strong> We use Google Analytics,
-              Google Ads (for conversion tracking), and Google AdSense. These services may place
-              cookies on your device to measure site usage and serve ads.
+              Google Ads (for conversion tracking), and advertising providers including Adsterra
+              through highrevenueformat.com. These services may receive ordinary browser/request
+              information and use cookies or similar technologies to measure usage, serve ads, and
+              help prevent fraud. Advertising is requested only after a separate advertising choice.
             </p>
           </section>
 
-          <section>
-            <h2 className="text-xl md:text-2xl font-display font-bold text-white mb-3">Advertising and Google AdSense</h2>
-            <p className="mb-3">
-              This site uses Google AdSense to display advertisements. Google and its partners use
-              cookies to serve ads based on your prior visits to this site and other sites on the
-              internet.
-            </p>
-            <p className="mb-3">
-              Google's use of advertising cookies enables it and its partners to serve ads to you
-              based on your visit to our site and other sites on the internet. You may opt out of
-              personalized advertising by visiting{' '}
-              <a
-                href="https://www.google.com/settings/ads"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-brand underline hover:no-underline"
-              >
-                Google Ads Settings
-              </a>.
-            </p>
-            <p>
-              You can also opt out of third-party vendor use of cookies for personalized advertising
-              by visiting{' '}
-              <a
-                href="https://www.aboutads.info/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-brand underline hover:no-underline"
-              >
-                aboutads.info
-              </a>.
-            </p>
-          </section>
+          <section id="website-advertising"><h2 className="text-xl md:text-2xl font-display font-bold text-white mb-3">Optional Website Advertising</h2><p>Blog pages offer an optional 300 by 250 Adsterra banner after you choose Allow ads. Adsterra and its advertising partners may use cookies and receive your IP address, browser and device details, referring page, and ad interactions. Your uploaded tool photos, payment details, and account information are not sent through the banner code.</p><p>Choose Decline ads to keep advertising off. Use Advertising choices in the article footer to withdraw consent and remove the ad. This choice is separate from analytics and is remembered in this browser for up to 180 days. Withdrawing consent does not delete data previously received by advertising partners. See <a href="https://adsterra.com/privacy-policy-managed/" className="underline">Adsterra privacy policy</a>.</p></section>
 
           <section>
             <h2 className="text-xl md:text-2xl font-display font-bold text-white mb-3">Third Parties We Use</h2>
@@ -108,7 +78,7 @@ export default function PrivacyPage() {
               <li><strong className="text-white">Supabase</strong> — authentication and database hosting</li>
               <li><strong className="text-white">Cloudflare</strong> — website hosting, DNS, and DDoS protection</li>
               <li><strong className="text-white">Google Analytics</strong> — website usage analytics</li>
-              <li><strong className="text-white">Google AdSense</strong> — advertising</li>
+              <li><strong className="text-white">Adsterra / highrevenueformat.com</strong> — blog advertising</li>
               <li><strong className="text-white">Google Ads</strong> — conversion tracking</li>
               <li><strong className="text-white">Stripe (via RevenueCat)</strong> — payment processing</li>
             </ul>
