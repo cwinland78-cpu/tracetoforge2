@@ -58,7 +58,7 @@ export default function BlogPost({ title, description, canonical, date, updated,
       />
       <div className="min-h-screen bg-[#0D0D12] text-white">
         <header className="border-b border-[#2A2A35]/50 bg-surface/80 backdrop-blur-sm sticky top-0 z-50">
-          <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
             <Link to="/" className="text-lg font-bold text-brand">TracetoForge</Link>
             <nav className="flex items-center gap-4">
               <Link to="/blog/" className="text-sm text-[#8888A0] hover:text-white transition-colors">Blog</Link>
@@ -97,7 +97,7 @@ export default function BlogPost({ title, description, canonical, date, updated,
               </div>
             )}
 
-            <p className="text-sm text-[#8888A0] mb-8">By the TracetoForge team · <a href="/about/" className="underline">About this site</a> · <a href="/contact/" className="underline">Report a correction</a></p>
+            <p className="text-sm text-[#8888A0] mb-8">By the TracetoForge team Â· <a href="/about/" className="underline">About this site</a> Â· <a href="/contact/" className="underline">Report a correction</a></p>
 
             <div className="prose prose-invert prose-orange max-w-none
               [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mt-10 [&_h2]:mb-4
