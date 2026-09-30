@@ -15,11 +15,12 @@ function AdUnit() {
     const request = () => {
       if (getAdvertisingConsent() !== 'accepted' || !ad.isConnected || ad.dataset.requested) return
       ad.dataset.requested = 'true'
-      const frame = document.createElement('iframe')
-      frame.title = 'Advertisement'; frame.width = '300'; frame.height = '250'; frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox')
-      frame.style.cssText = 'display:block;width:300px;height:250px;border:0;margin:0 auto'
-      frame.srcdoc = '<!doctype html><html><head><style>html,body{margin:0;padding:0;width:300px;height:250px;overflow:hidden}</style></head><body><script>atOptions={key:"ff5b07361e6277a87ae2951b256bd803",format:"iframe",height:250,width:300,params:{}};<\/script><script src="https://www.highrevenueformat.com/ff5b07361e6277a87ae2951b256bd803/invoke.js"><\/script></body></html>'
-      ad.appendChild(frame)
+      window.atOptions = { key: 'ff5b07361e6277a87ae2951b256bd803', format: 'iframe', height: 250, width: 300, params: {} }
+      const script = document.createElement('script')
+      script.type = 'text/javascript'
+      script.src = 'https://www.highrevenueformat.com/ff5b07361e6277a87ae2951b256bd803/invoke.js'
+      script.async = false
+      ad.appendChild(script)
     }
     if (!('IntersectionObserver' in window)) { request() } else {
     observer = new IntersectionObserver(entries => {
