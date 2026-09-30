@@ -14,6 +14,7 @@ function AdUnit() {
     if (!ad || !['tracetoforge.com', 'www.tracetoforge.com'].includes(window.location.hostname)) return
     const request = () => {
       if (getAdvertisingConsent() !== 'accepted' || !ad.isConnected || ad.dataset.requested) return
+      ad.closest('aside').style.display = ''
       ad.dataset.requested = 'true'
       window.atOptions = { key: 'ff5b07361e6277a87ae2951b256bd803', format: 'iframe', height: 250, width: 300, params: {} }
       const script = document.createElement('script')
@@ -22,17 +23,18 @@ function AdUnit() {
       script.async = false
       ad.appendChild(script)
     }
+    if (getAdvertisingConsent() === 'accepted') ad.closest('aside').style.display = ''
     if (!('IntersectionObserver' in window)) { request() } else {
     observer = new IntersectionObserver(entries => {
       if (entries.some(entry => entry.isIntersecting)) { request(); if (observer) observer.disconnect(); observer = null }
     }, { rootMargin: '250px' })
     observer.observe(ad)
     }
-    const remove = onAdvertisingConsentChange((value) => { if (value === 'accepted') request(); else { if (observer) { observer.disconnect(); observer = null }; ad.textContent = ''; delete ad.dataset.requested } })
+    const remove = onAdvertisingConsentChange((value) => { if (value === 'accepted') request(); else { if (observer) { observer.disconnect(); observer = null }; ad.closest('aside').style.display = 'none'; ad.textContent = ''; delete ad.dataset.requested } })
     return () => { if (observer) observer.disconnect(); remove() }
   }, [])
   return (
-    <aside aria-label="Advertisements" className="my-12" style={{ clear: 'both', padding: '24px 0', borderTop: '1px solid #2A2A35' }}>
+    <aside aria-label="Advertisements" className="my-12" style={{ display: 'none', clear: 'both', padding: '24px 0', borderTop: '1px solid #2A2A35' }}>
       <p style={{ fontSize: 11, color: '#9999AA', marginBottom: 12 }}>Advertisements</p>
       <div ref={adRef} className="tf-adsterra-mount" data-adsterra-key="ff5b07361e6277a87ae2951b256bd803" style={{ width: 300, maxWidth: 'calc(100vw - 20px)', height: 250, margin: '0', position: 'relative', left: '50%', transform: 'translateX(-50%)' }} />
     </aside>

@@ -24,6 +24,7 @@
 
   function request() {
     if (!mount || read() !== 'accepted' || mount.dataset.requested) return;
+    mount.closest('aside').style.display = '';
     mount.dataset.requested = 'true';
     window.atOptions = { key: KEY, format: 'iframe', height: 250, width: 300, params: {} };
     var script = document.createElement('script');
@@ -35,6 +36,7 @@
 
   function observe() {
     if (!mount || read() !== 'accepted') return;
+    mount.closest('aside').style.display = '';
     if (!('IntersectionObserver' in window)) { request(); return; }
     observer = new IntersectionObserver(function (entries) {
       if (entries.some(function (entry) { return entry.isIntersecting; })) { request(); observer.disconnect(); observer = null; }
