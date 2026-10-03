@@ -140,6 +140,13 @@ export default function Editor() {
   const pendingPaperRef = useRef(null)
   const dimsAutoFilledRef = useRef(false)
   const lastDimsFillKeyRef = useRef(null)
+  // Which tool (and which photo) the current paper scale was measured on.
+  // Paper sizing only ever fills that tool. Without this, switching tools
+  // re-ran the fill with the other tool's paper scale (and, for one render,
+  // the previous tool's outline) and silently overwrote dimensions the user
+  // had typed in: Rich, Oct 2026, tool 3 went 195 x 55.9 to 221 x 60.
+  const paperFillTargetRef = useRef({ toolIdx: null, image: null })
+  const activeToolIdxRef = useRef(0)
   const originalUploadRef = useRef(null) // {img, dataUrl} of last real upload, for retroactive paper mode
   const [showPaywall, setShowPaywall] = useState(false)
   const [credits, setCredits] = useState(0)
@@ -783,6 +790,8 @@ export default function Editor() {
           setPaperScale({ mmPerPx: calib.mmPerPx, paperLabel: calib.paperLabel })
           setPaperStatus('found')
           dimsAutoFilledRef.current = false
+          paperFillTargetRef.current = { toolIdx: activeToolIdxRef.current, image: null }
+          lastDimsFillKeyRef.current = null
           setPendingAutoDetect(true)
         }
         rectified.src = calib.dataUrl
@@ -798,6 +807,8 @@ export default function Editor() {
         setPaperScale({ mmPerPx: result.mmPerPx, paperLabel: result.paperLabel })
         setPaperStatus('found')
         dimsAutoFilledRef.current = false
+        paperFillTargetRef.current = { toolIdx: activeToolIdxRef.current, image: null }
+        lastDimsFillKeyRef.current = null
         setPendingAutoDetect(true)
       }
       rectified.src = result.dataUrl
@@ -833,6 +844,9 @@ export default function Editor() {
   useEffect(() => {
     if (!paperScale) return
     if (step < 2 || !contours.length) return
+    const target = paperFillTargetRef.current
+    if (target.toolIdx !== activeToolIdx) return
+    if (target.image && target.image !== image) return
     // Key must include the active tool. Without it, tool 2 with the same
     // contour count as tool 1 produced an identical key, the guard matched,
     // and the paper-derived dimensions were silently never applied while the
@@ -864,8 +878,11 @@ export default function Editor() {
       setRealWidth(wMm)
       setRealHeight(hMm)
       lastDimsFillKeyRef.current = fillKey
+      paperFillTargetRef.current = { toolIdx: activeToolIdx, image }
     }
-  }, [paperScale, step, contours, selectedContour, activeToolIdx])
+  }, [paperScale, step, contours, selectedContour, activeToolIdx, image])
+
+  useEffect(() => { activeToolIdxRef.current = activeToolIdx }, [activeToolIdx])
 
   // /editor/?gasket=1 preset: paper sizing on, thin 3D object output
   useEffect(() => {
@@ -2327,6 +2344,13 @@ export default function Editor() {
       imageEl: toolData.imageEl,
       name: `Tool ${tools.length + 1}`,
     }
+    // First clone of a single-tool project: snapshot the primary as Tool 1 too,
+    // the way addTool does. Before, the clone replaced the only tab, so Clone
+    // looked like it did nothing.
+    if (tools.length === 0) {
+      setTools([{ ...saveCurrentToolState(), name: 'Tool 1' }, { ...cloned, name: 'Tool 2' }])
+      return
+    }
     setTools(prev => [...prev, cloned])
   }
 
@@ -2362,6 +2386,7 @@ export default function Editor() {
         return filtered.map((t, i) => ({ ...t, name: `Tool ${i + 1}` }))
       })
       if (activeToolIdx > idx) setActiveToolIdx(activeToolIdx - 1)
+      paperFillTargetRef.current = { toolIdx: null, image: null }
     }
   }
 
@@ -3207,7 +3232,7 @@ export default function Editor() {
                                     ))}
                                   </div>
                                   <p className="text-[10px] text-[#666680] mt-1.5">
-                                    {stackLevels} trays at {each} mm = {Math.round(each * stackLevels * 10) / 10} mm stacked (box is {full} mm). Keep the edge profile the same on every level.
+                                    {stackLevels} trays at {each} mm = {Math.round(each * stackLevels * 10) / 10} mm stacked (box is {full} mm). Each level is its own project: finish this one, then use Save As and pick the next level. Keep the edge profile the same on every level.
                                   </p>
                                 </>
                               )}
