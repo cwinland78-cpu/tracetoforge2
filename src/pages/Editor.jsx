@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import {
   Upload, Download, ChevronLeft, Pencil, MousePointer, Eye,
   Info, ZoomIn, ZoomOut, Save, FolderOpen, X, Camera, Sun, Contrast, Crop, FilePlus2, Copy,
-  Library, Bookmark, Trash2, Globe, Share2, Printer
+  Library, Bookmark, Trash2, Globe, Share2, Printer, Undo2, Redo2
 } from 'lucide-react'
 import ThreePreview from '../components/ThreePreview'
 import PaywallModal from '../components/PaywallModal'
@@ -2007,6 +2007,117 @@ export default function Editor() {
     setActiveToolIdx(targetIdx)
   }, [activeToolIdx, saveCurrentToolState, restoreToolState])
 
+  /* ── Undo / redo ──
+     One history for the whole design: the active tool (outline, size, depth,
+     position, rotation), every other tool, finger notches and the tray or bin
+     settings. Bursts of changes (dragging a tool in the 3D preview, holding an
+     arrow key in a number box) settle for 400 ms and become one step.
+     Navigation (step) and the photo itself are not undone. */
+  const UNDO_LIMIT = 60
+  const undoStackRef = useRef([])
+  const redoStackRef = useRef([])
+  const committedRef = useRef(null)
+  const applyingUndoRef = useRef(false)
+  const undoTimerRef = useRef(null)
+  const historyArmedAtRef = useRef(0)
+  const [historyTick, setHistoryTick] = useState(0) // re-render buttons when stacks change
+
+  const takeSnapshot = useCallback(() => ({
+    active: saveCurrentToolState(),
+    tools, activeToolIdx,
+    fingerNotches, activeNotchIdx, notchBevel,
+    trayWidth, trayHeight, trayDepth, wallThickness, cornerRadius, floorThickness,
+    edgeProfile, edgeSize, stackingRim, stackLevels, stackPos,
+    outerShapeType, outerShapePoints, activeTemplate,
+    gridX, gridY, gridHeight, stackingLip, depth, objectEdgeRadius,
+  }), [saveCurrentToolState, tools, activeToolIdx, fingerNotches, activeNotchIdx, notchBevel,
+    trayWidth, trayHeight, trayDepth, wallThickness, cornerRadius, floorThickness,
+    edgeProfile, edgeSize, stackingRim, stackLevels, stackPos, outerShapeType, outerShapePoints,
+    activeTemplate, gridX, gridY, gridHeight, stackingLip, depth, objectEdgeRadius])
+
+  // Record: every change restarts a short timer; when it fires, the state from
+  // before the burst goes on the undo stack.
+  useEffect(() => {
+    if (step < 2) { committedRef.current = null; historyArmedAtRef.current = 0; return }
+    // Loading a project or a trace lands as a flurry of updates; let it settle
+    // before recording so the first undo never lands on a half-loaded state.
+    if (!historyArmedAtRef.current) historyArmedAtRef.current = Date.now()
+    if (Date.now() - historyArmedAtRef.current < 1500) { committedRef.current = takeSnapshot(); return }
+    if (applyingUndoRef.current) {
+      applyingUndoRef.current = false
+      committedRef.current = takeSnapshot()
+      return
+    }
+    if (!committedRef.current) { committedRef.current = takeSnapshot(); return }
+    clearTimeout(undoTimerRef.current)
+    undoTimerRef.current = setTimeout(() => {
+      undoTimerRef.current = null
+      undoStackRef.current.push(committedRef.current)
+      if (undoStackRef.current.length > UNDO_LIMIT) undoStackRef.current.shift()
+      redoStackRef.current = []
+      committedRef.current = takeSnapshot()
+      setHistoryTick(t => t + 1)
+    }, 400)
+    return () => clearTimeout(undoTimerRef.current)
+  }, [takeSnapshot, step])
+
+  const applySnapshot = useCallback((snap) => {
+    applyingUndoRef.current = true
+    setTools(snap.tools)
+    setActiveToolIdx(snap.activeToolIdx)
+    restoreToolState({ ...snap.active, step })
+    setFingerNotches(snap.fingerNotches); setActiveNotchIdx(snap.activeNotchIdx); setNotchBevel(snap.notchBevel)
+    setTrayWidth(snap.trayWidth); setTrayHeight(snap.trayHeight); setTrayDepth(snap.trayDepth)
+    setWallThickness(snap.wallThickness); setCornerRadius(snap.cornerRadius); setFloorThickness(snap.floorThickness)
+    setEdgeProfile(snap.edgeProfile); setEdgeSize(snap.edgeSize); setStackingRim(snap.stackingRim)
+    setStackLevels(snap.stackLevels); setStackPos(snap.stackPos)
+    setOuterShapeType(snap.outerShapeType); setOuterShapePoints(snap.outerShapePoints); setActiveTemplate(snap.activeTemplate)
+    setGridX(snap.gridX); setGridY(snap.gridY); setGridHeight(snap.gridHeight); setStackingLip(snap.stackingLip)
+    setDepth(snap.depth); setObjectEdgeRadius(snap.objectEdgeRadius)
+  }, [restoreToolState, step])
+
+  // A change still inside its 400 ms window counts as its own step
+  const flushPendingUndo = useCallback(() => {
+    if (!undoTimerRef.current || !committedRef.current) return
+    const now = takeSnapshot()
+    clearTimeout(undoTimerRef.current); undoTimerRef.current = null
+    undoStackRef.current.push(committedRef.current)
+    redoStackRef.current = []
+    committedRef.current = now
+  }, [takeSnapshot])
+
+  const undo = useCallback(() => {
+    flushPendingUndo()
+    const prev = undoStackRef.current.pop()
+    if (!prev) return
+    redoStackRef.current.push(takeSnapshot())
+    applySnapshot(prev)
+    setHistoryTick(t => t + 1)
+  }, [flushPendingUndo, takeSnapshot, applySnapshot])
+
+  const redo = useCallback(() => {
+    flushPendingUndo()
+    const next = redoStackRef.current.pop()
+    if (!next) return
+    undoStackRef.current.push(takeSnapshot())
+    applySnapshot(next)
+    setHistoryTick(t => t + 1)
+  }, [flushPendingUndo, takeSnapshot, applySnapshot])
+
+  // Ctrl/Cmd+Z, Ctrl+Shift+Z, Ctrl+Y. Inside a text box the browser's own undo wins.
+  useEffect(() => {
+    const onKey = (e) => {
+      if (!(e.ctrlKey || e.metaKey) || step < 2) return
+      const tag = (e.target?.tagName || '').toLowerCase()
+      if (tag === 'input' || tag === 'textarea' || e.target?.isContentEditable) return
+      const k = e.key.toLowerCase()
+      if (k === 'z' && !e.shiftKey) { e.preventDefault(); undo() }
+      else if ((k === 'z' && e.shiftKey) || k === 'y') { e.preventDefault(); redo() }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [undo, redo, step])
+
   /* ── Saved tool library ── */
   // Lets the user save the active tool's traced shape and reuse it across projects
   // and tray modes (custom / gridfinity / object) without re-tracing.
@@ -2658,6 +2769,18 @@ export default function Editor() {
           ))}
         </div>
         <div className="flex items-center gap-2">
+          {step >= 2 && (
+            <div className="flex items-center gap-1" data-history={historyTick}>
+              <button onClick={undo} disabled={!undoStackRef.current.length && !undoTimerRef.current} title="Undo (Ctrl+Z)" aria-label="Undo"
+                className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium bg-[#2A2A35] hover:bg-[#3A3A45] text-[#C8C8D0] rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                <Undo2 size={13} /> <span className="hidden lg:inline">Undo</span>
+              </button>
+              <button onClick={redo} disabled={!redoStackRef.current.length} title="Redo (Ctrl+Shift+Z)" aria-label="Redo"
+                className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium bg-[#2A2A35] hover:bg-[#3A3A45] text-[#C8C8D0] rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                <Redo2 size={13} /> <span className="hidden lg:inline">Redo</span>
+              </button>
+            </div>
+          )}
           {isAuthenticated ? (
             <>
               <button onClick={handleSaveProject} disabled={saving}
