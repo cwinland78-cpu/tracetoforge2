@@ -213,6 +213,7 @@ export default function Editor() {
   const [edgeSize, setEdgeSize] = useState(2)
   const [stackingRim, setStackingRim] = useState(false) // custom trays: raised rim the tray above locks into
   const [stackLevels, setStackLevels] = useState(1)     // template split into 1-3 stacked trays
+  const [noTool, setNoTool] = useState(false)          // blank tray / lid: tool 1 cuts nothing
   const [stackPos, setStackPos] = useState('bottom')    // which level this tray is: bottom / middle / top
   const [cavityBevel, setCavityBevel] = useState(0)
   const [fingerNotches, setFingerNotches] = useState([]) // array of { shape, radius, w, h, x, y }
@@ -426,6 +427,7 @@ export default function Editor() {
       setStackingRim(!!cfg.stackingRim)
       setStackLevels(cfg.stackLevels || 1)
       setStackPos(cfg.stackPos || 'bottom')
+      setNoTool(!!cfg.noTool)
       if (cfg.outerShapeType) setOuterShapeType(cfg.outerShapeType)
       if (cfg.outerShapePoints) setOuterShapePoints(cfg.outerShapePoints)
       if (cfg.activeTemplate) setActiveTemplate(cfg.activeTemplate)
@@ -455,7 +457,7 @@ export default function Editor() {
       cavityBevel, toolRotation, toolOffsetX, toolOffsetY,
       fingerNotches, activeToolIdx, notchBevel,
       tools: savedTools, step: step, trayWidth, trayHeight, trayDepth, depth, objectEdgeRadius,
-      edgeProfile, edgeSize, stackingRim, stackLevels, stackPos, outerShapeType, outerShapePoints, activeTemplate,
+      edgeProfile, edgeSize, stackingRim, stackLevels, stackPos, noTool, outerShapeType, outerShapePoints, activeTemplate,
       gridX: snapGridUnits(gridX), gridY: snapGridUnits(gridY),
       gridHeight, stackingLip, threshold, simplification, sensitivity, minContourPct, holeMinPct,
       image: image || null,
@@ -695,6 +697,21 @@ export default function Editor() {
   }, [handleImageUpload])
 
   /* ── Sample tool (instant demo, no photo needed) ── */
+  // Blank tray or lid with no photo: a placeholder outline for Tool 1 (it cuts
+  // nothing while noTool is on) so the rest of the editor works unchanged.
+  // Before this, the only way was to upload any photo and zero out the tool.
+  const startBlankTray = () => {
+    const sq = [{ x: 0, y: 0 }, { x: 200, y: 0 }, { x: 200, y: 200 }, { x: 0, y: 200 }]
+    setContours([sq]); setContourHoles([]); setSelectedContour(0)
+    setImage(null); setImageSize({ w: 200, h: 200 })
+    imageRef.current = blankToolBackdrop([sq])
+    setRealWidth(20); setRealHeight(20); setToolOffsetX(0); setToolOffsetY(0); setToolRotation(0)
+    setLocked(true)
+    setNoTool(true)
+    if (outputMode === 'object') setOutputMode('custom')
+    setStep(2)
+  }
+
   const loadSampleImage = useCallback(async () => {
     if (sampleLoading) return
     setSampleLoading(true)
@@ -2027,12 +2044,12 @@ export default function Editor() {
     tools, activeToolIdx,
     fingerNotches, activeNotchIdx, notchBevel,
     trayWidth, trayHeight, trayDepth, wallThickness, cornerRadius, floorThickness,
-    edgeProfile, edgeSize, stackingRim, stackLevels, stackPos,
+    edgeProfile, edgeSize, stackingRim, stackLevels, stackPos, noTool,
     outerShapeType, outerShapePoints, activeTemplate,
     gridX, gridY, gridHeight, stackingLip, depth, objectEdgeRadius,
   }), [saveCurrentToolState, tools, activeToolIdx, fingerNotches, activeNotchIdx, notchBevel,
     trayWidth, trayHeight, trayDepth, wallThickness, cornerRadius, floorThickness,
-    edgeProfile, edgeSize, stackingRim, stackLevels, stackPos, outerShapeType, outerShapePoints,
+    edgeProfile, edgeSize, stackingRim, stackLevels, stackPos, noTool, outerShapeType, outerShapePoints,
     activeTemplate, gridX, gridY, gridHeight, stackingLip, depth, objectEdgeRadius])
 
   // Record: every change restarts a short timer; when it fires, the state from
@@ -2070,7 +2087,7 @@ export default function Editor() {
     setTrayWidth(snap.trayWidth); setTrayHeight(snap.trayHeight); setTrayDepth(snap.trayDepth)
     setWallThickness(snap.wallThickness); setCornerRadius(snap.cornerRadius); setFloorThickness(snap.floorThickness)
     setEdgeProfile(snap.edgeProfile); setEdgeSize(snap.edgeSize); setStackingRim(snap.stackingRim)
-    setStackLevels(snap.stackLevels); setStackPos(snap.stackPos)
+    setStackLevels(snap.stackLevels); setStackPos(snap.stackPos); setNoTool(!!snap.noTool)
     setOuterShapeType(snap.outerShapeType); setOuterShapePoints(snap.outerShapePoints); setActiveTemplate(snap.activeTemplate)
     setGridX(snap.gridX); setGridY(snap.gridY); setGridHeight(snap.gridHeight); setStackingLip(snap.stackingLip)
     setDepth(snap.depth); setObjectEdgeRadius(snap.objectEdgeRadius)
@@ -2571,10 +2588,10 @@ export default function Editor() {
       if (outerShapeType === 'custom' && outerShapePoints && outerShapePoints.length >= 3) {
         outerPts = outerShapePoints
       }
-      return { ...base, trayWidth, trayHeight, trayDepth, wallThickness, cornerRadius, floorThickness, edgeProfile, edgeSize, stackingRim, cavityBevel: t0.cavityBevel ?? 0, notchBevel, fingerNotches, outerShapeType, outerShapePoints: outerPts, additionalTools, activeToolIdx, activeNotchIdx }
+      return { ...base, trayWidth, trayHeight, trayDepth, wallThickness, cornerRadius, floorThickness, edgeProfile, edgeSize, stackingRim, noTool, cavityBevel: t0.cavityBevel ?? 0, notchBevel, fingerNotches, outerShapeType, outerShapePoints: outerPts, additionalTools, activeToolIdx, activeNotchIdx }
     }
     if (outputMode === 'gridfinity') {
-      return { ...base, gridX: snapGridUnits(gridX), gridY: snapGridUnits(gridY), gridHeight, stackingLip, cavityBevel: t0.cavityBevel ?? 0, notchBevel, fingerNotches, additionalTools, activeToolIdx, activeNotchIdx }
+      return { ...base, gridX: snapGridUnits(gridX), gridY: snapGridUnits(gridY), gridHeight, stackingLip, noTool, cavityBevel: t0.cavityBevel ?? 0, notchBevel, fingerNotches, additionalTools, activeToolIdx, activeNotchIdx }
     }
     return { ...base, additionalTools, activeToolIdx, activeNotchIdx }
   }
@@ -3130,6 +3147,19 @@ export default function Editor() {
                       <div className="border-t border-[#2A2A35]/50 pt-3 mt-1">
                         <h4 className="text-[11px] font-semibold text-brand/80 uppercase tracking-wider mb-3">Custom Tray</h4>
                       </div>
+                      {/* Blank tray / lid: tool 1 cuts nothing */}
+                      <div className="flex items-center justify-between gap-3 px-2 py-1.5 -mt-1 mb-2 rounded-md hover:bg-[#1C1C24]/50 transition-colors">
+                        <div className="flex items-center gap-1.5">
+                          <label htmlFor="noToolChk" className="text-xs text-[#BBBBCC] cursor-pointer select-none">
+                            Blank (no tool cavity)
+                          </label>
+                          <Tooltip text="Makes Tool 1 cut nothing, for a lid or a blank tray. Extra tools and finger notches with their own depth still cut in. Turn on Stacking rim on the tray below and give this one the same chamfer to make a lid that locks on." position="above" />
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input id="noToolChk" type="checkbox" className="sr-only peer" checked={noTool} onChange={e => setNoTool(e.target.checked)} />
+                          <div className="w-9 h-5 bg-[#2A2A35] rounded-full peer peer-checked:bg-brand transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-transform peer-checked:after:translate-x-4" />
+                        </label>
+                      </div>
 
                       {/* Template presets - prominent card selector */}
                       <div className="mb-3">
@@ -3575,6 +3605,19 @@ export default function Editor() {
                     <>
                       <div className="border-t border-[#2A2A35]/50 pt-3 mt-1">
                         <h4 className="text-[11px] font-semibold text-brand/80 uppercase tracking-wider mb-3">Gridfinity</h4>
+                      </div>
+                      {/* Blank tray / lid: tool 1 cuts nothing */}
+                      <div className="flex items-center justify-between gap-3 px-2 py-1.5 -mt-1 mb-2 rounded-md hover:bg-[#1C1C24]/50 transition-colors">
+                        <div className="flex items-center gap-1.5">
+                          <label htmlFor="noToolChkGf" className="text-xs text-[#BBBBCC] cursor-pointer select-none">
+                            Blank (no tool cavity)
+                          </label>
+                          <Tooltip text="Makes Tool 1 cut nothing, for a lid or a blank tray. Extra tools and finger notches with their own depth still cut in. Turn on Stacking rim on the tray below and give this one the same chamfer to make a lid that locks on." position="above" />
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input id="noToolChkGf" type="checkbox" className="sr-only peer" checked={noTool} onChange={e => setNoTool(e.target.checked)} />
+                          <div className="w-9 h-5 bg-[#2A2A35] rounded-full peer peer-checked:bg-brand transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-transform peer-checked:after:translate-x-4" />
+                        </label>
                       </div>
                       <ParamRow label="Grid X" tooltip="Grid units wide (42mm each). Half sizes like 4.5 are allowed; values snap to the nearest 0.5.">
                         <input type="number" value={gridX} onChange={e => setGridX(+e.target.value)} onBlur={e => setGridX(snapGridUnits(e.target.value))} className="w-[4.5rem] text-right" min="1" max="16" step="0.5" />
@@ -4178,6 +4221,10 @@ export default function Editor() {
                   {sampleLoading ? 'Loading sample...' : 'No tool handy? Try a sample photo'}
                 </button>
                 <p className="text-[11px] text-[#666680]">Watch the auto-trace work on a real pair of pliers</p>
+                <button onClick={startBlankTray}
+                  className="mt-2 text-xs font-semibold text-brand hover:text-white underline underline-offset-2 transition-colors">
+                  Or make a blank tray or lid (no tool)
+                </button>
 
                 <label className="mt-3 flex items-start gap-2.5 max-w-md text-left cursor-pointer select-none">
                   <input type="checkbox" checked={paperMode} onChange={e => { setPaperMode(e.target.checked); setPaperStatus('') }}

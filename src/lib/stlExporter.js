@@ -325,7 +325,10 @@ function createCustomInsert(points, config) {
   // tall. A tool at or past trayDepth now cuts clean through and the tray
   // stays trayDepth.
   const clampDepth = d => Math.min(d, trayDepth)
-  const cavityZ = clampDepth(toolDepth || (trayDepth - floorThickness))
+  // noTool: a blank tray or a lid. No primary cavity, the tray is solid to its
+  // full depth and only extra tools / notches with their own depth cut into it.
+  const noTool = !!config.noTool
+  const cavityZ = noTool ? 0 : clampDepth(toolDepth || (trayDepth - floorThickness))
 
   // Rotation helper
   const rad = (toolRotation * Math.PI) / 180
@@ -385,6 +388,7 @@ function createCustomInsert(points, config) {
       if (ClipperLib.Clipper.Area(solution[0]) < 0) holePts.reverse()
     }
   } catch (e) { /* fallback to unclipped */ }
+  if (noTool) holePts = []
 
   // ─── Finger notches ───
   const { fingerNotches = [] } = config
@@ -429,7 +433,7 @@ function createCustomInsert(points, config) {
   // Independent-depth notches are handled separately via layered walls
   const combinedHoles = (() => {
     const scale = 1000
-    if (defaultNotchPts.length === 0 && indepNotches.length === 0) return [holePts]
+    if (defaultNotchPts.length === 0 && indepNotches.length === 0) return holePts.length >= 3 ? [holePts] : []
     // For the main hole (used for ALL wall layers), union tool + default notches
     const clipper = new ClipperLib.Clipper()
     const toolClip = holePts.map(p => ({ X: Math.round(p.x * scale), Y: Math.round(p.y * scale) }))
@@ -440,7 +444,7 @@ function createCustomInsert(points, config) {
     })
     const solution = []
     clipper.Execute(ClipperLib.ClipType.ctUnion, solution, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero)
-    if (solution.length === 0) return [holePts]
+    if (solution.length === 0) return holePts.length >= 3 ? [holePts] : []
     return solution.map(path => {
       const pts = path.map(p => ({ x: p.X / scale, y: p.Y / scale }))
       if (ClipperLib.Clipper.Area(path) < 0) pts.reverse()
@@ -463,7 +467,10 @@ function createCustomInsert(points, config) {
   })
 
   // ─── Edge profile ───
-  const es = Math.min(edgeSize, trayDepth * 0.4, trayWidth * 0.25, trayHeight * 0.25)
+  // Up to 40% of the depth, or everything but a 1 mm top on thicker trays, so a
+  // thin lid can carry the same chamfer as the stacking rim it sits in (a 3.75 mm
+  // lid used to be capped at a 1.5 mm chamfer and would not seat in a 2 mm rim).
+  const es = Math.min(edgeSize, Math.max(trayDepth * 0.4, trayDepth - 1), trayWidth * 0.25, trayHeight * 0.25)
   const hasBevel = edgeProfile !== 'straight' && es > 0
 
   const baseDepth = trayDepth - cavityZ
@@ -700,7 +707,7 @@ function createCustomInsert(points, config) {
     })
     const solution = []
     clipper.Execute(ClipperLib.ClipType.ctUnion, solution, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero)
-    if (solution.length === 0) return [holePts]
+    if (solution.length === 0) return holePts.length >= 3 ? [holePts] : []
     return solution.map(path => {
       const pts = path.map(p => ({ x: p.X / scale, y: p.Y / scale }))
       if (ClipperLib.Clipper.Area(path) < 0) pts.reverse()
@@ -757,8 +764,10 @@ function createCustomInsert(points, config) {
     }
   }
 
-  // Build wall layers
-  if (shallowerIndep.length > 0 || shallowerExtraTools.length > 0) {
+  // Build wall layers (none when there is no primary cavity: the base is the whole tray)
+  if (cavityZ <= 0.01) {
+    // blank tray / lid
+  } else if (shallowerIndep.length > 0 || shallowerExtraTools.length > 0) {
     const notchBreaks = shallowerIndep.map(n => cavityZ - n.depth)
     const toolBreaks = shallowerExtraTools.map(et => cavityZ - et.depth)
     const sliceHeights = [0, ...notchBreaks, ...toolBreaks, cavityZ]
@@ -970,7 +979,7 @@ function createCustomInsert(points, config) {
   const cavMesh1 = new THREE.Mesh(cavityGeo, activeIdx === 0 ? activeCavityMat : inactiveCavityMat)
   cavMesh1.userData.vizOnly = true
   cavMesh1.userData.toolIndex = -1
-  group.add(cavMesh1)
+  if (!noTool) group.add(cavMesh1)
 
   // Additional tool visualizations
   extraToolViz.forEach((ev, evIdx) => {
@@ -1217,7 +1226,7 @@ function createGridfinityInsert(points, config) {
   const allCavityItems = []
 
   // Tool 0 (primary)
-  allCavityItems.push({ pts: holePts, depth: cavityZ, bevel: cb, label: 'tool0' })
+  if (!config.noTool) allCavityItems.push({ pts: holePts, depth: cavityZ, bevel: cb, label: 'tool0' }) // noTool: blank bin
 
   // Additional tools
   additionalTools.forEach((at, atIdx) => {
@@ -1397,12 +1406,12 @@ function createGridfinityInsert(points, config) {
     clipped.material = primaryMat
     clipped.userData.vizOnly = true
     clipped.userData.toolIndex = -1
-    group.add(clipped)
+    if (!config.noTool) group.add(clipped)
   } catch (e) {
     const cavMesh2 = new THREE.Mesh(cavityGeo, primaryMat)
     cavMesh2.userData.vizOnly = true
     cavMesh2.userData.toolIndex = -1
-    group.add(cavMesh2)
+    if (!config.noTool) group.add(cavMesh2)
   }
 
   // Additional tool visualizations for gridfinity
@@ -1588,7 +1597,7 @@ export function checkGridfinityFit(toolPoints, config = {}) {
     const b = getShapeBounds(toolPoints)
     // Tool 0 is scaled by realWidth / bounds.width inside createGridfinityInsert
     const s = realWidth && b.width ? realWidth / b.width : 1
-    judge('Tool 1', extent(toolPoints, s, config.toolRotation, config.toolOffsetX, config.toolOffsetY, tolerance))
+    if (!config.noTool) judge('Tool 1', extent(toolPoints, s, config.toolRotation, config.toolOffsetX, config.toolOffsetY, tolerance))
   }
 
   ;(config.additionalTools || []).forEach((at, i) => {
