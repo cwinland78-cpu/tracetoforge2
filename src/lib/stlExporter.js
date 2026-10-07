@@ -240,7 +240,7 @@ export const RIM_TOP_WIDTH = 0.8  // mm, flat on top of the rim (about two extru
  * falls back to a chamfer of the same size. Returns null when the size is too
  * small to leave a usable rim.
  */
-export function stackingRimSpec({ edgeProfile = 'straight', edgeSize = 2, trayWidth = 150, trayHeight = 100 }) {
+export function stackingRimSpec({ edgeProfile = 'straight', edgeSize = 2, trayWidth = 150, trayHeight = 100, stackLock = 0 }) {
   const es = Math.min(edgeSize, trayWidth * 0.25, trayHeight * 0.25)
   const profile = edgeProfile === 'fillet' ? 'fillet' : 'chamfer'
   const g = RIM_CLEARANCE, top = RIM_TOP_WIDTH
@@ -252,8 +252,11 @@ export function stackingRimSpec({ edgeProfile = 'straight', edgeSize = 2, trayWi
   const height = profile === 'fillet' ? Math.sqrt(Math.max(0, rf * rf - top * top)) : es - g - top
   if (height < 0.6) return null
   // Width of the rim (from the outer edge inward) at height h above the tray top
-  const widthAt = h => (profile === 'fillet' ? Math.sqrt(Math.max(0, rf * rf - h * h)) : es - h - g)
-  return { es, profile, height, baseWidth: widthAt(0), widthAt }
+  const profW = h => (profile === 'fillet' ? Math.sqrt(Math.max(0, rf * rf - h * h)) : es - h - g)
+  // With a lock, the rim's inner face is straight for the first lock mm, then the profile
+  const lock = Math.max(0, +stackLock || 0)
+  const widthAt = h => (h <= lock ? profW(0) : profW(h - lock))
+  return { es, profile, lock, profileHeight: height, height: height + lock, baseWidth: profW(0), widthAt }
 }
 
 function buildRimGeometry(outerShape, trayWidth, trayHeight, rim, z0) {
@@ -264,11 +267,25 @@ function buildRimGeometry(outerShape, trayWidth, trayHeight, rim, z0) {
   // Scaled per axis exactly like the bottom edge skirt so the two profiles match.
   const loop = [[1, 1, z0], [1, 1, z0 + rim.height]]
   const steps = rim.profile === 'fillet' ? 10 : 1
+  const lock = rim.lock || 0
   for (let s = steps; s >= 0; s--) {
-    const h = rim.height * (s / steps)
+    const h = lock + rim.profileHeight * (s / steps)
     const w = rim.widthAt(h)
     loop.push([1 - w / hw, 1 - w / hh, z0 + h])
   }
+  if (lock > 0) {
+    const w = rim.widthAt(0)
+    loop.push([1 - w / hw, 1 - w / hh, z0])
+  }
+  return sweepLoop(pts, loop)
+}
+
+/**
+ * Sweep a closed cross-section around the tray outline. loop entries are
+ * [scaleX, scaleY, z]; outline points are scaled per axis like the edge skirt.
+ * Returns a closed, outward-facing solid.
+ */
+function sweepLoop(pts, loop) {
   const verts = []
   const n = pts.length
   for (let k = 0; k < loop.length; k++) {
@@ -472,6 +489,11 @@ function createCustomInsert(points, config) {
   // lid used to be capped at a 1.5 mm chamfer and would not seat in a 2 mm rim).
   const es = Math.min(edgeSize, Math.max(trayDepth * 0.4, trayDepth - 1), trayWidth * 0.25, trayHeight * 0.25)
   const hasBevel = edgeProfile !== 'straight' && es > 0
+  // Stack lock: a straight inset wall under the profile, matching the rim's
+  // vertical lock wall. A chamfer-on-chamfer seat alone let a lid ride up and
+  // off with a sideways push (Rich, Oct 2026).
+  const lockH = Math.max(0, +config.stackLock || 0)
+  const esTot = es + lockH
 
   const baseDepth = trayDepth - cavityZ
   // No forced floor: total height stays exactly trayDepth. 0 means the
@@ -492,11 +514,11 @@ function createCustomInsert(points, config) {
   const hasDeeperTools = (config.additionalTools || []).some(at => (at.toolDepth || cavityZ) > cavityZ)
   const baseIsLayered = (hasDeeperNotches || hasDeeperTools) && hasFloor
 
-  if (hasBevel && actualBaseDepth > es + 0.01) {
-    // Full body from z=es to z=actualBaseDepth (no bevel, clean)
+  if (hasBevel && actualBaseDepth > esTot + 0.01) {
+    // Full body from z=esTot to z=actualBaseDepth (no bevel, clean)
     if (!baseIsLayered) {
-      const bodyGeo = new THREE.ExtrudeGeometry(outerShape, { depth: actualBaseDepth - es, bevelEnabled: false })
-      bodyGeo.translate(0, 0, es)
+      const bodyGeo = new THREE.ExtrudeGeometry(outerShape, { depth: actualBaseDepth - esTot, bevelEnabled: false })
+      bodyGeo.translate(0, 0, esTot)
       group.add(new THREE.Mesh(bodyGeo, trayMat))
     }
 
@@ -508,6 +530,15 @@ function createCustomInsert(points, config) {
     const segs = edgeProfile === 'fillet' ? 8 : 1
 
     const skirtVerts = []
+    // Lock band: straight inset wall from the bed up to lockH, then the profile
+    if (lockH > 0) {
+      for (let i = 0; i < pts.length; i++) {
+        const j = (i + 1) % pts.length
+        const ax = pts[i].x * scaleX, ay = pts[i].y * scaleY, bx = pts[j].x * scaleX, by = pts[j].y * scaleY
+        skirtVerts.push(ax,ay,0, bx,by,0, bx,by,lockH)
+        skirtVerts.push(ax,ay,0, bx,by,lockH, ax,ay,lockH)
+      }
+    }
     for (let s = 0; s < segs; s++) {
       const t0 = s / segs, t1 = (s + 1) / segs
       let sx0, sy0, z0, sx1, sy1, z1
@@ -525,8 +556,8 @@ function createCustomInsert(points, config) {
         const ax1 = pts[i].x * sx1, ay1 = pts[i].y * sy1
         const bx0 = pts[j].x * sx0, by0 = pts[j].y * sy0
         const bx1 = pts[j].x * sx1, by1 = pts[j].y * sy1
-        skirtVerts.push(ax0,ay0,z0, bx0,by0,z0, bx1,by1,z1)
-        skirtVerts.push(ax0,ay0,z0, bx1,by1,z1, ax1,ay1,z1)
+        skirtVerts.push(ax0,ay0,z0+lockH, bx0,by0,z0+lockH, bx1,by1,z1+lockH)
+        skirtVerts.push(ax0,ay0,z0+lockH, bx1,by1,z1+lockH, ax1,ay1,z1+lockH)
       }
     }
     const skirtGeo = new THREE.BufferGeometry()
@@ -718,7 +749,7 @@ function createCustomInsert(points, config) {
   // For deeper notches/tools in custom tray: cut into the base (only for flat base, not edge-profiled)
   // Beveled trays (chamfer/fillet) use the same cut layers. Below z=es the
   // layer is the inset bottom outline; the skirt built earlier is the outer face.
-  const bevelLayered = hasBevel && actualBaseDepth > es + 0.01
+  const bevelLayered = hasBevel && actualBaseDepth > esTot + 0.01
   let insetShape = null
   if (bevelLayered) {
     const hw = trayWidth / 2, hh = trayHeight / 2
@@ -743,7 +774,7 @@ function createCustomInsert(points, config) {
         return { pts: et.pts, cutStart: actualBaseDepth - extraDepth }
       })
     ]
-    const baseBreaks = [0, ...baseCuts.map(c => c.cutStart), actualBaseDepth, ...(bevelLayered ? [es] : [])]
+    const baseBreaks = [0, ...baseCuts.map(c => c.cutStart), actualBaseDepth, ...(bevelLayered ? [esTot] : [])]
     const uniqueBaseBreaks = [...new Set(baseBreaks)].filter(h => h >= 0 && h <= actualBaseDepth).sort((a, b) => a - b)
 
     for (let bi = 0; bi < uniqueBaseBreaks.length - 1; bi++) {
@@ -751,7 +782,7 @@ function createCustomInsert(points, config) {
       const layTop = uniqueBaseBreaks[bi + 1]
       const layH = layTop - layBot
       if (layH < 0.01) continue
-      const baseLayerShape = (bevelLayered && layTop <= es + 0.001) ? insetShape.clone() : outerShape.clone()
+      const baseLayerShape = (bevelLayered && layTop <= esTot + 0.001) ? insetShape.clone() : outerShape.clone()
       baseCuts.forEach(c => {
         if (layBot >= c.cutStart - 0.001) {
           baseLayerShape.holes.push(new THREE.Path(c.pts.map(p => new THREE.Vector2(p.x, p.y))))
@@ -894,6 +925,56 @@ function createCustomInsert(points, config) {
     group.add(applyBevel(topGeo))
   }
 
+  // ─── Bottom edge profile when the floor is thinner than the profile ───
+  // The skirt above only exists when the solid base is taller than the chamfer
+  // (plus lock). With a normal 2 mm floor under the pockets it was skipped and
+  // the tray came out with a square bottom edge, so it could not seat in the
+  // stacking rim below. Cut the profile into whatever was built instead: the
+  // ring between the outline and the profile surface, bottom esTot mm only.
+  // Pockets stay inside the wall, so the cut only ever touches the outer edge.
+  if (hasBevel && !(actualBaseDepth > esTot + 0.01)) {
+    try {
+      const hw = trayWidth / 2, hh = trayHeight / 2
+      let opts = outerShape.getPoints(256)
+      if (opts.length > 1 && opts[0].distanceTo(opts[opts.length - 1]) < 1e-6) opts = opts.slice(0, -1)
+      const W = (w, z) => [1 - w / hw, 1 - w / hh, z]   // w = inset from the outline
+      const loop = [W(-1, -1), W(-1, esTot), W(0, esTot)]
+      const segs = edgeProfile === 'fillet' ? 10 : 1
+      for (let s2 = segs - 1; s2 >= 0; s2--) {
+        const t = s2 / segs
+        if (edgeProfile === 'fillet') {
+          const a = t * Math.PI / 2
+          loop.push(W(es * Math.cos(a), lockH + es * Math.sin(a)))
+        } else {
+          loop.push(W(es * (1 - t), lockH + es * t))
+        }
+      }
+      if (lockH > 0) loop.push(W(es, 0))
+      loop.push(W(es, -1))
+      const cutGeo = sweepLoop(opts, loop)
+      const ev = new Evaluator()
+      ev.attributes = ['position', 'normal']
+      const cutBrush = new Brush(cutGeo)
+      cutBrush.updateMatrixWorld()
+      group.children.slice().forEach(child => {
+        if (!child.isMesh || child.userData.vizOnly) return
+        const g = child.geometry
+        g.computeBoundingBox()
+        if (g.boundingBox.min.z > esTot - 0.001) return
+        const src = g.index ? g.toNonIndexed() : g.clone()
+        if (src.getAttribute('uv')) src.deleteAttribute('uv')
+        src.computeVertexNormals()
+        const b = new Brush(src)
+        b.updateMatrixWorld()
+        const res = ev.evaluate(b, cutBrush, SUBTRACTION)
+        res.geometry.computeVertexNormals()
+        child.geometry = res.geometry
+      })
+    } catch (e) {
+      console.error('Bottom edge profile cut failed:', e)
+    }
+  }
+
   // ─── Stacking rim (custom trays) ───
   // Raised lip on the top perimeter whose inner face is the bottom edge
   // profile (chamfer or fillet) of a tray with the same settings, pushed out by
@@ -901,7 +982,7 @@ function createCustomInsert(points, config) {
   // It hides inside that bevel, so a stack is exactly the sum of tray depths.
   // Separate closed solid on the top face, same as the Gridfinity stacking lip.
   if (config.stackingRim) {
-    const rim = stackingRimSpec({ edgeProfile, edgeSize, trayWidth, trayHeight })
+    const rim = stackingRimSpec({ edgeProfile, edgeSize, trayWidth, trayHeight, stackLock: config.stackLock })
     if (rim) {
       const rimGeo = buildRimGeometry(outerShape, trayWidth, trayHeight, rim, topSurface)
       // Cut the rim away wherever a cavity (plus its top bevel) reaches under it

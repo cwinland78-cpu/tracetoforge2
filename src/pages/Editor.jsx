@@ -213,6 +213,7 @@ export default function Editor() {
   const [edgeSize, setEdgeSize] = useState(2)
   const [stackingRim, setStackingRim] = useState(false) // custom trays: raised rim the tray above locks into
   const [stackLevels, setStackLevels] = useState(1)     // template split into 1-3 stacked trays
+  const [stackLock, setStackLock] = useState(0)      // mm of straight wall under the edge chamfer and inside the rim
   const [noTool, setNoTool] = useState(false)          // blank tray / lid: tool 1 cuts nothing
   const [stackPos, setStackPos] = useState('bottom')    // which level this tray is: bottom / middle / top
   const [cavityBevel, setCavityBevel] = useState(0)
@@ -428,6 +429,7 @@ export default function Editor() {
       setStackLevels(cfg.stackLevels || 1)
       setStackPos(cfg.stackPos || 'bottom')
       setNoTool(!!cfg.noTool)
+      setStackLock(cfg.stackLock || 0)
       if (cfg.outerShapeType) setOuterShapeType(cfg.outerShapeType)
       if (cfg.outerShapePoints) setOuterShapePoints(cfg.outerShapePoints)
       if (cfg.activeTemplate) setActiveTemplate(cfg.activeTemplate)
@@ -457,7 +459,7 @@ export default function Editor() {
       cavityBevel, toolRotation, toolOffsetX, toolOffsetY,
       fingerNotches, activeToolIdx, notchBevel,
       tools: savedTools, step: step, trayWidth, trayHeight, trayDepth, depth, objectEdgeRadius,
-      edgeProfile, edgeSize, stackingRim, stackLevels, stackPos, noTool, outerShapeType, outerShapePoints, activeTemplate,
+      edgeProfile, edgeSize, stackingRim, stackLevels, stackPos, noTool, stackLock, outerShapeType, outerShapePoints, activeTemplate,
       gridX: snapGridUnits(gridX), gridY: snapGridUnits(gridY),
       gridHeight, stackingLip, threshold, simplification, sensitivity, minContourPct, holeMinPct,
       image: image || null,
@@ -2044,12 +2046,12 @@ export default function Editor() {
     tools, activeToolIdx,
     fingerNotches, activeNotchIdx, notchBevel,
     trayWidth, trayHeight, trayDepth, wallThickness, cornerRadius, floorThickness,
-    edgeProfile, edgeSize, stackingRim, stackLevels, stackPos, noTool,
+    edgeProfile, edgeSize, stackingRim, stackLevels, stackPos, noTool, stackLock,
     outerShapeType, outerShapePoints, activeTemplate,
     gridX, gridY, gridHeight, stackingLip, depth, objectEdgeRadius,
   }), [saveCurrentToolState, tools, activeToolIdx, fingerNotches, activeNotchIdx, notchBevel,
     trayWidth, trayHeight, trayDepth, wallThickness, cornerRadius, floorThickness,
-    edgeProfile, edgeSize, stackingRim, stackLevels, stackPos, noTool, outerShapeType, outerShapePoints,
+    edgeProfile, edgeSize, stackingRim, stackLevels, stackPos, noTool, stackLock, outerShapeType, outerShapePoints,
     activeTemplate, gridX, gridY, gridHeight, stackingLip, depth, objectEdgeRadius])
 
   // Record: every change restarts a short timer; when it fires, the state from
@@ -2087,7 +2089,7 @@ export default function Editor() {
     setTrayWidth(snap.trayWidth); setTrayHeight(snap.trayHeight); setTrayDepth(snap.trayDepth)
     setWallThickness(snap.wallThickness); setCornerRadius(snap.cornerRadius); setFloorThickness(snap.floorThickness)
     setEdgeProfile(snap.edgeProfile); setEdgeSize(snap.edgeSize); setStackingRim(snap.stackingRim)
-    setStackLevels(snap.stackLevels); setStackPos(snap.stackPos); setNoTool(!!snap.noTool)
+    setStackLevels(snap.stackLevels); setStackPos(snap.stackPos); setNoTool(!!snap.noTool); setStackLock(snap.stackLock || 0)
     setOuterShapeType(snap.outerShapeType); setOuterShapePoints(snap.outerShapePoints); setActiveTemplate(snap.activeTemplate)
     setGridX(snap.gridX); setGridY(snap.gridY); setGridHeight(snap.gridHeight); setStackingLip(snap.stackingLip)
     setDepth(snap.depth); setObjectEdgeRadius(snap.objectEdgeRadius)
@@ -2588,7 +2590,7 @@ export default function Editor() {
       if (outerShapeType === 'custom' && outerShapePoints && outerShapePoints.length >= 3) {
         outerPts = outerShapePoints
       }
-      return { ...base, trayWidth, trayHeight, trayDepth, wallThickness, cornerRadius, floorThickness, edgeProfile, edgeSize, stackingRim, noTool, cavityBevel: t0.cavityBevel ?? 0, notchBevel, fingerNotches, outerShapeType, outerShapePoints: outerPts, additionalTools, activeToolIdx, activeNotchIdx }
+      return { ...base, trayWidth, trayHeight, trayDepth, wallThickness, cornerRadius, floorThickness, edgeProfile, edgeSize, stackingRim, noTool, stackLock, cavityBevel: t0.cavityBevel ?? 0, notchBevel, fingerNotches, outerShapeType, outerShapePoints: outerPts, additionalTools, activeToolIdx, activeNotchIdx }
     }
     if (outputMode === 'gridfinity') {
       return { ...base, gridX: snapGridUnits(gridX), gridY: snapGridUnits(gridY), gridHeight, stackingLip, noTool, cavityBevel: t0.cavityBevel ?? 0, notchBevel, fingerNotches, additionalTools, activeToolIdx, activeNotchIdx }
@@ -3107,6 +3109,14 @@ export default function Editor() {
                           className="w-[4.5rem] text-right" step="0.5" />
                         <span className="text-xs text-[#8888A0] w-7">°</span>
                       </ParamRow>
+                      {/* Lives with this tool's own settings (it is saved per tool). It used to sit
+                          down in the tray settings, where it read like a tray or notch bevel. */}
+                      {outputMode !== 'gasket' && (
+                        <ParamRow label="Bevel" tooltip="45-degree chamfer around the top edge of this tool's pocket, so the tool drops in easier. Each tool has its own. 0 = no bevel.">
+                          <input type="number" value={cavityBevel} onChange={e => setCavityBevel(Math.max(0, +e.target.value))} className="w-[4.5rem] text-right" min="0" step="0.5" max="5" />
+                          <span className="text-xs text-[#8888A0] w-7">mm</span>
+                        </ParamRow>
+                      )}
                     </>
                   )}
 
@@ -3353,6 +3363,7 @@ export default function Editor() {
                             setTrayDepth(levelDepth(n))
                             setEdgeProfile('chamfer')
                             setEdgeSize(4)
+                            setStackLock(3)
                             setStackingRim(pos !== 'top')
                           }
                           const positions = stackLevels === 3 ? ['bottom', 'middle', 'top'] : ['bottom', 'top']
@@ -3433,6 +3444,15 @@ export default function Editor() {
                           <span className="text-xs text-[#8888A0] w-7">mm</span>
                         </ParamRow>
                       )}
+                      {(edgeProfile !== 'straight' || stackingRim) && (
+                        <ParamRow label="Lock height" tooltip="Straight wall under the bottom chamfer and inside the stacking rim, so a stacked tray or lid can't slide or tip off. 3 mm holds well. Use the same value on the tray and the one that stacks on it. 0 = chamfer only." tooltipPos="above">
+                          <input type="number" value={stackLock} onChange={e => setStackLock(Math.max(0, +e.target.value))} className="w-[4.5rem] text-right" min="0" step="0.5" max="10" />
+                          <span className="text-xs text-[#8888A0] w-7">mm</span>
+                        </ParamRow>
+                      )}
+                      {edgeProfile !== 'straight' && trayDepth < Math.min(edgeSize, trayWidth / 4, trayHeight / 4) + stackLock + 1 && (
+                        <p className="text-[10px] text-amber-400 px-2">This tray is too thin for a {edgeSize} mm {edgeProfile} plus {stackLock} mm lock. Make it at least {Math.round((edgeSize + stackLock + 1) * 10) / 10} mm deep or lower them.</p>
+                      )}
                       {/* Stacking rim toggle */}
                       <div className="flex items-center justify-between gap-3 px-2 py-1.5 mt-1 rounded-md hover:bg-[#1C1C24]/50 transition-colors">
                         <div className="flex items-center gap-1.5">
@@ -3453,7 +3473,7 @@ export default function Editor() {
                         </label>
                       </div>
                       {stackingRim && (() => {
-                        const rim = stackingRimSpec({ edgeProfile, edgeSize, trayWidth, trayHeight })
+                        const rim = stackingRimSpec({ edgeProfile, edgeSize, trayWidth, trayHeight, stackLock })
                         if (!rim) return <p className="text-[10px] text-amber-400 px-2">Set the {edgeProfile === 'fillet' ? 'fillet' : 'chamfer'} to at least 2 mm to get a rim. 4 mm locks best.</p>
                         return (
                           <p className="text-[10px] text-[#666680] px-2">
@@ -3470,17 +3490,6 @@ export default function Editor() {
                       )}
 
 
-                      {/* Cavity Bevel */}
-                      <div className="border-t border-[#2A2A35]/50 pt-3 mt-1">
-                        <h4 className="text-[11px] font-semibold text-brand/80 uppercase tracking-wider mb-3 flex items-center">
-                          Cavity Bevel
-                          <Tooltip text="Adds a chamfer around the top opening of the tool cavity. Makes it easier to drop tools into the insert. Set to 0 for no bevel." position="above" />
-                        </h4>
-                      </div>
-                      <ParamRow label="Bevel" tooltip="Size of the 45-degree chamfer around the cavity opening. 0 = no bevel." tooltipPos="above">
-                        <input type="number" value={cavityBevel} onChange={e => setCavityBevel(Math.max(0, +e.target.value))} className="w-[4.5rem] text-right" min="0" step="0.5" max="5" />
-                        <span className="text-xs text-[#8888A0] w-7">mm</span>
-                      </ParamRow>
                       <div className="border-t border-[#2A2A35]/50 pt-3 mt-1">
                         <h4 className="text-[11px] font-semibold text-brand/80 uppercase tracking-wider mb-3 flex items-center">
                           Finger Notches
@@ -3669,14 +3678,6 @@ export default function Editor() {
                         </label>
                       </div>
 
-                      {/* Cavity Bevel */}
-                      <div className="border-t border-[#2A2A35]/50 pt-3 mt-1">
-                        <h4 className="text-[11px] font-semibold text-brand/80 uppercase tracking-wider mb-3">Cavity Bevel</h4>
-                      </div>
-                      <ParamRow label="Size" tooltip="Chamfer size on the top edge of the tool cavity.">
-                        <input type="number" value={cavityBevel} onChange={e => setCavityBevel(Math.max(0, +e.target.value))} className="w-[4.5rem] text-right" min="0" step="0.5" max="5" />
-                        <span className="text-xs text-[#8888A0] w-7">mm</span>
-                      </ParamRow>
 
                       {/* Finger Notches */}
                       <div className="border-t border-[#2A2A35]/50 pt-3 mt-1">
