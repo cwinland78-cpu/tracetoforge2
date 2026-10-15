@@ -13,6 +13,13 @@
   --text-muted: #8888A0;
 }
 
+/* Side banners use reserved outer margins on wide desktops; phones keep the slim top unit. */
+.tf-adsterra-rail { position: fixed; top: 150px; z-index: 5; width: 176px; max-width: 176px; padding: 8px; background: #131318; border: 1px solid #2A2A35; text-align: center; }
+.tf-adsterra-rail-left { left: max(12px, calc(50% - 820px)); }
+.tf-adsterra-rail-right { right: max(12px, calc(50% - 820px)); }
+.tf-adsterra-rail > p { font-size: 11px; color: #9999AA; margin: 0 0 8px; }
+@media (max-width: 1679px) { .tf-adsterra-rail { display: none !important; } }
+
 * {
   margin: 0;
   padding: 0;
@@ -84,4 +91,10 @@ input[type="number"]:focus {
 }
 input[type="number"]::-webkit-inner-spin-button {
   opacity: 1;
+}
+@media (max-width: 819px) {
+  .tf-adsterra-desktop-only { display: none !important; }
+}
+@media (min-width: 820px) {
+  .tf-adsterra-mobile-only { display: none !important; }
 }

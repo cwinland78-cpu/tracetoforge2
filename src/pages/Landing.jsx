@@ -2,6 +2,65 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { Camera, Box, Download, ArrowRight, LayoutGrid, Package, Wrench, ShieldCheck, Layers, MousePointerClick, Printer, ChevronDown, Star, Cpu, Eye, FolderOpen, LogOut, Bookmark, Sparkles, Globe } from 'lucide-react'
 import { useAuth } from '../components/AuthContext'
+import { getAdvertisingConsent, onAdvertisingConsentChange, initAdvertisingChoices } from '../lib/adsterraConsent'
+
+function enqueueHomepageAd(ad, key, width, height) {
+  const queue = (window.__tfAdsterraQueue ||= { items: [], busy: false })
+  queue.items.push({ ad, key, width, height })
+  const pump = () => {
+    if (queue.busy || !queue.items.length) return
+    const item = queue.items.shift()
+    if (!item.ad.isConnected) return pump()
+    queue.busy = true
+    window.atOptions = { key: item.key, format: 'iframe', height: item.height, width: item.width, params: {} }
+    const script = document.createElement('script')
+    script.src = `https://www.highrevenueformat.com/${item.key}/invoke.js`
+    script.async = false
+    script.onload = script.onerror = () => { queue.busy = false; pump() }
+    item.ad.appendChild(script)
+  }
+  pump()
+}
+
+function HomepageAdUnit({ placementKey = 'ff5b07361e6277a87ae2951b256bd803', width = 300, height = 250, className = 'my-8' }) {
+  const adRef = useRef(null)
+  useEffect(() => {
+    const ad = adRef.current
+    if (!ad || !['tracetoforge.com', 'www.tracetoforge.com'].includes(window.location.hostname)) return
+    initAdvertisingChoices()
+    let observer = null
+    const request = () => {
+      if (getAdvertisingConsent() !== 'accepted' || !ad.isConnected || ad.dataset.requested) return
+      ad.closest('aside').style.display = ''
+      ad.dataset.requested = 'true'
+      enqueueHomepageAd(ad, placementKey, width, height)
+    }
+    if (getAdvertisingConsent() === 'accepted') ad.closest('aside').style.display = ''
+    if (!('IntersectionObserver' in window)) request()
+    else {
+      observer = new IntersectionObserver(entries => {
+        if (entries.some(entry => entry.isIntersecting)) { request(); observer?.disconnect(); observer = null }
+      }, { rootMargin: '250px' })
+      observer.observe(ad)
+    }
+    const remove = onAdvertisingConsentChange(value => {
+      if (value === 'accepted') request()
+      else {
+        observer?.disconnect(); observer = null
+        ad.closest('aside').style.display = 'none'
+        ad.replaceChildren()
+        delete ad.dataset.requested
+      }
+    })
+    return () => { observer?.disconnect(); remove() }
+  }, [])
+  return (
+    <aside aria-label="Advertisements" className={className} style={{ display: 'none', clear: 'both', padding: '14px 0', borderTop: '1px solid #2A2A35', maxWidth: '100vw', overflow: 'hidden' }}>
+      <p style={{ fontSize: 11, color: '#9999AA', textAlign: 'center', marginBottom: 12 }}>Advertisement</p>
+      <div ref={adRef} data-adsterra-key={placementKey} style={{ width, maxWidth: '100%', height, margin: '0 auto', position: 'relative' }} />
+    </aside>
+  )
+}
 
 const STEPS = [
   {
@@ -243,6 +302,14 @@ export default function Landing() {
         </div>
       </nav>
 
+      {/* One responsive banner: desktop and mobile use separate approved units. */}
+      <div className="w-full py-1">
+        <HomepageAdUnit placementKey="43464e995e1cf51b266451e20c6f072b" width={728} height={90} className="tf-adsterra-desktop-only my-2" />
+        <HomepageAdUnit placementKey="eef6814f496c3c4c34cb92cb5d962902" width={320} height={50} className="tf-adsterra-mobile-only my-2" />
+      </div>
+      <HomepageAdUnit placementKey="b218d46b3206efd7a53d64c580467d82" width={160} height={600} className="tf-adsterra-rail tf-adsterra-rail-left" />
+      <HomepageAdUnit placementKey="6f38de9d4bb051988cd3f72771c4965c" width={160} height={300} className="tf-adsterra-rail tf-adsterra-rail-right" />
+
       {/* Hero */}
       <section
         ref={heroRef}
@@ -321,6 +388,8 @@ export default function Landing() {
                 muted
                 loop
                 playsInline
+                controls
+                aria-label="TraceToForge product demo"
                 preload="metadata"
                 className="w-full"
               >
@@ -334,10 +403,6 @@ export default function Landing() {
 
         </div>
       </section>
-
-      {/* Ad unit - below hero */}
-      <div className="max-w-4xl mx-auto px-6 py-4">
-      </div>
 
       {/* How It Works */}
       <section className="px-6 py-10 md:py-16">

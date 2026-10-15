@@ -4,7 +4,7 @@ import { ArrowLeft, Calendar, Clock } from 'lucide-react'
 import SEOHead from '../../components/SEOHead'
 import { getAdvertisingConsent, onAdvertisingConsentChange, initAdvertisingChoices } from '../../lib/adsterraConsent'
 
-function AdUnit() {
+function AdUnit({ placementKey = 'ff5b07361e6277a87ae2951b256bd803', width = 300, height = 250, className = 'my-12', desktopOnly = false }) {
   const adRef = useRef(null)
   useEffect(() => {
     const ad = adRef.current
@@ -16,10 +16,10 @@ function AdUnit() {
       if (getAdvertisingConsent() !== 'accepted' || !ad.isConnected || ad.dataset.requested) return
       ad.closest('aside').style.display = ''
       ad.dataset.requested = 'true'
-      window.atOptions = { key: 'ff5b07361e6277a87ae2951b256bd803', format: 'iframe', height: 250, width: 300, params: {} }
+      window.atOptions = { key: placementKey, format: 'iframe', height, width, params: {} }
       const script = document.createElement('script')
       script.type = 'text/javascript'
-      script.src = 'https://www.highrevenueformat.com/ff5b07361e6277a87ae2951b256bd803/invoke.js'
+      script.src = `https://www.highrevenueformat.com/${placementKey}/invoke.js`
       script.async = false
       ad.appendChild(script)
     }
@@ -34,9 +34,9 @@ function AdUnit() {
     return () => { if (observer) observer.disconnect(); remove() }
   }, [])
   return (
-    <aside aria-label="Advertisements" className="my-12" style={{ display: 'none', clear: 'both', padding: '24px 0', borderTop: '1px solid #2A2A35' }}>
+    <aside aria-label="Advertisements" className={`my-8 ${desktopOnly ? 'tf-adsterra-desktop-only' : ''} ${className}`} style={{ display: 'none', clear: 'both', padding: '24px 0', borderTop: '1px solid #2A2A35' }}>
       <p style={{ fontSize: 11, color: '#9999AA', marginBottom: 12 }}>Advertisements</p>
-      <div ref={adRef} className="tf-adsterra-mount" data-adsterra-key="ff5b07361e6277a87ae2951b256bd803" style={{ width: 300, maxWidth: 'calc(100vw - 20px)', height: 250, margin: '0', position: 'relative', left: '50%', transform: 'translateX(-50%)' }} />
+      <div ref={adRef} className="tf-adsterra-mount" data-adsterra-key={placementKey} style={{ width: `min(${width}px, calc(100vw - 20px))`, height, margin: '0 auto', position: 'relative' }} />
     </aside>
   )
 }
@@ -89,6 +89,9 @@ export default function BlogPost({ title, description, canonical, date, updated,
             <h1 className="text-3xl sm:text-4xl font-display font-extrabold tracking-tight mb-4 leading-tight">
               {title}
             </h1>
+
+            <AdUnit placementKey="43464e995e1cf51b266451e20c6f072b" width={728} height={90} desktopOnly />
+            <AdUnit placementKey="eef6814f496c3c4c34cb92cb5d962902" width={320} height={50} className="tf-adsterra-mobile-inline" />
 
             {tags && (
               <div className="flex items-center gap-2 flex-wrap mb-8">
