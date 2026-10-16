@@ -8,7 +8,7 @@ export default function DrawingTo3D() {
       title="Turn a Drawing into a 3D Printable Object"
       description="Sketch a shape on paper, photograph it, and export a printable STL. No CAD, no modeling, no measuring. The same tracer that cuts tool cavities also extrudes solid objects."
       canonical="https://tracetoforge.com/blog/drawing-to-3d-object/"
-      date="September 1, 2026"
+      date="2026-09-01"
       readTime="7 min"
       tags={['Drawing to STL', '3D Printing', 'No CAD', 'Sketch']}
     >

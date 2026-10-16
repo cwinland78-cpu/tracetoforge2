@@ -8,8 +8,8 @@ export default function GasketMaker() {
       title="Make a Replacement Gasket from a Photo, Bolt Holes and All"
       description="Photograph a dead gasket and get back a cutting template with bolt holes detected automatically. Perspective-corrected sizing, SVG and DXF for cutting, STL and 3MF for TPU."
       canonical="https://tracetoforge.com/blog/gasket-maker-from-photo/"
-      date="July 18, 2026"
-      updated="September 1, 2026"
+      date="2026-07-18"
+      updated="2026-09-01"
       readTime="6 min"
       tags={['Gaskets', 'DIY Repair', 'SVG', 'DXF', 'Hole Detection']}
     >

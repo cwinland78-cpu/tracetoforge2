@@ -8,7 +8,7 @@ export default function PaperMeasure() {
       title="Measure a Tool from a Photo With a Sheet of Paper"
       description="Use a reference sheet to scale a tool photo, then verify the dimensions and a small test print before making a full insert."
       canonical="https://tracetoforge.com/blog/measure-tool-from-photo-paper/"
-      date="July 18, 2026"
+      date="2026-07-18"
       updated="2026-09-18"
       readTime="8 min"
       tags={['Measuring', 'Photo Tracing', 'Workshop Tips']}

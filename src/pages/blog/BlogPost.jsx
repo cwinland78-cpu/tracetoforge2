@@ -41,13 +41,17 @@ function AdUnit({ placementKey = 'ff5b07361e6277a87ae2951b256bd803', width = 300
   )
 }
 
+// Same rule as scripts/prerender.js: keep the brand suffix only while the full title stays within ~65 characters.
+const TITLE_SUFFIX = ' | TracetoForge'
+const documentTitle = (title) => ((title + TITLE_SUFFIX).length <= 65 ? title + TITLE_SUFFIX : title)
+
 export default function BlogPost({ title, description, canonical, date, updated, readTime, tags, faq, children }) {
   // dateModified for the article schema falls back to date if not provided
   const dateModified = updated || date
   return (
     <>
       <SEOHead
-        title={`${title} | TracetoForge`}
+        title={documentTitle(title)}
         description={description}
         canonical={canonical}
         type="article"
@@ -103,7 +107,7 @@ export default function BlogPost({ title, description, canonical, date, updated,
               </div>
             )}
 
-            <p className="text-sm text-[#8888A0] mb-8">By the TracetoForge team Â· <a href="/about/" className="underline">About this site</a> Â· <a href="/contact/" className="underline">Report a correction</a></p>
+            <p className="text-sm text-[#8888A0] mb-8">By Chris Winland · <a href="/about/" className="underline">About this site</a> · <a href="/contact/" className="underline">Report a correction</a></p>
 
             <div className="prose prose-invert prose-orange max-w-none
               [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mt-10 [&_h2]:mb-4

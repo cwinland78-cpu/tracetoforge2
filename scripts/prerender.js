@@ -872,12 +872,30 @@ const postConfigs = [
   { slug: 'reusable-tool-library-drawer-trays', file: 'SavedToolLibrary.jsx' },
 ]
 
-function extractMeta(jsxContent) {
+// Google requires ISO 8601 dates in BlogPosting JSON-LD. Posts should already use
+// YYYY-MM-DD; this also accepts "September 1, 2026" and fails the build on anything else.
+const MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december']
+function isoDate(value, file) {
+  if (!value) return ''
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value
+  const m = value.match(/^([A-Za-z]+)\s+(\d{1,2}),\s*(\d{4})$/)
+  const month = m ? MONTHS.indexOf(m[1].toLowerCase()) + 1 : 0
+  if (!month) throw new Error(`[prerender] ${file}: date "${value}" is not ISO 8601 (YYYY-MM-DD)`)
+  return `${m[3]}-${String(month).padStart(2, '0')}-${m[2].padStart(2, '0')}`
+}
+
+// Shared with BlogPost.jsx: add the brand suffix only while the whole title stays within ~65 characters.
+const TITLE_SUFFIX = ' | TracetoForge'
+function documentTitle(title) {
+  return (title + TITLE_SUFFIX).length <= 65 ? title + TITLE_SUFFIX : title
+}
+
+function extractMeta(jsxContent, file) {
   const title = jsxContent.match(/title="([^"]*)"/)?.[1] || ''
   const desc = jsxContent.match(/description="([^"]*)"/)?.[1] || ''
   const canonical = jsxContent.match(/canonical="([^"]*)"/)?.[1] || ''
-  const date = jsxContent.match(/date="([^"]*)"/)?.[1] || ''
-  const updated = jsxContent.match(/updated="([^"]*)"/)?.[1] || ''
+  const date = isoDate(jsxContent.match(/date="([^"]*)"/)?.[1] || '', file)
+  const updated = isoDate(jsxContent.match(/updated="([^"]*)"/)?.[1] || '', file)
   const tagsMatch = jsxContent.match(/tags=\{\[([^\]]*)\]\}/)
   const tags = tagsMatch ? tagsMatch[1].match(/'([^']+)'/g)?.map(t => t.replace(/'/g, '')) || [] : []
   const faq = []
@@ -912,7 +930,22 @@ function extractArticleContent(jsxContent) {
   content = content.replace(/\s+className='[^']*'/g, '')
   content = content.replace(/\s+className=\{[^}]*\}/g, '')
 
+  // JSX string-literal expressions. Prettier-style line wraps emit {' '} to keep a space
+  // between inline elements; React renders it as a space, so the static HTML must too.
+  // Any other literal ({'text'} / {"text"}) renders as its text.
+  content = content.replace(/\{\s*'((?:[^'\\\n]|\\.)*)'\s*\}/g, (_, s) => s.replace(/\\(.)/g, '$1'))
+  content = content.replace(/\{\s*"((?:[^"\\\n]|\\.)*)"\s*\}/g, (_, s) => s.replace(/\\(.)/g, '$1'))
+
   return content.trim()
+}
+
+// Fail the build instead of shipping raw JSX to crawlers.
+function assertNoJsx(html, file) {
+  const leak = html.match(/\{\s*['"`]|\bclassName=|style=\{\{|\{\/\*|<\/?[A-Z][A-Za-z]*[\s/>]/)
+  if (leak) {
+    const at = html.indexOf(leak[0])
+    throw new Error(`[prerender] ${file}: raw JSX left in static HTML near: ${html.slice(Math.max(0, at - 60), at + 60)}`)
+  }
 }
 
 const blogSrcDir = join(__dirname, '..', 'src', 'pages', 'blog')
@@ -925,8 +958,9 @@ for (const post of postConfigs) {
   }
 
   const jsx = readFileSync(srcPath, 'utf-8')
-  const meta = extractMeta(jsx)
+  const meta = extractMeta(jsx, post.file)
   const articleContent = extractArticleContent(jsx)
+  assertNoJsx(articleContent, post.file)
 
   const articleSchema = {
     "@context": "https://schema.org",
@@ -968,7 +1002,7 @@ for (const post of postConfigs) {
   const authorBioHtml = `
       <aside>
         <h3>About the author</h3>
-        <p>TracetoForge publishes guides to using its photo tracing and insert-design tools. Measurements and example settings should be checked against your own tool and printer. Send corrections with the page URL and supporting information to <!--email_off-->support@tracetoforge.com<!--/email_off-->.</p>
+        <p>Chris Winland builds and runs TracetoForge, operated by Qwikymart LLC in Northeast Ohio. Measurements and example settings should be checked against your own tool and printer. Send corrections with the page URL and supporting information to <!--email_off-->support@tracetoforge.com<!--/email_off-->.</p>
         <p><a href="/about/">More about TracetoForge</a> | <a href="/contact/">Contact</a></p>
       </aside>`
 
@@ -989,7 +1023,7 @@ ${meta.faq.map(f => `        <h3>${f.q}</h3>\n        <p>${f.a}</p>`).join('\n')
       </section>` : ''
 
   writePage(`/blog/${post.slug}`, makePage({
-    title: `${meta.title} | TracetoForge`,
+    title: documentTitle(meta.title),
     description: meta.desc,
     canonical: meta.canonical,
     ogTitle: meta.title,
