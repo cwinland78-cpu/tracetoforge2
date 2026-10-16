@@ -4,42 +4,9 @@ import { ArrowLeft, Calendar, Clock } from 'lucide-react'
 import SEOHead from '../../components/SEOHead'
 import { getAdvertisingConsent, onAdvertisingConsentChange, initAdvertisingChoices } from '../../lib/adsterraConsent'
 
-function AdUnit({ placementKey = 'ff5b07361e6277a87ae2951b256bd803', width = 300, height = 250, className = 'my-12', desktopOnly = false }) {
-  const adRef = useRef(null)
-  useEffect(() => {
-    const ad = adRef.current
-    let observer = null
-    initAdvertisingChoices()
-    // Never request production inventory from local or deployment previews.
-    if (!ad || !['tracetoforge.com', 'www.tracetoforge.com'].includes(window.location.hostname)) return
-    const request = () => {
-      if (getAdvertisingConsent() !== 'accepted' || !ad.isConnected || ad.dataset.requested) return
-      ad.closest('aside').style.display = ''
-      ad.dataset.requested = 'true'
-      window.atOptions = { key: placementKey, format: 'iframe', height, width, params: {} }
-      const script = document.createElement('script')
-      script.type = 'text/javascript'
-      script.src = `https://www.highrevenueformat.com/${placementKey}/invoke.js`
-      script.async = false
-      ad.appendChild(script)
-    }
-    if (getAdvertisingConsent() === 'accepted') ad.closest('aside').style.display = ''
-    if (!('IntersectionObserver' in window)) { request() } else {
-    observer = new IntersectionObserver(entries => {
-      if (entries.some(entry => entry.isIntersecting)) { request(); if (observer) observer.disconnect(); observer = null }
-    }, { rootMargin: '250px' })
-    observer.observe(ad)
-    }
-    const remove = onAdvertisingConsentChange((value) => { if (value === 'accepted') request(); else { if (observer) { observer.disconnect(); observer = null }; ad.closest('aside').style.display = 'none'; ad.textContent = ''; delete ad.dataset.requested } })
-    return () => { if (observer) observer.disconnect(); remove() }
-  }, [])
-  return (
-    <aside aria-label="Advertisements" className={`my-8 ${desktopOnly ? 'tf-adsterra-desktop-only' : ''} ${className}`} style={{ display: 'none', clear: 'both', padding: '24px 0', borderTop: '1px solid #2A2A35' }}>
-      <p style={{ fontSize: 11, color: '#9999AA', marginBottom: 12 }}>Advertisements</p>
-      <div ref={adRef} className="tf-adsterra-mount" data-adsterra-key={placementKey} style={{ width: `min(${width}px, calc(100vw - 20px))`, height, margin: '0 auto', position: 'relative' }} />
-    </aside>
-  )
-}
+// Ads are served by the Ad Manager Cloudflare Worker (AD MANAGER project), not by the app.
+// Kept as a no-op so existing <AdUnit /> placements render nothing.
+function AdUnit() { return null }
 
 // Same rule as scripts/prerender.js: keep the brand suffix only while the full title stays within ~65 characters.
 const TITLE_SUFFIX = ' | TracetoForge'

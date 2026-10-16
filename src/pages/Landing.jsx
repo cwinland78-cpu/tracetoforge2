@@ -22,45 +22,9 @@ function enqueueHomepageAd(ad, key, width, height) {
   pump()
 }
 
-function HomepageAdUnit({ placementKey = 'ff5b07361e6277a87ae2951b256bd803', width = 300, height = 250, className = 'my-8' }) {
-  const adRef = useRef(null)
-  useEffect(() => {
-    const ad = adRef.current
-    if (!ad || !['tracetoforge.com', 'www.tracetoforge.com'].includes(window.location.hostname)) return
-    initAdvertisingChoices()
-    let observer = null
-    const request = () => {
-      if (getAdvertisingConsent() !== 'accepted' || !ad.isConnected || ad.dataset.requested) return
-      ad.closest('aside').style.display = ''
-      ad.dataset.requested = 'true'
-      enqueueHomepageAd(ad, placementKey, width, height)
-    }
-    if (getAdvertisingConsent() === 'accepted') ad.closest('aside').style.display = ''
-    if (!('IntersectionObserver' in window)) request()
-    else {
-      observer = new IntersectionObserver(entries => {
-        if (entries.some(entry => entry.isIntersecting)) { request(); observer?.disconnect(); observer = null }
-      }, { rootMargin: '250px' })
-      observer.observe(ad)
-    }
-    const remove = onAdvertisingConsentChange(value => {
-      if (value === 'accepted') request()
-      else {
-        observer?.disconnect(); observer = null
-        ad.closest('aside').style.display = 'none'
-        ad.replaceChildren()
-        delete ad.dataset.requested
-      }
-    })
-    return () => { observer?.disconnect(); remove() }
-  }, [])
-  return (
-    <aside aria-label="Advertisements" className={className} style={{ display: 'none', clear: 'both', padding: '14px 0', borderTop: '1px solid #2A2A35', maxWidth: '100vw', overflow: 'hidden' }}>
-      <p style={{ fontSize: 11, color: '#9999AA', textAlign: 'center', marginBottom: 12 }}>Advertisement</p>
-      <div ref={adRef} data-adsterra-key={placementKey} style={{ width, maxWidth: '100%', height, margin: '0 auto', position: 'relative' }} />
-    </aside>
-  )
-}
+// Ads are served by the Ad Manager Cloudflare Worker (AD MANAGER project), not by the app.
+// Kept as a no-op so existing <HomepageAdUnit /> placements render nothing.
+function HomepageAdUnit() { return null }
 
 const STEPS = [
   {
