@@ -94,9 +94,9 @@ export default function PhotoToGridfinityGuide() {
       </div>
 
       <GearBox items={[
-        { img: '/gear/calipers.webp', href: 'https://www.amazon.com/s?k=digital+calipers&tag=tracetoforge-20', title: 'Digital calipers', blurb: 'verify your reference measurement before exporting' },
-        { img: '/gear/pla-filament.webp', href: 'https://www.amazon.com/s?k=pla+filament+1.75mm&tag=tracetoforge-20', title: 'PLA filament', blurb: 'fine for indoor drawer bins and organizers' },
-        { img: '/gear/knipex-cobra.webp', href: 'https://www.amazon.com/s?k=knipex+cobra+pliers+set&tag=tracetoforge-20', title: 'Knipex Cobra pliers sets', blurb: 'the classic first trace' },
+        { href: 'https://www.amazon.com/s?k=digital+calipers&tag=tracetoforge-20', title: 'Digital calipers', blurb: 'verify your reference measurement before exporting' },
+        { href: 'https://www.amazon.com/s?k=pla+filament+1.75mm&tag=tracetoforge-20', title: 'PLA filament', blurb: 'fine for indoor drawer bins and organizers' },
+        { href: 'https://www.amazon.com/s?k=knipex+cobra+pliers+set&tag=tracetoforge-20', title: 'Knipex Cobra pliers sets', blurb: 'the classic first trace' },
       ]} />
       <h2>Why Photo Beats Parametric for Tool-Shaped Cutouts</h2>
 

@@ -54,8 +54,8 @@ export default function PaperMeasure() {
       </ul>
 
       <GearBox items={[
-        { img: '/gear/calipers.webp', href: 'https://www.amazon.com/s?k=digital+calipers&tag=tracetoforge-20', title: 'Digital calipers', blurb: 'for the critical dimensions you want to verify by hand' },
-        { img: '/gear/cutting-mat.webp', href: 'https://www.amazon.com/s?k=cutting+mat+dark&tag=tracetoforge-20', title: 'Dark cutting mat', blurb: 'the ideal contrast surface under the paper' },
+        { href: 'https://www.amazon.com/s?k=digital+calipers&tag=tracetoforge-20', title: 'Digital calipers', blurb: 'for the critical dimensions you want to verify by hand' },
+        { href: 'https://www.amazon.com/s?k=cutting+mat+dark&tag=tracetoforge-20', title: 'Dark cutting mat', blurb: 'the ideal contrast surface under the paper' },
       ]} />
 
       <h2>A Measurement Record You Can Reuse</h2>

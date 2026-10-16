@@ -78,9 +78,9 @@ export default function PackoutInserts() {
       </div>
 
       <GearBox items={[
-        { img: '/gear/packout-organizer.webp', href: 'https://www.amazon.com/s?k=milwaukee+packout+organizer&tag=tracetoforge-20', title: 'Milwaukee Packout organizers', blurb: 'the compact and large cases both take custom inserts' },
-        { img: '/gear/packout-3drawer.webp', href: 'https://www.amazon.com/s?k=milwaukee+packout+3+drawer&tag=tracetoforge-20', title: 'Milwaukee Packout 3-drawer tool box', blurb: 'the best candidate for full drawer trays' },
-        { img: '/gear/calipers.webp', href: 'https://www.amazon.com/s?k=digital+calipers&tag=tracetoforge-20', title: 'Digital calipers', blurb: 'for measuring tools before tracing' },
+        { href: 'https://www.amazon.com/s?k=milwaukee+packout+organizer&tag=tracetoforge-20', title: 'Milwaukee Packout organizers', blurb: 'the compact and large cases both take custom inserts' },
+        { href: 'https://www.amazon.com/s?k=milwaukee+packout+3+drawer&tag=tracetoforge-20', title: 'Milwaukee Packout 3-drawer tool box', blurb: 'the best candidate for full drawer trays' },
+        { href: 'https://www.amazon.com/s?k=digital+calipers&tag=tracetoforge-20', title: 'Digital calipers', blurb: 'for measuring tools before tracing' },
       ]} />
       <h2>Step 3: Configure for Packout</h2>
 

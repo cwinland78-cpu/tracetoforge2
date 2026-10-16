@@ -46,9 +46,9 @@ export default function GasketMaker() {
       <p>Worth doing whenever bolt spacing matters more than outer profile, which for flange gaskets is most of the time.</p>
 
       <GearBox items={[
-        { img: '/gear/gasket-material.webp', href: 'https://www.amazon.com/s?k=gasket+material+sheet+assortment&tag=tracetoforge-20', title: 'Gasket material sheet assortment', blurb: 'cork, rubber, and fiber in one pack covers most jobs' },
-        { img: '/gear/punch-set.webp', href: 'https://www.amazon.com/s?k=hollow+punch+set&tag=tracetoforge-20', title: 'Hollow punch set', blurb: 'clean bolt holes, better than any knife' },
-        { img: '/gear/tpu-filament.webp', href: 'https://www.amazon.com/s?k=tpu+filament+95a+1.75mm&tag=tracetoforge-20', title: 'TPU filament (95A)', blurb: 'for printing low-pressure gaskets directly' },
+        { href: 'https://www.amazon.com/s?k=gasket+material+sheet+assortment&tag=tracetoforge-20', title: 'Gasket material sheet assortment', blurb: 'cork, rubber, and fiber in one pack covers most jobs' },
+        { href: 'https://www.amazon.com/s?k=hollow+punch+set&tag=tracetoforge-20', title: 'Hollow punch set', blurb: 'clean bolt holes, better than any knife' },
+        { href: 'https://www.amazon.com/s?k=tpu+filament+95a+1.75mm&tag=tracetoforge-20', title: 'TPU filament (95A)', blurb: 'for printing low-pressure gaskets directly' },
       ]} />
 
       <h2>What This Replaces</h2>

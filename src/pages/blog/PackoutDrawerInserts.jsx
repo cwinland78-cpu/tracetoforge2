@@ -60,9 +60,9 @@ export default function PackoutDrawerInserts() {
       <p><strong>Do not fill it completely.</strong> Leave one open zone. You will acquire a tool, and a drawer with no slack forces a reprint.</p>
 
       <GearBox items={[
-        { img: '/gear/petg-filament.webp', href: 'https://www.amazon.com/s?k=petg+filament+1.75mm&tag=tracetoforge-20', title: 'PETG filament', blurb: 'holds up to job site heat better than PLA' },
-        { img: '/gear/digital-caliper.webp', href: 'https://www.amazon.com/s?k=digital+caliper&tag=tracetoforge-20', title: 'Digital caliper', blurb: 'for the drawer interior measurements above' },
-        { img: '/gear/drawer-liner.webp', href: 'https://www.amazon.com/s?k=non+slip+drawer+liner&tag=tracetoforge-20', title: 'Non-slip liner', blurb: 'keeps a printed tray from sliding on the drawer floor' },
+        { href: 'https://www.amazon.com/s?k=petg+filament+1.75mm&tag=tracetoforge-20', title: 'PETG filament', blurb: 'holds up to job site heat better than PLA' },
+        { href: 'https://www.amazon.com/s?k=digital+caliper&tag=tracetoforge-20', title: 'Digital caliper', blurb: 'for the drawer interior measurements above' },
+        { href: 'https://www.amazon.com/s?k=non+slip+drawer+liner&tag=tracetoforge-20', title: 'Non-slip liner', blurb: 'keeps a printed tray from sliding on the drawer floor' },
       ]} />
 
       <h2>Print Settings for Drawer Trays</h2>

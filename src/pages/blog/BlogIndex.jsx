@@ -11,7 +11,6 @@ export const BLOG_POSTS = [
     date: '2026-05-02',
     readTime: '5 min',
     tags: ['New Feature', 'Tool Organizer', 'Workflow', 'Drawer Tray'],
-    image: '/blog/tool-organizer-guide.jpg',
   },
   {
     slug: 'gridfinity-generator-photo-vs-parametric',
@@ -20,7 +19,6 @@ export const BLOG_POSTS = [
     date: '2026-03-11',
     readTime: '6 min',
     tags: ['Gridfinity', 'Generator', 'Comparison', '3D Printing'],
-    image: '/blog/gridfinity-generator.jpg',
   },
   {
     slug: 'knipex-pliers-organizer-3d-printed',
@@ -29,7 +27,6 @@ export const BLOG_POSTS = [
     date: '2026-03-10',
     readTime: '7 min',
     tags: ['Knipex', 'Tool Organizer', '3D Printing', 'Gridfinity'],
-    image: '/blog/knipex-organizer.jpg',
   },
   {
     slug: '3d-printed-tool-organizer-guide',
@@ -38,7 +35,6 @@ export const BLOG_POSTS = [
     date: '2026-03-10',
     readTime: '9 min',
     tags: ['3D Printing', 'Tool Organizer', 'Workshop', 'Storage'],
-    image: '/blog/tool-organizer-guide.jpg',
   },
   {
     slug: 'image-to-stl-converter-free',
@@ -47,7 +43,6 @@ export const BLOG_POSTS = [
     date: '2026-03-10',
     readTime: '6 min',
     tags: ['STL', 'Photo to 3D', '3D Printing', 'Free Tool'],
-    image: '/blog/image-to-stl.jpg',
   },
   {
     slug: 'gridfinity-custom-cutout-no-cad',
@@ -56,7 +51,6 @@ export const BLOG_POSTS = [
     date: '2026-03-10',
     readTime: '5 min',
     tags: ['Gridfinity', 'Custom Cutout', '3D Printing', 'No CAD'],
-    image: '/blog/gridfinity-cutout.jpg',
   },
   {
     slug: 'custom-milwaukee-packout-inserts-3d-print',
@@ -65,7 +59,6 @@ export const BLOG_POSTS = [
     date: '2026-02-24',
     readTime: '6 min',
     tags: ['Milwaukee Packout', '3D Printing', 'Tool Organization'],
-    image: '/blog/packout-insert.jpg',
   },
   {
     slug: 'gasket-maker-from-photo',
@@ -74,7 +67,6 @@ export const BLOG_POSTS = [
     date: '2026-07-18',
     readTime: '6 min',
     tags: ['Gaskets', 'DIY Repair', 'SVG'],
-    image: '/blog/gridfinity-insert.jpg',
   },
   {
     slug: 'measure-tool-from-photo-paper',
@@ -83,7 +75,6 @@ export const BLOG_POSTS = [
     date: '2026-07-18',
     readTime: '5 min',
     tags: ['Measuring', 'Photo Tracing', 'Workshop Tips'],
-    image: '/blog/gridfinity-insert.jpg',
   },
   {
     slug: 'gridfinity-insert-from-photo',
@@ -92,7 +83,6 @@ export const BLOG_POSTS = [
     date: '2026-02-24',
     readTime: '5 min',
     tags: ['Gridfinity', '3D Printing', 'Workshop Organization'],
-    image: '/blog/gridfinity-insert.jpg',
   },
   {
     slug: 'tool-organizer-photo-to-stl',
@@ -101,7 +91,6 @@ export const BLOG_POSTS = [
     date: '2026-02-24',
     readTime: '7 min',
     tags: ['STL', '3D Printing', 'Tool Storage'],
-    image: '/blog/photo-to-stl.jpg',
   },
   {
     slug: 'gridfinity-vs-packout-vs-custom-tray',
@@ -110,7 +99,6 @@ export const BLOG_POSTS = [
     date: '2026-02-24',
     readTime: '8 min',
     tags: ['Gridfinity', 'Milwaukee Packout', 'Comparison'],
-    image: '/blog/comparison.jpg',
   },
   {
     slug: 'best-3d-printed-tool-organizer-ideas',
@@ -119,7 +107,6 @@ export const BLOG_POSTS = [
     date: '2026-02-24',
     readTime: '6 min',
     tags: ['3D Printing', 'Workshop', 'Organization'],
-    image: '/blog/organizer-ideas.jpg',
   },
   {
     slug: '3d-printed-inserts-vs-kaizen-foam',
@@ -128,7 +115,6 @@ export const BLOG_POSTS = [
     date: '2026-02-24',
     readTime: '7 min',
     tags: ['Kaizen Foam', '3D Printing', 'Tool Organization'],
-    image: '/blog/foam-alternative.jpg',
   },
   {
     slug: 'how-to-organize-milwaukee-packout',
@@ -137,7 +123,6 @@ export const BLOG_POSTS = [
     date: '2026-02-24',
     readTime: '8 min',
     tags: ['Milwaukee Packout', 'Tool Organization', 'Workshop'],
-    image: '/blog/organize-packout.jpg',
   },
 ]
 

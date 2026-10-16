@@ -155,9 +155,9 @@ export default function PrintedToolOrganizer() {
 
 
       <GearBox items={[
-        { img: '/gear/calipers.webp', href: 'https://www.amazon.com/s?k=digital+calipers&tag=tracetoforge-20', title: 'Digital calipers', blurb: 'the one measuring tool every insert project needs' },
-        { img: '/gear/petg-filament.webp', href: 'https://www.amazon.com/s?k=petg+filament+1.75mm&tag=tracetoforge-20', title: 'PETG filament', blurb: 'our pick for oil and impact resistance in shop drawers' },
-        { img: '/gear/packout-organizer.webp', href: 'https://www.amazon.com/s?k=milwaukee+packout+organizer&tag=tracetoforge-20', title: 'Milwaukee Packout organizers', blurb: '' },
+        { href: 'https://www.amazon.com/s?k=digital+calipers&tag=tracetoforge-20', title: 'Digital calipers', blurb: 'the one measuring tool every insert project needs' },
+        { href: 'https://www.amazon.com/s?k=petg+filament+1.75mm&tag=tracetoforge-20', title: 'PETG filament', blurb: 'our pick for oil and impact resistance in shop drawers' },
+        { href: 'https://www.amazon.com/s?k=milwaukee+packout+organizer&tag=tracetoforge-20', title: 'Milwaukee Packout organizers', blurb: '' },
       ]} />
       <h2>Cost Comparison</h2>
 
