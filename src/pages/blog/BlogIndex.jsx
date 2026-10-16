@@ -23,7 +23,7 @@ export const BLOG_POSTS = [
   {
     slug: 'tracetoforge-vs-tooltrace-vs-gridpilot',
     title: 'TracetoForge vs Tooltrace vs GridPilot vs Tracefinity (2026)',
-    excerpt: 'TracetoForge, Tooltrace, GridPilot, gridfinity.tools and the open-source Tracefinity side by side: free tiers, pricing, export formats, multi-tool layouts.',
+    excerpt: 'TracetoForge, Tooltrace, GridPilot and Tracefinity side by side: free tiers, pricing, export formats and multi-tool layouts, with sources.',
     date: '2026-05-07',
     readTime: '8 min',
     tags: ['Gridfinity', 'Comparison', 'Tool Organization'],
