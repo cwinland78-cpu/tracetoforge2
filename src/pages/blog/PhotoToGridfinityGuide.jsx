@@ -7,11 +7,11 @@ export default function PhotoToGridfinityGuide() {
   return (
     <BlogPost
       title="Photo to Gridfinity: Measure, Trace, and Check the Fit"
-      description="Turn a phone photo of any tool into a printable Gridfinity bin. Paper-based scaling, tolerance settings, STL and 3MF export. No CAD, runs entirely in your browser."
+      description="Turn a phone photo of a tool into a printable Gridfinity bin: paper-based scaling, tolerance and fit checks, STL and 3MF export. No CAD; runs in your browser."
       canonical="https://tracetoforge.com/blog/photo-to-gridfinity-guide/"
       date="2026-05-07"
-      updated="2026-09-18"
-      readTime="11 min"
+      updated="2026-10-15"
+      readTime="12 min"
       tags={['Gridfinity', 'Photo to STL', 'Tool Organization', '3D Printing']}
       faq={[
         { q: 'How do I make a Gridfinity bin from a photo?', a: 'Lay the tool flat on a sheet of Letter or A4 paper, photograph it from directly overhead with all four paper corners in frame, and upload it. The software detects the paper to establish real-world scale, traces the tool silhouette, and cuts that shape as a cavity into a Gridfinity-profile bin. Set your grid size and tolerance, then export STL or 3MF. Allow time to verify scale and print a fit test before making the full bin.' },
@@ -105,7 +105,9 @@ export default function PhotoToGridfinityGuide() {
         Onshape parametric features are excellent at one thing: producing perfectly proportioned generic bins with
         rectangular, cylindrical, or hexagonal cavities. If you want a bin with eight equal compartments for resistors,
         or a single cavity sized for a roll of 6&nbsp;mm hex keys, parametric is the right tool. You type four numbers
-        and you have a print-ready file in thirty seconds.
+        and you have a print-ready file in thirty seconds. Perplexing Labs' Gridfinity Generator, for example, makes
+        parametric bins and baseplates but no photo-based cutouts, and Fusion 360 with a Gridfinity plugin is powerful
+        but means learning CAD and modeling each tool by hand.
       </p>
 
       <p>A parametric sketch can be useful when the shape is described by measured circles, rectangles, or repeated features. A photograph is useful when the outside silhouette matters more than those construction dimensions. Choose based on the geometry you need, then verify the result physically.</p>
@@ -165,7 +167,8 @@ export default function PhotoToGridfinityGuide() {
         Place the Cobras flat on a sheet of US Letter or A4 paper, jaws closed. Closed jaws give a cleaner outline
         than open jaws and the resulting bin holds the tool more securely. Stand directly over the paper — do not
         lean across a desk — and shoot from about 30&nbsp;cm above. Even, diffused lighting matters more than camera
-        quality. Avoid harsh shadows and direct overhead flash.
+        quality. Avoid harsh shadows and direct overhead flash. Some users prefer a flatbed scanner for small, flat
+        tools because it removes camera angle from the equation, but a phone camera works well for most tools.
       </p>
 
       <h3>Step 2: Upload and Auto-Trace</h3>
@@ -279,6 +282,8 @@ export default function PhotoToGridfinityGuide() {
           for things like ratchet-head clearance.</li>
         <li><strong>Bed adhesion:</strong> Standard PEI or a small skirt is sufficient. The Gridfinity base is
           a wide footprint that grips well.</li>
+        <li><strong>First layer:</strong> Make sure it is dialed in. The Gridfinity base profile has tight
+          tolerances, and a rough first layer affects how the bin sits on the baseplate.</li>
       </ul>
 
       <p>
@@ -345,15 +350,15 @@ export default function PhotoToGridfinityGuide() {
         How-to and tutorials:
       </p>
       <ul>
-        <li><Link to="/blog/gridfinity-insert-from-photo/">Create Gridfinity Inserts from a Photo</Link> — the focused walkthrough</li>
-        <li><Link to="/blog/gridfinity-custom-cutout-no-cad/">Gridfinity Custom Cutouts Without CAD</Link> — the photo-based method explained</li>
+        <li><Link to="/blog/gridfinity-custom-cutout-no-cad/">Gridfinity Custom Cutout From a Photo (No CAD)</Link> — the photo-based method explained</li>
+        <li><Link to="/blog/measure-tool-from-photo-paper/">Measure a Tool from a Photo With a Sheet of Paper</Link> — how the paper reference sets scale</li>
         <li><Link to="/blog/reusable-tool-library-drawer-trays/">Trace Once, Use Everywhere</Link> — the reusable tool library workflow</li>
         <li><Link to="/blog/photo-tips-for-gridfinity-trace/">Photo Tips for a Clean Gridfinity Trace</Link> — lighting, paper, and sensitivity</li>
       </ul>
 
       <p>Comparisons and tool choice:</p>
       <ul>
-        <li><Link to="/blog/gridfinity-generator-photo-vs-parametric/">Photo-Based vs Parametric Gridfinity Generators</Link></li>
+        <li><Link to="/blog/gridfinity-generator-photo-vs-parametric/">Gridfinity Generators Compared: Parametric vs Photo-Based</Link></li>
         <li><Link to="/blog/gridfinity-vs-packout-vs-custom-tray/">Gridfinity vs Packout vs Custom Trays</Link></li>
         <li><Link to="/blog/tracetoforge-vs-tooltrace-vs-gridpilot/">TracetoForge vs Tooltrace vs GridPilot</Link></li>
       </ul>
@@ -366,8 +371,15 @@ export default function PhotoToGridfinityGuide() {
         <li><Link to="/blog/drill-bit-gridfinity-storage/">Drill Bit Storage in Gridfinity</Link></li>
       </ul>
 
+      <p>Beyond Gridfinity, the same trace can become other files:</p>
+      <ul>
+        <li><Link to="/blog/image-to-stl-converter-free/">Image to STL for Tool Outlines</Link> — STL, 3MF, SVG, and DXF from one traced photo</li>
+        <li><Link to="/blog/drawing-to-3d-object/">Turn a Drawing into a 3D Printable Object</Link> — extrude a sketch instead of cutting a cavity</li>
+      </ul>
+
       <p>Workshop integration:</p>
       <ul>
+        <li><Link to="/blog/custom-milwaukee-packout-inserts-3d-print/">Custom Milwaukee Packout Inserts</Link></li>
         <li><Link to="/blog/how-to-organize-milwaukee-packout/">How to Organize a Milwaukee Packout</Link></li>
         <li><Link to="/blog/gridfinity-in-packout-drawer/">Gridfinity in Milwaukee Packout Drawers: Setup Guide</Link></li>
       </ul>

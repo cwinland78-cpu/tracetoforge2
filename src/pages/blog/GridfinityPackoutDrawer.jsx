@@ -6,10 +6,10 @@ export default function GridfinityPackoutDrawer() {
   return (
     <BlogPost
       title="Gridfinity in Milwaukee Packout Drawers: Setup Guide"
-      description="How to install a Gridfinity baseplate inside a Milwaukee Packout drawer. Drawer dimensions, baseplate sizing, mounting, and custom tool inserts. Works with the 48-22-8443 3-Drawer and 48-22-8442 2-Drawer."
+      description="Install a Gridfinity baseplate in a Milwaukee Packout drawer: drawer dimensions, baseplate sizing, mounting and custom tool bins for the 48-22-8443 and 8442."
       canonical="https://tracetoforge.com/blog/gridfinity-in-packout-drawer/"
       date="2026-05-07"
-      updated="2026-09-18"
+      updated="2026-10-15"
       readTime="9 min"
       tags={['Gridfinity', 'Milwaukee Packout', 'Tool Organization']}
     >
@@ -127,7 +127,7 @@ export default function GridfinityPackoutDrawer() {
         <Link to="/editor/">TracetoForge</Link> or another photo-based generator. Best for hand tools that lie
         flat — pliers, wrenches, screwdrivers, multimeters. The cavity is shaped exactly like the tool, so it
         does not roll, does not rattle, and pops out cleanly with a finger notch. Walkthrough:{' '}
-        <Link to="/blog/gridfinity-insert-from-photo/">create Gridfinity inserts from a photo</Link>.
+        <Link to="/blog/photo-to-gridfinity-guide/">photo to Gridfinity</Link>.
       </p>
 
       <p>
@@ -255,7 +255,7 @@ export default function GridfinityPackoutDrawer() {
       <ul>
         <li><Link to="/blog/photo-to-gridfinity-guide/">The Complete Guide to Custom Gridfinity Bins from a Photo</Link> — the pillar workflow guide</li>
         <li><Link to="/blog/how-to-organize-milwaukee-packout/">How to Organize a Milwaukee Packout</Link> — broader Packout organization</li>
-        <li><Link to="/blog/custom-milwaukee-packout-inserts-3d-print/">Custom Milwaukee Packout Inserts</Link> — non-drawer Packout cases</li>
+        <li><Link to="/blog/custom-milwaukee-packout-inserts-3d-print/">Custom Milwaukee Packout Inserts</Link> — Packout cases, drawer measuring, and full-drawer trays</li>
         <li><Link to="/blog/gridfinity-vs-packout-vs-custom-tray/">Gridfinity vs Packout vs Custom Trays</Link> — system comparison</li>
         <li><Link to="/blog/knipex-pliers-organizer-3d-printed/">Knipex Pliers Organizer</Link> — worked example with photo-traced bins</li>
       </ul>

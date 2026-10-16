@@ -5,11 +5,11 @@ import BlogPost from './BlogPost'
 export default function CompetitorComparison() {
   return (
     <BlogPost
-      title="Tracefinity vs Tooltrace vs TracetoForge Compared"
-      description="Tracefinity, Tooltrace, GridPilot and TracetoForge side by side. Self-hosting, pricing, free tier limits, export formats, and how each one gets real-world scale from a photo."
+      title="TracetoForge vs Tooltrace vs GridPilot vs Tracefinity (2026)"
+      description="Four photo-to-Gridfinity tools side by side: free tiers, pricing, export formats, multi-tool layouts and trace accuracy."
       canonical="https://tracetoforge.com/blog/tracetoforge-vs-tooltrace-vs-gridpilot/"
       date="2026-05-07"
-      updated="2026-05-07"
+      updated="2026-10-15"
       readTime="8 min"
       tags={['Gridfinity', 'Comparison', 'Tool Organization']}
       faq={[
@@ -126,8 +126,8 @@ export default function CompetitorComparison() {
         <li><strong>You want a free path from photo to STL.</strong> Tracing and 3D-previewing are free without an
           account. New accounts get three free export credits — enough to print a few inserts before deciding whether
           to buy a credit pack.</li>
-        <li><strong>You are tracing multiple tools into a single tray.</strong> Multi-tool mode supports up to five
-          tools per bin with independent depth, tolerance, and finger-notch settings per tool. A drawer of mixed
+        <li><strong>You are tracing multiple tools into a single tray.</strong> Multi-tool mode supports up to 12
+          tools per insert with independent depth, tolerance, and finger-notch settings per tool. A drawer of mixed
           pliers, screwdrivers, and a multimeter becomes one print.</li>
         <li><strong>You need SVG or DXF output.</strong> The same trace can produce vector files for laser-cutting
           foam inserts or CNC-routing aluminum or hardwood trays. Most Gridfinity tools only export STL.</li>
@@ -270,7 +270,6 @@ export default function CompetitorComparison() {
         <li><Link to="/blog/photo-to-gridfinity-guide/">The Complete Guide to Custom Gridfinity Bins from a Photo</Link> — pillar guide covering the full workflow</li>
         <li><Link to="/blog/gridfinity-generator-photo-vs-parametric/">Photo-Based vs Parametric Gridfinity Generators</Link> — the broader paradigm comparison</li>
         <li><Link to="/blog/gridfinity-vs-packout-vs-custom-tray/">Gridfinity vs Packout vs Custom Trays</Link> — system-level comparison</li>
-        <li><Link to="/blog/gridfinity-insert-from-photo/">Create Gridfinity Inserts from a Photo</Link> — the focused TracetoForge walkthrough</li>
       </ul>
 
       <p>

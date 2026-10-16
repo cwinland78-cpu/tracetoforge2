@@ -6,9 +6,10 @@ export default function OrganizePackout() {
   return (
     <BlogPost
       title="How to Organize a Milwaukee Packout: Real Layouts"
-      description="Drawer-by-drawer Packout layouts using 3D printed inserts and Gridfinity bins. What fits where, which drawers waste space, and how to cut trays for your own tools."
+      description="Drawer-by-drawer Packout layouts with 3D printed inserts and Gridfinity bins: what fits where, which drawers waste space, and how to cut trays for your tools."
       canonical="https://tracetoforge.com/blog/how-to-organize-milwaukee-packout/"
       date="2026-02-24"
+      updated="2026-10-15"
       readTime="8 min"
       tags={['Milwaukee Packout', 'Tool Organization', 'Workshop', '3D Printing']}
       faq={[
@@ -105,7 +106,7 @@ export default function OrganizePackout() {
 
       <p>
         The Packout Compact Organizer and 3-Drawer models are perfect candidates
-        for <Link to="/blog/gridfinity-insert-from-photo/">Gridfinity bins</Link>. Print a baseplate
+        for <Link to="/blog/gridfinity-in-packout-drawer/">Gridfinity bins</Link>. Print a baseplate
         sized to the drawer interior, then fill it with modular bins for:
       </p>
 
@@ -241,9 +242,10 @@ export default function OrganizePackout() {
       <ul>
         <li><Link to="/blog/custom-milwaukee-packout-inserts-3d-print/">Custom Milwaukee Packout Inserts</Link> - Step-by-step photo-to-insert guide for Packout</li>
         <li><Link to="/blog/3d-printed-inserts-vs-kaizen-foam/">3D Printed Inserts vs Kaizen Foam</Link> - Full cost and durability comparison</li>
-        <li><Link to="/blog/gridfinity-insert-from-photo/">Gridfinity Inserts from a Photo</Link> - Custom Gridfinity bins for Packout drawers</li>
+        <li><Link to="/blog/gridfinity-in-packout-drawer/">Gridfinity in Milwaukee Packout Drawers</Link> - Baseplate sizing and mounting for Packout drawers</li>
+        <li><Link to="/blog/photo-to-gridfinity-guide/">Photo to Gridfinity</Link> - Custom tool-shaped Gridfinity bins from a photo</li>
         <li><Link to="/blog/gridfinity-vs-packout-vs-custom-tray/">Gridfinity vs Packout vs Custom Trays</Link> - Choosing the right insert system</li>
-        <li><Link to="/blog/best-3d-printed-tool-organizer-ideas/">Best 3D Printed Tool Organizer Ideas</Link> - More workshop organization inspiration</li>
+        <li><Link to="/blog/3d-printed-tool-organizer-guide/">3D Printed Tool Organizer Ideas and Fit Guide</Link> - More workshop organization inspiration</li>
       </ul>
     </BlogPost>
   )

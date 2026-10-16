@@ -192,10 +192,10 @@ const faqSchema = {
 }
 
 const landingHtml = makePage({
-  title: 'Custom Tool Drawer Organizer From a Photo | TracetoForge',
-  description: 'Design custom wrench, plier, screwdriver, and hammer drawer trays from a photo of your tools. Also makes replacement gaskets from a photo. Auto-trace, export STL, 3MF, SVG, or DXF. Gridfinity supported. Free, no CAD needed.',
+  title: 'Photo to Gridfinity Bin & Custom Tool Inserts | TracetoForge',
+  description: 'Photograph a tool on paper and get a fitted Gridfinity bin, Packout drawer insert or tray. Free trace and 3D preview; export STL, 3MF, SVG or DXF.',
   canonical: 'https://tracetoforge.com/',
-  ogTitle: 'TracetoForge - Custom Tool Drawer Trays From a Photo',
+  ogTitle: 'Photo to Gridfinity Bin & Custom Tool Inserts | TracetoForge',
   h1: 'Custom Gridfinity Inserts From a Photo — No CAD Needed',
   bodyHtml: `
       <p><strong>New: <a href="/community/">Community Tool Library</a></strong> — browse traces published by other users and drop them straight into your own drawer trays, Gridfinity bins, or Packout inserts. Free to browse and use.</p>
@@ -231,18 +231,16 @@ const landingHtml = makePage({
       <h2>Guides and Tutorials</h2>
       <ul>
         <li><a href="/blog/reusable-tool-library-drawer-trays/">Trace Once, Use Everywhere: Build a Reusable Tool Library</a></li>
-        <li><a href="/blog/image-to-stl-converter-free/">Image to STL Converter: Free, No CAD Needed</a></li>
-        <li><a href="/blog/gridfinity-custom-cutout-no-cad/">Gridfinity Custom Cutouts Without CAD</a></li>
-        <li><a href="/blog/3d-printed-tool-organizer-guide/">3D Printed Tool Organizer: Complete Guide</a></li>
+        <li><a href="/blog/image-to-stl-converter-free/">Image to STL for Tool Outlines</a></li>
+        <li><a href="/blog/gridfinity-custom-cutout-no-cad/">Gridfinity Custom Cutout From a Photo (No CAD)</a></li>
+        <li><a href="/blog/3d-printed-tool-organizer-guide/">3D Printed Tool Organizer Ideas and Fit Guide</a></li>
         <li><a href="/blog/knipex-pliers-organizer-3d-printed/">Knipex Pliers Organizer: 3D Printed Inserts</a></li>
-        <li><a href="/blog/gridfinity-insert-from-photo/">Create Gridfinity Inserts from a Photo</a></li>
-        <li><a href="/blog/gridfinity-generator-photo-vs-parametric/">Gridfinity Generator: Photo-Based vs Parametric</a></li>
+        <li><a href="/blog/photo-to-gridfinity-guide/">Photo to Gridfinity: Measure, Trace, and Check the Fit</a></li>
+        <li><a href="/blog/gridfinity-generator-photo-vs-parametric/">Gridfinity Generators Compared: Parametric vs Photo-Based</a></li>
         <li><a href="/blog/custom-milwaukee-packout-inserts-3d-print/">Custom Milwaukee Packout Inserts</a></li>
         <li><a href="/blog/gridfinity-vs-packout-vs-custom-tray/">Gridfinity vs Packout vs Custom Trays</a></li>
-        <li><a href="/blog/best-3d-printed-tool-organizer-ideas/">Best 3D Printed Tool Organizer Ideas</a></li>
         <li><a href="/blog/3d-printed-inserts-vs-kaizen-foam/">3D Printed Inserts vs Kaizen Foam</a></li>
         <li><a href="/blog/how-to-organize-milwaukee-packout/">How to Organize a Milwaukee Packout</a></li>
-        <li><a href="/blog/tool-organizer-photo-to-stl/">Photo to STL Tool Organizer Guide</a></li>
       </ul>
       <h2>Buy Ready-Made Inserts</h2>
       <p>No 3D printer? Buy precision-fit PETG tool inserts on <a href="https://www.amazon.com/s?k=TracetoForge+gridfinity+insert&rh=n%3A553240">Amazon</a> and <a href="https://www.etsy.com/shop/TracetoForge">Etsy</a>. Gridfinity and Milwaukee Packout compatible. Inserts for Knipex Cobra, Knipex Pliers Wrench, Klein wire strippers, Wera screwdrivers, Milwaukee hand tools, and more.</p>
@@ -329,7 +327,7 @@ console.log('[prerender] /404.html')
 // Guide
 writePage('/guide', makePage({
   title: 'Getting Started Guide | TracetoForge',
-  description: 'Step-by-step guide to creating custom 3D-printable tool inserts from photos with TracetoForge. Photo, trace, dimensions, export, and print. No CAD experience needed.',
+  description: 'Step-by-step guide to turning tool photos into 3D-printable inserts with TracetoForge: photo, trace, dimensions, export and print. No CAD experience needed.',
   canonical: 'https://tracetoforge.com/guide/',
   ogTitle: 'TracetoForge Getting Started Guide',
   h1: 'TracetoForge: Getting Started Guide',
@@ -363,7 +361,7 @@ writePage('/guide', makePage({
       <p>Add Finger Notches if you want cutouts for grabbing your tools. Pick a circle, square, or rectangle, then drag each notch in the 3D preview to where you want to grip. A tray can have up to 12 notches.</p>
 
       <h2>Step 6: Add Multiple Tools (Optional)</h2>
-      <p>Up to five tools fit in a single insert. Click "Add Tool" and trace a new photo. Each tool can be repositioned by dragging in the 3D preview. Each has independent settings for cavity depth, tolerance, rotation, and finger notch. This is the fastest way to build a complete drawer of pliers, screwdrivers, or wrenches in a single print.</p>
+      <p>Up to 12 tools fit in a single insert. Click "Add Tool" and trace a new photo. Each tool can be repositioned by dragging in the 3D preview. Each has independent settings for cavity depth, tolerance, rotation, and finger notch. This is the fastest way to build a complete drawer of pliers, screwdrivers, or wrenches in a single print.</p>
 
       <h2>Step 7: Preview in 3D</h2>
       <p>The 3D preview shows your insert exactly as it will print. Rotate, zoom, and inspect the geometry from all angles. If anything looks off (wrong cavity depth, weird overhangs, missing notches), go back and adjust. The preview updates in real time as you change settings.</p>
@@ -414,8 +412,8 @@ writePage('/guide', makePage({
 
 // Editor
 writePage('/community', makePage({
-  title: 'Community Tool Library - Shared 3D Printable Tool Traces | TracetoForge',
-  description: 'Browse a growing library of community-shared tool traces. Use any trace in your own custom drawer trays, Gridfinity bins, or Packout inserts. Free to browse and use.',
+  title: 'Community Tool Library: Shared Tool Traces | TracetoForge',
+  description: 'Browse community-shared tool traces and use any of them in your own drawer trays, Gridfinity bins or Packout inserts. Free to browse and use.',
   canonical: 'https://tracetoforge.com/community/',
   ogTitle: 'Community Tool Library - TracetoForge',
   h1: 'Community Tool Library',
@@ -442,7 +440,7 @@ writePage('/community', makePage({
 
 writePage('/editor', makePage({
   title: 'Tool Insert Editor - Upload Photo & Export STL | TracetoForge',
-  description: 'Free browser-based tool insert editor. Upload a photo, auto-trace the outline, and export print-ready STL, 3MF, SVG, or DXF files. Works with Milwaukee Packout, Gridfinity, DeWalt ToughSystem, and custom trays.',
+  description: 'Free browser-based tool insert editor: upload a photo, auto-trace the outline, and export STL, 3MF, SVG or DXF for Packout, Gridfinity or custom trays.',
   canonical: 'https://tracetoforge.com/editor/',
   ogTitle: 'TracetoForge Editor - Photo to 3D Insert',
   h1: 'TracetoForge Editor: Photo to Print-Ready Tool Insert',
@@ -466,7 +464,7 @@ writePage('/editor', makePage({
       <p>The 3D preview shows your insert in real time. Drag tools around in the preview to reposition. When you are satisfied, pick your export format and download. Slice with Cura, PrusaSlicer, OrcaSlicer, Bambu Studio, or any other slicer.</p>
 
       <h2>Multi-Tool Support</h2>
-      <p>The editor supports up to five tools per insert. Trace each tool from its own photo, then position them on a single tray. Each tool has independent settings: cavity depth, wall tolerance, finger notch, rotation, and bevel. This lets you build a single insert that holds an entire set of pliers, screwdrivers, or wrenches in one print.</p>
+      <p>The editor supports up to 12 tools per insert. Trace each tool from its own photo, then position them on a single tray. Each tool has independent settings: cavity depth, wall tolerance, finger notch, rotation, and bevel. This lets you build a single insert that holds an entire set of pliers, screwdrivers, or wrenches in one print.</p>
 
       <h2>Supported Export Formats</h2>
       <p><strong>STL:</strong> The universal 3D printing format. Works with every slicer and 3D printer. Best choice for single-material PETG or PLA prints.</p>
@@ -672,7 +670,7 @@ writePage('/terms', makePage({
 // About
 writePage('/about', makePage({
   title: 'About TracetoForge | Qwikymart LLC',
-  description: 'TracetoForge is a small maker project run out of Northeast Ohio, operated by Qwikymart LLC. Browser-based tool insert editor plus physical 3D printed inserts shipped from the shop.',
+  description: 'TracetoForge is a small Northeast Ohio maker project run by Qwikymart LLC: a browser-based tool insert editor plus 3D printed inserts shipped from the shop.',
   canonical: 'https://tracetoforge.com/about/',
   ogTitle: 'About TracetoForge',
   h1: 'About TracetoForge',
@@ -720,7 +718,7 @@ writePage('/about', makePage({
 // Contact
 writePage('/contact', makePage({
   title: 'Contact TracetoForge | Support & Feedback',
-  description: 'Contact TracetoForge. Email support@tracetoforge.com for bug reports, feature requests, refund inquiries, and partnership questions. Typical response time 1-2 business days.',
+  description: 'Email support@tracetoforge.com for bug reports, feature requests, refunds and partnership questions. Typical response time is 1-2 business days.',
   canonical: 'https://tracetoforge.com/contact/',
   ogTitle: 'Contact TracetoForge',
   h1: 'Contact TracetoForge',
@@ -800,30 +798,26 @@ writePage('/dashboard', makePage({
 
 // Blog Index
 const blogPosts = [
-  { slug: 'packout-drawer-inserts', title: 'Milwaukee Packout Drawer Inserts: Sizes and Layouts', excerpt: 'Interior dimensions for the 2, 3, and 5-drawer Packout units, how much depth you actually get, and three layout approaches for filling them with printed inserts.' },
   { slug: 'drawing-to-3d-object', title: 'Turn a Drawing into a 3D Printable Object', excerpt: 'Sketch a shape on paper, photograph it, and export a printable STL. The same tracer that cuts tool cavities also extrudes solid objects. No CAD required.' },
-  { slug: 'photo-to-gridfinity-guide', title: 'Photo to Gridfinity: Custom Bin in Under 2 Minutes', excerpt: 'Turn a phone photo of any tool into a printable Gridfinity bin. Paper-based scaling, tolerance settings, STL and 3MF export. No CAD, runs entirely in your browser.' },
-  { slug: 'tracetoforge-vs-tooltrace-vs-gridpilot', title: 'Tracefinity vs Tooltrace vs TracetoForge Compared', excerpt: 'Tracefinity, Tooltrace, GridPilot and TracetoForge side by side. Self-hosting, pricing, free tier limits, export formats, and how each one gets real-world scale from a photo.' },
+  { slug: 'photo-to-gridfinity-guide', title: 'Photo to Gridfinity: Measure, Trace, and Check the Fit', excerpt: 'Turn a phone photo of any tool into a printable Gridfinity bin. Paper-based scaling, tolerance and fit checks, STL and 3MF export.' },
+  { slug: 'tracetoforge-vs-tooltrace-vs-gridpilot', title: 'TracetoForge vs Tooltrace vs GridPilot vs Tracefinity (2026)', excerpt: 'TracetoForge, Tooltrace, GridPilot, gridfinity.tools and the open-source Tracefinity side by side: free tiers, pricing, export formats, multi-tool layouts.' },
   { slug: 'gridfinity-in-packout-drawer', title: 'Gridfinity in Milwaukee Packout Drawers: Setup Guide', excerpt: 'Install a 9×6 Gridfinity baseplate in a Packout drawer. Drawer dimensions, baseplate sizing, mounting, and custom tool inserts. Works with the 48-22-8443 3-Drawer and 48-22-8442 2-Drawer.' },
-  { slug: 'photo-tips-for-gridfinity-trace', title: 'Photo Tips for a Clean Gridfinity Trace: Lighting, Paper, and Angle', excerpt: 'Five things that matter for a clean trace: paper, lighting, camera angle, tool prep, and Sensitivity slider tuning. Common failure modes and fixes.' },
+  { slug: 'photo-tips-for-gridfinity-trace', title: 'Photo Tips for a Clean Tool Trace', excerpt: 'Five things that matter for a clean trace: paper, lighting, camera angle, tool prep, and Sensitivity slider tuning. Common failure modes and fixes.' },
   { slug: 'wera-screwdriver-gridfinity-bin', title: 'Wera Screwdriver Gridfinity Bin: Photo-to-Print Walkthrough', excerpt: 'Build a 6×3 Gridfinity bin for a 12-piece Wera Kraftform set from a phone photo. Sizing, cavity depth, finger notches, print settings.' },
   { slug: 'wrench-set-gridfinity-bin', title: 'Wrench Set Gridfinity Bin from a Photo', excerpt: 'Custom Gridfinity bins for combination, ratcheting, stubby, and ignition wrenches. SAE, metric, and combined-set layouts. Per-brand tolerance notes.' },
   { slug: 'drill-bit-gridfinity-storage', title: 'Drill Bit Storage in Gridfinity: Custom Bin Layouts', excerpt: 'Tip-up vs tip-down, parametric vs photo-trace, single-set vs multi-set. Twist drills, brad-point, Forstner, step drills, hole saws, spade bits.' },
-  { slug: 'reusable-tool-library-drawer-trays', title: 'Trace Once, Use Everywhere: Build a Reusable Tool Library for Custom Drawer Trays', excerpt: 'Save your traced tools and reuse them across any Gridfinity bin, Packout insert, or drawer tray without re-tracing.' },
-  { slug: 'custom-milwaukee-packout-inserts-3d-print', title: 'How to Make Custom Milwaukee Packout Inserts with a 3D Printer', excerpt: 'Stop buying $40 generic inserts. Learn how to create perfectly fitted, custom Packout inserts from a photo.' },
+  { slug: 'reusable-tool-library-drawer-trays', title: 'Reusable Tool Library for Custom Drawer Trays', excerpt: 'Save your traced tools and reuse them across any Gridfinity bin, Packout insert, or drawer tray without re-tracing.' },
+  { slug: 'custom-milwaukee-packout-inserts-3d-print', title: 'Custom Milwaukee Packout Inserts: 3D Print Your Own', excerpt: 'Make fitted Packout inserts from a photo: case and drawer interior sizes, cavity depth, three ways to fill a drawer, and print settings for full-drawer trays.' },
   { slug: 'gasket-maker-from-photo', title: 'Make a Replacement Gasket from a Photo, Bolt Holes and All', excerpt: 'Photograph a dead gasket and get a cutting template with bolt holes detected automatically. Calibration sheet for exact bolt spacing. SVG, DXF, STL, and 3MF exports.' },
   { slug: 'measure-tool-from-photo-paper', title: 'Measure a Tool from a Photo With a Sheet of Paper', excerpt: 'Skip the calipers. Paper size detected automatically, perspective corrected, holes measured too. Plus when to use the calibration sheet instead.' },
-  { slug: 'gridfinity-insert-from-photo', title: 'Create Gridfinity Inserts from a Photo: The Fastest Way in 2026', excerpt: 'Forget hours of CAD work. Snap a photo and generate a perfectly fitted Gridfinity insert in minutes.' },
-  { slug: 'tool-organizer-photo-to-stl', title: 'Photo to STL: Turn Any Tool Photo into a 3D Printable Organizer', excerpt: 'A complete guide to converting photos into print-ready STL, 3MF, SVG, and DXF files.' },
   { slug: 'gridfinity-vs-packout-vs-custom-tray', title: 'Gridfinity vs Packout vs Custom Trays: Which to Pick', excerpt: 'Three insert systems compared on cost, print time, drawer fit, and how easy each is to modify. A straight answer on which one suits your setup.' },
-  { slug: 'best-3d-printed-tool-organizer-ideas', title: '10 Best 3D Printed Tool Organizer Ideas for Your Workshop in 2026', excerpt: 'Socket holders, drill bit racks, wrench organizers, and custom inserts for any workshop.' },
-  { slug: '3d-printed-inserts-vs-kaizen-foam', title: '3D Printed Tool Inserts vs Kaizen Foam: Why Foam Is Losing', excerpt: 'Cost breakdown, durability comparison, and why 3D printed inserts are replacing foam.' },
+  { slug: '3d-printed-inserts-vs-kaizen-foam', title: '3D Printed Tool Inserts vs Kaizen Foam', excerpt: 'Cost breakdown, durability comparison, and why 3D printed inserts are replacing foam.' },
   { slug: 'how-to-organize-milwaukee-packout', title: 'How to Organize a Milwaukee Packout: Real Layouts', excerpt: 'Drawer-by-drawer Packout layouts using 3D printed inserts and Gridfinity bins. What fits where, which drawers waste space, and how to cut trays for your own tools.' },
-  { slug: 'image-to-stl-converter-free', title: 'Image to STL Converter: Turn Any Photo into a 3D Printable File for Free', excerpt: 'Convert photos of tools into STL files for 3D printing. No CAD skills needed. Free browser-based converter.' },
-  { slug: 'gridfinity-custom-cutout-no-cad', title: 'Gridfinity Cutout Generator: No CAD, Just a Photo', excerpt: 'Generate a Gridfinity cutout from a photo of your tool. No Fusion 360, no OpenSCAD, no parametric setup. Upload, trace, export STL in about 2 minutes.' },
-  { slug: '3d-printed-tool-organizer-guide', title: '3D Printed Tool Organizer That Actually Fits', excerpt: 'Filament choices, wall thickness, mounting, and tolerances for tool organizers fitted to your exact tools. Includes the photo-tracing method that skips CAD entirely.' },
+  { slug: 'image-to-stl-converter-free', title: 'Image to STL for Tool Outlines: Free Trace & Preview', excerpt: 'Trace a photo into an STL, 3MF, SVG, or DXF outline file. Which format to use, output modes, and fixes for shadows, reflections, and scale errors.' },
+  { slug: 'gridfinity-custom-cutout-no-cad', title: 'Gridfinity Custom Cutout From a Photo (No CAD)', excerpt: 'Generate a Gridfinity cutout from a photo of your tool. No Fusion 360, no OpenSCAD, no parametric setup. Upload, trace, export STL in about 2 minutes.' },
+  { slug: '3d-printed-tool-organizer-guide', title: '3D Printed Tool Organizer Ideas and Fit Guide', excerpt: 'Ten organizer ideas worth printing, plus filament choice, tolerances, and print settings for organizers fitted to your exact tools.' },
   { slug: 'knipex-pliers-organizer-3d-printed', title: 'Knipex Pliers Organizer: Cobra, Pliers Wrench, TwinGrip', excerpt: 'Printable organizer inserts fitted to Knipex Cobra 125-300mm, Pliers Wrench, TwinGrip, and diagonal cutters. Gridfinity and Packout compatible, or trace your own.' },
-  { slug: 'gridfinity-generator-photo-vs-parametric', title: 'Gridfinity Generator: Photo-Based vs Parametric — Which Is Better?', excerpt: 'Compare the best Gridfinity generators. Parametric tools for simple bins vs photo-based generators for precision tool cutouts.' },
+  { slug: 'gridfinity-generator-photo-vs-parametric', title: 'Gridfinity Generators Compared: Parametric vs Photo-Based', excerpt: 'Compare the best Gridfinity generators. Parametric tools for simple bins vs photo-based generators for precision tool cutouts.' },
 ]
 
 const blogListHtml = blogPosts.map(p =>
@@ -846,7 +840,6 @@ ${blogListHtml}
 import { readdirSync } from 'fs'
 
 const postConfigs = [
-  { slug: 'packout-drawer-inserts', file: 'PackoutDrawerInserts.jsx' },
   { slug: 'drawing-to-3d-object', file: 'DrawingTo3D.jsx' },
   { slug: 'photo-to-gridfinity-guide', file: 'PhotoToGridfinityGuide.jsx' },
   { slug: 'tracetoforge-vs-tooltrace-vs-gridpilot', file: 'CompetitorComparison.jsx' },
@@ -858,10 +851,7 @@ const postConfigs = [
   { slug: 'custom-milwaukee-packout-inserts-3d-print', file: 'PackoutInserts.jsx' },
   { slug: 'gasket-maker-from-photo', file: 'GasketMaker.jsx' },
   { slug: 'measure-tool-from-photo-paper', file: 'PaperMeasure.jsx' },
-  { slug: 'gridfinity-insert-from-photo', file: 'GridfinityFromPhoto.jsx' },
-  { slug: 'tool-organizer-photo-to-stl', file: 'PhotoToSTL.jsx' },
   { slug: 'gridfinity-vs-packout-vs-custom-tray', file: 'ComparisonPost.jsx' },
-  { slug: 'best-3d-printed-tool-organizer-ideas', file: 'OrganizerIdeas.jsx' },
   { slug: '3d-printed-inserts-vs-kaizen-foam', file: 'FoamAlternative.jsx' },
   { slug: 'how-to-organize-milwaukee-packout', file: 'OrganizePackout.jsx' },
   { slug: 'image-to-stl-converter-free', file: 'ImageToSTL.jsx' },

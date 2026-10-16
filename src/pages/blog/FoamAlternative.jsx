@@ -5,10 +5,11 @@ import BlogPost from './BlogPost'
 export default function FoamAlternative() {
   return (
     <BlogPost
-      title="3D Printed Tool Inserts vs Kaizen Foam: Why Foam Is Losing in 2026"
+      title="3D Printed Tool Inserts vs Kaizen Foam"
       description="Compare 3D printed custom tool inserts against Kaizen foam, Shadow Foam, and cut foam alternatives. Cost breakdown, durability, and which option actually lasts."
       canonical="https://tracetoforge.com/blog/3d-printed-inserts-vs-kaizen-foam/"
       date="2026-02-24"
+      updated="2026-10-15"
       readTime="7 min"
       tags={['Tool Organization', '3D Printing', 'Kaizen Foam', 'Workshop']}
     >
@@ -183,10 +184,10 @@ export default function FoamAlternative() {
       <h2>Related Guides</h2>
       <ul>
         <li><Link to="/blog/custom-milwaukee-packout-inserts-3d-print/">Custom Milwaukee Packout Inserts</Link> - Step-by-step guide for Packout-specific inserts</li>
-        <li><Link to="/blog/gridfinity-insert-from-photo/">Gridfinity Inserts from a Photo</Link> - Custom Gridfinity bins from a smartphone photo</li>
-        <li><Link to="/blog/tool-organizer-photo-to-stl/">Photo-to-STL: How It Works</Link> - Technical breakdown of photo-based insert generation</li>
+        <li><Link to="/blog/photo-to-gridfinity-guide/">Photo to Gridfinity</Link> - Custom Gridfinity bins from a smartphone photo</li>
+        <li><Link to="/blog/image-to-stl-converter-free/">Image to STL for Tool Outlines</Link> - Technical breakdown of photo-based insert generation</li>
         <li><Link to="/blog/gridfinity-vs-packout-vs-custom-tray/">Gridfinity vs Packout vs Custom Trays</Link> - Compare the major insert systems</li>
-        <li><Link to="/blog/best-3d-printed-tool-organizer-ideas/">Best 3D Printed Tool Organizer Ideas</Link> - Creative ideas for workshop organization</li>
+        <li><Link to="/blog/3d-printed-tool-organizer-guide/">3D Printed Tool Organizer Ideas and Fit Guide</Link> - Creative ideas for workshop organization</li>
       </ul>
     </BlogPost>
   )

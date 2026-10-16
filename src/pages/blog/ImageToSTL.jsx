@@ -5,12 +5,12 @@ import BlogPost from './BlogPost'
 export default function ImageToSTL() {
   return (
     <BlogPost
-      title="Image to STL: Free Tracing and Preview, Credit-Based Exports"
-      description="Convert photos of tools, parts, and objects into STL files for 3D printing. No CAD skills needed. Browser-based tracing and preview; file exports use credits."
+      title="Image to STL for Tool Outlines: Free Trace & Preview"
+      description="Trace a photo of a tool or part into an STL, 3MF, SVG or DXF outline file. Which format to use, common trace problems and fixes. Free trace and preview."
       canonical="https://tracetoforge.com/blog/image-to-stl-converter-free/"
       date="2026-03-10"
-      updated="2026-09-18"
-      readTime="6 min"
+      updated="2026-10-15"
+      readTime="10 min"
       tags={['STL', 'Photo to 3D', '3D Printing', 'Free Tool']}
     >
       <div className="not-prose mb-8 p-5 rounded-lg border border-brand/30 bg-brand/5">
@@ -35,6 +35,12 @@ export default function ImageToSTL() {
         automatically, and you download a print-ready STL in under two minutes.
       </p>
 
+      <p>
+        To be clear about what this is: the method traces the outline of an object and extrudes it, or cuts it into a
+        tray as a cavity. It is not a lithophane generator, and it does not reconstruct a full 3D mesh of an object from
+        a single photo. If what you need is the shape of a tool, part, or sketch seen from above, this is the right fit.
+      </p>
+
       <h2>How Image to STL Conversion Works</h2>
 
       <p>
@@ -50,6 +56,16 @@ export default function ImageToSTL() {
         custom-fitted cavity that holds your tool securely.
       </p>
 
+      <p>Under the hood, the pipeline has five stages:</p>
+
+      <ul>
+        <li><strong>Reference detection:</strong> The software identifies a known-size object in the photo (usually a sheet of paper) to establish scale, so every pixel can be mapped to real-world millimeters.</li>
+        <li><strong>Edge detection:</strong> Contrast-based algorithms find the boundary between the tool and the background. Higher contrast (dark tool on white paper) produces cleaner edges.</li>
+        <li><strong>Contour extraction:</strong> The detected edges are converted into a vector path, like an SVG outline. This path defines the shape of the tool.</li>
+        <li><strong>3D extrusion:</strong> The 2D outline is extruded to a specified depth, either as a solid object or as a cavity subtracted from a tray.</li>
+        <li><strong>File export:</strong> The finished model is written out as STL, 3MF, SVG, or DXF.</li>
+      </ul>
+
       <h2>Photo to STL: Step by Step</h2>
 
       <h3>1. Take a Top-Down Photo</h3>
@@ -62,8 +78,8 @@ export default function ImageToSTL() {
 
       <h3>2. Upload to an Image-to-STL Tool</h3>
       <p>
-        Open <Link to="/editor/">TracetoForge</Link> in your browser. No download, no account
-        required for your first export. Upload your photo and the app detects the paper corners
+        Open <Link to="/editor/">TracetoForge</Link> in your browser. No download, and no account
+        needed to trace and preview. Upload your photo and the app detects the paper corners
         and object outline automatically.
       </p>
 
@@ -81,6 +97,41 @@ export default function ImageToSTL() {
         OrcaSlicer, Bambu Studio). SVG and DXF exports are useful for laser cutting foam inserts or
         CNC routing wood trays.
       </p>
+
+      <h2>Which File Format Do You Need?</h2>
+
+      <h3>STL</h3>
+      <p>
+        The most widely supported 3D printing format. Every slicer reads STL files. The downside is that STL files do
+        not carry color, material, or unit information, so you may need to confirm the scale in your slicer.
+      </p>
+
+      <h3>3MF</h3>
+      <p>
+        A newer format that includes units, metadata, and multi-material information. If your slicer supports it
+        (PrusaSlicer, BambuStudio, and Cura all do), 3MF is generally the better choice. No scale ambiguity.
+      </p>
+
+      <h3>SVG</h3>
+      <p>
+        A 2D vector format for laser cutting. If you have access to a laser cutter, SVG output lets you cut foam or
+        acrylic inserts from the same outline you would otherwise 3D print.
+      </p>
+
+      <h3>DXF</h3>
+      <p>
+        The standard format for CNC machining and CAD software. If you want to open the outline in Fusion 360,
+        SolidWorks, or another CAD program for further modification, DXF is the way to go. Also used for CNC router
+        cutting of wood or HDPE inserts.
+      </p>
+
+      <h2>Output Modes</h2>
+
+      <ul>
+        <li><strong>Custom tray:</strong> A standalone rectangular or oval tray with a tool-shaped cavity. Best for toolbox drawers, van storage, or Milwaukee Packout cases (see <Link to="/blog/custom-milwaukee-packout-inserts-3d-print/">custom Packout inserts</Link>).</li>
+        <li><strong>Gridfinity bin:</strong> A Gridfinity-compatible module with the base profile and stacking lip. Drops into any Gridfinity baseplate (see <Link to="/blog/photo-to-gridfinity-guide/">photo to Gridfinity</Link>).</li>
+        <li><strong>3D object:</strong> Just the extruded shape, without a surrounding tray. Useful for templates, mounts, or as a starting point for further CAD work (see <Link to="/blog/drawing-to-3d-object/">turn a drawing into a 3D printable object</Link>).</li>
+      </ul>
 
       <h2>Image to STL vs Traditional CAD</h2>
 
@@ -127,6 +178,19 @@ export default function ImageToSTL() {
         <li>Print with PETG instead of PLA if the tray will live in a vehicle. PLA warps above 60°C.</li>
       </ul>
 
+      <h2>Common Trace Problems and How to Fix Them</h2>
+
+      <ul>
+        <li><strong>Shadows:</strong> The most common issue. A shadow cast by the tool can extend the detected outline beyond the actual tool shape. Fix it with diffused overhead lighting or by editing the trace after detection.</li>
+        <li><strong>Reflections:</strong> Shiny chrome tools can reflect the paper or light source, causing the edge detection to miss parts of the outline. A matte surface or slightly angled lighting helps.</li>
+        <li><strong>Thin features:</strong> Very thin elements (a blade edge or a screwdriver shaft) may not be detected accurately. Manually edit the trace points to refine these areas.</li>
+        <li><strong>Scale errors:</strong> If the paper is not fully visible or is wrinkled, the size calibration can be off. Always double-check the displayed dimensions against a caliper measurement of your tool before exporting. The <Link to="/blog/measure-tool-from-photo-paper/">paper measurement guide</Link> covers this in detail.</li>
+      </ul>
+
+      <p>
+        For more on getting a clean photo, see <Link to="/blog/photo-tips-for-gridfinity-trace/">photo tips for a clean tool trace</Link>.
+      </p>
+
       <h2>Ready to Convert?</h2>
 
       <p>
@@ -134,6 +198,15 @@ export default function ImageToSTL() {
         print-ready STL in under two minutes. Works on any device with a browser. No software
         to install, no CAD skills required.
       </p>
+
+      <h2>Related Guides</h2>
+      <ul>
+        <li><Link to="/blog/photo-to-gridfinity-guide/">Photo to Gridfinity: Measure, Trace, and Check the Fit</Link> - The same trace as a Gridfinity bin</li>
+        <li><Link to="/blog/gridfinity-custom-cutout-no-cad/">Gridfinity Custom Cutout From a Photo (No CAD)</Link> - Tool-shaped cutouts without CAD</li>
+        <li><Link to="/blog/drawing-to-3d-object/">Turn a Drawing into a 3D Printable Object</Link> - Extrude a sketch instead of a tool</li>
+        <li><Link to="/blog/gasket-maker-from-photo/">Make a Replacement Gasket from a Photo</Link> - Outlines with bolt holes, for cutting or TPU printing</li>
+        <li><Link to="/blog/custom-milwaukee-packout-inserts-3d-print/">Custom Milwaukee Packout Inserts</Link> - Apply the workflow to Packout cases</li>
+      </ul>
     </BlogPost>
   )
 }

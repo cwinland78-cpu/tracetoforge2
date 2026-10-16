@@ -6,7 +6,7 @@ export default function GasketMaker() {
   return (
     <BlogPost
       title="Make a Replacement Gasket from a Photo, Bolt Holes and All"
-      description="Photograph a dead gasket and get back a cutting template with bolt holes detected automatically. Perspective-corrected sizing, SVG and DXF for cutting, STL and 3MF for TPU."
+      description="Photograph a worn gasket and get a cutting template with bolt holes detected automatically. Perspective-corrected sizing; SVG/DXF to cut, STL/3MF for TPU."
       canonical="https://tracetoforge.com/blog/gasket-maker-from-photo/"
       date="2026-07-18"
       updated="2026-09-01"

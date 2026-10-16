@@ -929,7 +929,7 @@ export default function Landing() {
           <div className="grid md:grid-cols-3 gap-4 mb-8">
             {[
               { slug: 'gridfinity-generator-photo-vs-parametric', title: 'Gridfinity Generator: Photo vs Parametric', desc: 'Compare the best Gridfinity generators. When to use parametric vs photo-based.' },
-              { slug: 'gridfinity-insert-from-photo', title: 'Create Gridfinity Inserts from a Photo', desc: 'The fastest way to generate custom Gridfinity bins in 2026.' },
+              { slug: 'photo-to-gridfinity-guide', title: 'Photo to Gridfinity: Measure, Trace, Fit', desc: 'Turn a phone photo of a tool into a printable Gridfinity bin.' },
               { slug: 'image-to-stl-converter-free', title: 'Image to STL Converter: Free & No CAD', desc: 'Convert any photo into a 3D printable STL file in under 2 minutes.' },
               { slug: '3d-printed-tool-organizer-guide', title: '3D Printed Tool Organizer: Complete Guide', desc: 'Design methods, filament choices, and print settings for workshop storage.' },
               { slug: 'knipex-pliers-organizer-3d-printed', title: 'Knipex Pliers Organizer Inserts', desc: 'Precision-fit inserts for Cobra, Pliers Wrench, TwinGrip, and more.' },
