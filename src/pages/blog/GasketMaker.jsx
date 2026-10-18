@@ -6,10 +6,10 @@ export default function GasketMaker() {
   return (
     <BlogPost
       title="Make a Replacement Gasket from a Photo, Bolt Holes and All"
-      description="Photograph a dead gasket and get back a cutting template with bolt holes detected automatically. Perspective-corrected sizing, SVG and DXF for cutting, STL and 3MF for TPU."
+      description="Photograph a worn gasket and get a cutting template with bolt holes detected automatically. Perspective-corrected sizing; SVG/DXF to cut, STL/3MF for TPU."
       canonical="https://tracetoforge.com/blog/gasket-maker-from-photo/"
-      date="July 18, 2026"
-      updated="September 1, 2026"
+      date="2026-07-18"
+      updated="2026-09-01"
       readTime="6 min"
       tags={['Gaskets', 'DIY Repair', 'SVG', 'DXF', 'Hole Detection']}
     >
@@ -46,9 +46,9 @@ export default function GasketMaker() {
       <p>Worth doing whenever bolt spacing matters more than outer profile, which for flange gaskets is most of the time.</p>
 
       <GearBox items={[
-        { img: '/gear/gasket-material.webp', href: 'https://www.amazon.com/s?k=gasket+material+sheet+assortment&tag=tracetoforge-20', title: 'Gasket material sheet assortment', blurb: 'cork, rubber, and fiber in one pack covers most jobs' },
-        { img: '/gear/punch-set.webp', href: 'https://www.amazon.com/s?k=hollow+punch+set&tag=tracetoforge-20', title: 'Hollow punch set', blurb: 'clean bolt holes, better than any knife' },
-        { img: '/gear/tpu-filament.webp', href: 'https://www.amazon.com/s?k=tpu+filament+95a+1.75mm&tag=tracetoforge-20', title: 'TPU filament (95A)', blurb: 'for printing low-pressure gaskets directly' },
+        { href: 'https://www.amazon.com/s?k=gasket+material+sheet+assortment&tag=tracetoforge-20', title: 'Gasket material sheet assortment', blurb: 'cork, rubber, and fiber in one pack covers most jobs' },
+        { href: 'https://www.amazon.com/s?k=hollow+punch+set&tag=tracetoforge-20', title: 'Hollow punch set', blurb: 'clean bolt holes, better than any knife' },
+        { href: 'https://www.amazon.com/s?k=tpu+filament+95a+1.75mm&tag=tracetoforge-20', title: 'TPU filament (95A)', blurb: 'for printing low-pressure gaskets directly' },
       ]} />
 
       <h2>What This Replaces</h2>

@@ -6,10 +6,10 @@ export default function WrenchSetBin() {
   return (
     <BlogPost
       title="Wrench Set Gridfinity Bin from a Photo"
-      description="Build a custom Gridfinity bin for your combination, ratcheting, or stubby wrenches from a phone photo. Layouts for 6-piece, 12-piece, and 18-piece sets. SAE, metric, and combined."
+      description="Custom Gridfinity bins for combination, ratcheting or stubby wrenches from a phone photo. Layouts for 6-, 12- and 18-piece sets in SAE, metric or both."
       canonical="https://tracetoforge.com/blog/wrench-set-gridfinity-bin/"
       date="2026-05-07"
-      updated="2026-05-07"
+      updated="2026-10-15"
       readTime="9 min"
       tags={['Wrenches', 'Gridfinity', 'Tool Organization']}
     >
@@ -266,7 +266,6 @@ export default function WrenchSetBin() {
         <li><Link to="/blog/photo-to-gridfinity-guide/">The Complete Guide to Custom Gridfinity Bins from a Photo</Link> — pillar workflow</li>
         <li><Link to="/blog/wera-screwdriver-gridfinity-bin/">Wera Screwdriver Gridfinity Bin</Link> — sister tool-specific guide</li>
         <li><Link to="/blog/drill-bit-gridfinity-storage/">Drill Bit Storage in Gridfinity</Link> — adjacent storage problem</li>
-        <li><Link to="/blog/gridfinity-insert-from-photo/">Create Gridfinity Inserts from a Photo</Link> — the focused walkthrough</li>
         <li><Link to="/blog/photo-tips-for-gridfinity-trace/">Photo Tips for a Clean Gridfinity Trace</Link> — getting the photo right</li>
       </ul>
     </BlogPost>

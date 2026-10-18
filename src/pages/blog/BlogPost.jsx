@@ -1,45 +1,14 @@
-import React, { useEffect, useRef } from 'react'
+import React from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, Calendar, Clock } from 'lucide-react'
 import SEOHead from '../../components/SEOHead'
-import { getAdvertisingConsent, onAdvertisingConsentChange, initAdvertisingChoices } from '../../lib/adsterraConsent'
-
+// Ads are injected at the edge by the Ad Manager worker, so in-app ad slots render nothing.
 function AdUnit() {
-  const adRef = useRef(null)
-  useEffect(() => {
-    const ad = adRef.current
-    let observer = null
-    initAdvertisingChoices()
-    // Never request production inventory from local or deployment previews.
-    if (!ad || !['tracetoforge.com', 'www.tracetoforge.com'].includes(window.location.hostname)) return
-    const request = () => {
-      if (getAdvertisingConsent() !== 'accepted' || !ad.isConnected || ad.dataset.requested) return
-      ad.closest('aside').style.display = ''
-      ad.dataset.requested = 'true'
-      window.atOptions = { key: 'ff5b07361e6277a87ae2951b256bd803', format: 'iframe', height: 250, width: 300, params: {} }
-      const script = document.createElement('script')
-      script.type = 'text/javascript'
-      script.src = 'https://www.highrevenueformat.com/ff5b07361e6277a87ae2951b256bd803/invoke.js'
-      script.async = false
-      ad.appendChild(script)
-    }
-    if (getAdvertisingConsent() === 'accepted') ad.closest('aside').style.display = ''
-    if (!('IntersectionObserver' in window)) { request() } else {
-    observer = new IntersectionObserver(entries => {
-      if (entries.some(entry => entry.isIntersecting)) { request(); if (observer) observer.disconnect(); observer = null }
-    }, { rootMargin: '250px' })
-    observer.observe(ad)
-    }
-    const remove = onAdvertisingConsentChange((value) => { if (value === 'accepted') request(); else { if (observer) { observer.disconnect(); observer = null }; ad.closest('aside').style.display = 'none'; ad.textContent = ''; delete ad.dataset.requested } })
-    return () => { if (observer) observer.disconnect(); remove() }
-  }, [])
-  return (
-    <aside aria-label="Advertisements" className="my-12" style={{ display: 'none', clear: 'both', padding: '24px 0', borderTop: '1px solid #2A2A35' }}>
-      <p style={{ fontSize: 11, color: '#9999AA', marginBottom: 12 }}>Advertisements</p>
-      <div ref={adRef} className="tf-adsterra-mount" data-adsterra-key="ff5b07361e6277a87ae2951b256bd803" style={{ width: 300, maxWidth: 'calc(100vw - 20px)', height: 250, margin: '0', position: 'relative', left: '50%', transform: 'translateX(-50%)' }} />
-    </aside>
-  )
+  return null
 }
+
+const TITLE_SUFFIX = ' | TracetoForge'
+const seoTitle = (title) => ((title + TITLE_SUFFIX).length <= 65 ? title + TITLE_SUFFIX : title)
 
 export default function BlogPost({ title, description, canonical, date, updated, readTime, tags, faq, children }) {
   // dateModified for the article schema falls back to date if not provided
@@ -47,7 +16,7 @@ export default function BlogPost({ title, description, canonical, date, updated,
   return (
     <>
       <SEOHead
-        title={`${title} | TracetoForge`}
+        title={seoTitle(title)}
         description={description}
         canonical={canonical}
         type="article"
@@ -90,6 +59,9 @@ export default function BlogPost({ title, description, canonical, date, updated,
               {title}
             </h1>
 
+            <AdUnit placementKey="43464e995e1cf51b266451e20c6f072b" width={728} height={90} desktopOnly />
+            <AdUnit placementKey="eef6814f496c3c4c34cb92cb5d962902" width={320} height={50} className="tf-adsterra-mobile-inline" />
+
             {tags && (
               <div className="flex items-center gap-2 flex-wrap mb-8">
                 {tags.map((tag) => (
@@ -100,7 +72,7 @@ export default function BlogPost({ title, description, canonical, date, updated,
               </div>
             )}
 
-            <p className="text-sm text-[#8888A0] mb-8">By the TracetoForge team Â· <a href="/about/" className="underline">About this site</a> Â· <a href="/contact/" className="underline">Report a correction</a></p>
+            <p className="text-sm text-[#8888A0] mb-8">By Chris Winland · <a href="/about/" className="underline">About this site</a> · <a href="/contact/" className="underline">Report a correction</a></p>
 
             <div className="prose prose-invert prose-orange max-w-none
               [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mt-10 [&_h2]:mb-4

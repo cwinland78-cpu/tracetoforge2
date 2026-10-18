@@ -9,7 +9,7 @@ export default function ComparisonPost() {
       description="Three insert systems compared on cost, print time, drawer fit, and how easy each is to modify. A straight answer on which one suits your setup."
       canonical="https://tracetoforge.com/blog/gridfinity-vs-packout-vs-custom-tray/"
       date="2026-02-24"
-      updated="2026-05-07"
+      updated="2026-10-15"
       readTime="8 min"
       tags={['Gridfinity', 'Milwaukee Packout', 'Comparison']}
     >
@@ -246,9 +246,9 @@ export default function ComparisonPost() {
       <h2>Related Guides</h2>
       <ul>
         <li><Link to="/blog/custom-milwaukee-packout-inserts-3d-print/">Custom Milwaukee Packout Inserts</Link> - Step-by-step guide to photo-based Packout inserts</li>
-        <li><Link to="/blog/gridfinity-insert-from-photo/">Gridfinity Inserts from a Photo</Link> - Generate custom Gridfinity bins from a smartphone photo</li>
-        <li><Link to="/blog/tool-organizer-photo-to-stl/">Photo-to-STL: How It Works</Link> - The technology behind turning photos into printable files</li>
-        <li><Link to="/blog/best-3d-printed-tool-organizer-ideas/">Best 3D Printed Tool Organizer Ideas</Link> - Creative ideas for your workshop</li>
+        <li><Link to="/blog/photo-to-gridfinity-guide/">Photo to Gridfinity</Link> - Generate custom Gridfinity bins from a smartphone photo</li>
+        <li><Link to="/blog/image-to-stl-converter-free/">Image to STL for Tool Outlines</Link> - The technology behind turning photos into printable files</li>
+        <li><Link to="/blog/3d-printed-tool-organizer-guide/">3D Printed Tool Organizer Ideas and Fit Guide</Link> - Creative ideas for your workshop</li>
       </ul>
     </BlogPost>
   )

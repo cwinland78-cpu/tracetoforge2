@@ -5,10 +5,11 @@ import BlogPost from './BlogPost'
 export default function SavedToolLibrary() {
   return (
     <BlogPost
-      title="Trace Once, Use Everywhere: Build a Reusable Tool Library for Custom Drawer Trays"
-      description="Trace your tools one time, save them to a personal library, then drop the same shapes into Gridfinity bins, Packout inserts, or custom drawer trays without re-tracing. New in TracetoForge."
+      title="Reusable Tool Library for Custom Drawer Trays"
+      description="Trace your tools once, save them to a personal library, then drop the same shapes into Gridfinity bins, Packout inserts or drawer trays without re-tracing."
       canonical="https://tracetoforge.com/blog/reusable-tool-library-drawer-trays/"
       date="2026-05-02"
+      updated="2026-10-15"
       readTime="5 min"
       tags={['Tool Organizer', 'Workflow', 'Gridfinity', 'Drawer Tray', 'New Feature']}
     >

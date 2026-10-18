@@ -62,7 +62,7 @@ export default function SEOHead({ title, description, canonical, type = 'website
         author: {
           '@type': 'Person',
           name: 'Chris Winland',
-          url: 'https://tracetoforge.com'
+          url: 'https://tracetoforge.com/about/'
         },
         publisher: {
           '@type': 'Organization',

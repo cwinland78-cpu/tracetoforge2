@@ -6,10 +6,10 @@ export default function WeraScrewdriverBin() {
   return (
     <BlogPost
       title="Wera Screwdriver Gridfinity Bin: Photo-to-Print Walkthrough"
-      description="Build a custom Gridfinity bin for your Wera Kraftform screwdrivers from a phone photo. Walks through tracing, sizing, and printing a 6-slot or 12-slot insert. Works with Wera 367, 334, and 932 series."
+      description="Build a Gridfinity bin for Wera Kraftform screwdrivers from a phone photo: tracing, sizing and printing a 6- or 12-slot insert for the 367, 334 and 932 series."
       canonical="https://tracetoforge.com/blog/wera-screwdriver-gridfinity-bin/"
       date="2026-05-07"
-      updated="2026-05-07"
+      updated="2026-10-15"
       readTime="8 min"
       tags={['Wera', 'Gridfinity', 'Screwdrivers', 'Tool Organization']}
     >
@@ -234,7 +234,6 @@ export default function WeraScrewdriverBin() {
         <li><Link to="/blog/photo-to-gridfinity-guide/">The Complete Guide to Custom Gridfinity Bins from a Photo</Link> — the pillar workflow</li>
         <li><Link to="/blog/knipex-pliers-organizer-3d-printed/">Knipex Pliers Organizer</Link> — sister tool-specific guide</li>
         <li><Link to="/blog/wrench-set-gridfinity-bin/">Wrench Set Gridfinity Bin</Link> — adjacent set, different geometry</li>
-        <li><Link to="/blog/gridfinity-insert-from-photo/">Create Gridfinity Inserts from a Photo</Link> — the workflow walkthrough</li>
         <li><Link to="/blog/photo-tips-for-gridfinity-trace/">Photo Tips for a Clean Gridfinity Trace</Link> — getting the photo right</li>
       </ul>
     </BlogPost>

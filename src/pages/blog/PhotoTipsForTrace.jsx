@@ -5,11 +5,11 @@ import BlogPost from './BlogPost'
 export default function PhotoTipsForTrace() {
   return (
     <BlogPost
-      title="Photo Tips for a Clean Gridfinity Trace: Lighting, Paper, and Angle"
-      description="How to photograph your tools so the auto-trace works the first time. Lighting, paper choice, camera angle, shiny tools, perspective distortion, and the Sensitivity slider explained."
+      title="Photo Tips for a Clean Tool Trace"
+      description="Photograph tools so the auto-trace works the first time: lighting, paper, camera angle, shiny tools, perspective distortion and the Sensitivity slider."
       canonical="https://tracetoforge.com/blog/photo-tips-for-gridfinity-trace/"
       date="2026-05-07"
-      updated="2026-05-07"
+      updated="2026-10-15"
       readTime="8 min"
       tags={['Gridfinity', 'Photography', 'Tool Organization']}
     >
@@ -237,8 +237,8 @@ export default function PhotoTipsForTrace() {
 
       <ul>
         <li><Link to="/blog/photo-to-gridfinity-guide/">The Complete Guide to Custom Gridfinity Bins from a Photo</Link> — the pillar workflow guide</li>
-        <li><Link to="/blog/gridfinity-insert-from-photo/">Create Gridfinity Inserts from a Photo</Link> — the focused tutorial</li>
-        <li><Link to="/blog/gridfinity-custom-cutout-no-cad/">Gridfinity Custom Cutouts Without CAD</Link> — the photo-based method</li>
+        <li><Link to="/blog/gridfinity-custom-cutout-no-cad/">Gridfinity Custom Cutout From a Photo (No CAD)</Link> — the photo-based method</li>
+        <li><Link to="/blog/image-to-stl-converter-free/">Image to STL for Tool Outlines</Link> — the same trace as STL, 3MF, SVG, or DXF</li>
       </ul>
     </BlogPost>
   )

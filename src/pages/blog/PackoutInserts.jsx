@@ -6,12 +6,12 @@ import BlogPost from './BlogPost'
 export default function PackoutInserts() {
   return (
     <BlogPost
-      title="How to Make Custom Milwaukee Packout Inserts with a 3D Printer"
-      description="Learn how to create custom-fit 3D printed Milwaukee Packout inserts from a photo of your tools. No CAD skills needed. Works with any Packout case."
+      title="Custom Milwaukee Packout Inserts: 3D Print Your Own"
+      description="Make 3D printed Milwaukee Packout inserts from a photo of your tools: case and drawer interior sizes, depth planning, drawer layouts and print settings."
       canonical="https://tracetoforge.com/blog/custom-milwaukee-packout-inserts-3d-print/"
       date="2026-02-24"
-      updated="2026-05-07"
-      readTime="6 min"
+      updated="2026-10-15"
+      readTime="11 min"
       tags={['Milwaukee Packout', '3D Printing', 'Tool Organization']}
     >
       <div className="not-prose mb-8 p-5 rounded-lg border border-brand/30 bg-brand/5">
@@ -78,9 +78,9 @@ export default function PackoutInserts() {
       </div>
 
       <GearBox items={[
-        { img: '/gear/packout-organizer.webp', href: 'https://www.amazon.com/s?k=milwaukee+packout+organizer&tag=tracetoforge-20', title: 'Milwaukee Packout organizers', blurb: 'the compact and large cases both take custom inserts' },
-        { img: '/gear/packout-3drawer.webp', href: 'https://www.amazon.com/s?k=milwaukee+packout+3+drawer&tag=tracetoforge-20', title: 'Milwaukee Packout 3-drawer tool box', blurb: 'the best candidate for full drawer trays' },
-        { img: '/gear/calipers.webp', href: 'https://www.amazon.com/s?k=digital+calipers&tag=tracetoforge-20', title: 'Digital calipers', blurb: 'for measuring tools before tracing' },
+        { href: 'https://www.amazon.com/s?k=milwaukee+packout+organizer&tag=tracetoforge-20', title: 'Milwaukee Packout organizers', blurb: 'the compact and large cases both take custom inserts' },
+        { href: 'https://www.amazon.com/s?k=milwaukee+packout+3+drawer&tag=tracetoforge-20', title: 'Milwaukee Packout 3-drawer tool box', blurb: 'the best candidate for full drawer trays' },
+        { href: 'https://www.amazon.com/s?k=digital+calipers&tag=tracetoforge-20', title: 'Digital calipers', blurb: 'for measuring tools before tracing' },
       ]} />
       <h2>Step 3: Configure for Packout</h2>
 
@@ -152,6 +152,115 @@ export default function PackoutInserts() {
         Many Packout users combine a Gridfinity baseplate in their drawers with custom tool inserts in the larger cases.
       </p>
 
+      <h2>Measure Your Own Drawer, Then Trust It</h2>
+
+      <p>
+        The figures above are approximate, and published dimensions for Packout drawer units describe the
+        outside of the case. What you need is the usable interior of each drawer, and that number is smaller
+        than you expect once you account for the drawer walls, the draft angle molded into the sides, and the
+        rails. Measuring takes ninety seconds and it is the single highest-leverage thing you can do before
+        printing anything.
+      </p>
+
+      <ul>
+        <li><strong>Width and depth at the bottom, not the top.</strong> Injection-molded drawers taper. The opening is wider than the floor, sometimes by several millimeters per side. An insert sized to the opening will not seat.</li>
+        <li><strong>Usable height, not drawer height.</strong> Measure from the floor to the point where the drawer above or the lip would foul. This is almost always less than the drawer's nominal depth.</li>
+        <li><strong>Check the corners.</strong> Molded radii mean a true square insert will not sit flat. Note the radius and either match it or relieve the corners.</li>
+        <li><strong>Note any floor features.</strong> Ribs, drain slots, and molded logos change what sits flush.</li>
+      </ul>
+
+      <p>
+        Write those numbers down once and you will use them for years. Every insert you make afterward starts
+        from a known-good box.
+      </p>
+
+      <h2>Depth Is the Constraint That Bites</h2>
+
+      <p>
+        Most people plan layouts in two dimensions and get surprised by the third. A drawer that comfortably
+        holds the footprint of a socket set may not close over it. Your cavity depth plus the tool's thickness
+        above the cavity floor has to clear the drawer opening. Cutting a cavity deeper than the tool is thick
+        means the tool disappears below the surface and becomes hard to pick out. Cutting it shallower means the
+        tool stands proud, which is fine as long as it clears.
+      </p>
+
+      <p>
+        The comfortable target is a cavity roughly 60 to 70 percent of the tool's thickness. Deep enough that
+        nothing shifts during a carry, shallow enough that you can get a finger under it. Anything thinner than
+        about 6mm, like combination wrenches, wants a finger notch instead of extra depth, because there is no
+        useful depth to work with.
+      </p>
+
+      <h2>Three Ways to Fill a Packout Drawer</h2>
+
+      <p>
+        These are genuinely different approaches with different tradeoffs, not three flavors of the same thing.
+      </p>
+
+      <h3>One full-drawer tray</h3>
+
+      <p>
+        A single insert spanning the whole drawer, with cavities cut for each tool. Best fit, least wasted
+        space, most satisfying result. The downside is that it is one large print, often too large for a 220mm
+        bed without splitting, and changing your mind about one tool means reprinting the whole thing or living
+        with a wrong pocket. Pick this when the tool set is settled and you want maximum density. A wrench set
+        or a fixed screwdriver lineup is a good candidate because it will not change.
+      </p>
+
+      <h3>Gridfinity baseplate plus bins</h3>
+
+      <p>
+        Lay a baseplate in the drawer floor and fill it with 42mm-grid bins. Rearranging is instant, prints are
+        small, and you can borrow bins from the enormous existing Gridfinity library. The cost is space. The
+        grid does not divide evenly into a Packout drawer, so you get a dead strip along one or two edges, and
+        the baseplate itself eats several millimeters of your scarce depth. Pick this when the contents change
+        often or when you already have Gridfinity elsewhere. Baseplate sizing and mounting are covered
+        in{' '}<Link to="/blog/gridfinity-in-packout-drawer/">Gridfinity in Milwaukee Packout drawers</Link>.
+      </p>
+
+      <h3>Separate zone trays</h3>
+
+      <p>
+        The middle path. Two or three independent trays that together fill the drawer, each holding a related
+        group. Each prints in one go on a small bed, and replacing one zone does not disturb the others.
+        Slightly more wasted space than a single tray from the seams, far less than Gridfinity. This is the
+        approach I would suggest to most people building their first drawer, because it survives changing your
+        mind.
+      </p>
+
+      <h2>Laying Out Tools So the Drawer Still Works</h2>
+
+      <ul>
+        <li><strong>Put the tools you reach for most at the front.</strong> You open a drawer partway far more often than fully. Frequently used tools at the back mean pulling the whole drawer every time.</li>
+        <li><strong>Leave a finger channel on anything flat.</strong> Wrenches, chisels, and rules sitting in a snug pocket with no relief are genuinely hard to remove with gloves. A notch at the midpoint solves it and costs almost nothing.</li>
+        <li><strong>Group by job, not by type.</strong> In practice you reach for a job's worth of tools at once. An electrical drawer beats a pliers drawer.</li>
+        <li><strong>Orient long tools along the drawer's long axis.</strong> Obvious, but it is the difference between fitting eight wrenches and fitting five.</li>
+        <li><strong>Do not fill it completely.</strong> Leave one open zone. You will acquire a tool, and a drawer with no slack forces a reprint.</li>
+      </ul>
+
+      <p>
+        For box-by-box layouts across a whole stack,
+        see{' '}<Link to="/blog/how-to-organize-milwaukee-packout/">how to organize a Milwaukee Packout</Link>.
+      </p>
+
+      <h2>Printing Full-Drawer Trays</h2>
+
+      <p>
+        Full-drawer trays are large, flat, and mostly walls, so a few settings differ from the general ones
+        above. Detail hardly matters on a tray this size, so a 0.28 or 0.3mm layer height can roughly halve
+        print time with no functional loss. Strength lives in the perimeters, so 3 walls with 10 to 15 percent
+        gyroid is plenty. If the tray is too large for your bed, cut along a cavity wall rather than through
+        open floor, so the seam falls where geometry already provides stiffness; the drawer walls hold the
+        pieces in position.
+      </p>
+
+      <p>
+        The mistake almost everyone makes first is printing the full tray before testing the fit. If the cavity
+        tolerance is wrong, every pocket is wrong at once. Print one cavity as a small test coupon first. Around
+        0.5mm of clearance suits most setups, but the number that matters is the one your machine actually
+        produces, and a coupon is how you find it.
+      </p>
+
       <h2>The Bottom Line</h2>
 
       <p>
@@ -162,10 +271,12 @@ export default function PackoutInserts() {
 
       <h2>Related Guides</h2>
       <ul>
-        <li><Link to="/blog/gridfinity-insert-from-photo/">Create Gridfinity Inserts from a Photo</Link> - Same photo-to-insert process for the Gridfinity ecosystem</li>
+        <li><Link to="/blog/gridfinity-in-packout-drawer/">Gridfinity in Milwaukee Packout Drawers</Link> - Baseplate sizing and mounting for Packout drawers</li>
+        <li><Link to="/blog/how-to-organize-milwaukee-packout/">How to Organize a Milwaukee Packout</Link> - Layouts for the whole stack, box by box</li>
         <li><Link to="/blog/gridfinity-vs-packout-vs-custom-tray/">Gridfinity vs Packout vs Custom Trays</Link> - Which system fits your workflow best</li>
-        <li><Link to="/blog/tool-organizer-photo-to-stl/">How Photo-to-STL Tool Organizers Work</Link> - The technology behind turning a photo into a printable file</li>
-        <li><Link to="/blog/best-3d-printed-tool-organizer-ideas/">Best 3D Printed Tool Organizer Ideas</Link> - Inspiration for your next workshop project</li>
+        <li><Link to="/blog/photo-to-gridfinity-guide/">Photo to Gridfinity</Link> - Same photo-to-insert process for the Gridfinity ecosystem</li>
+        <li><Link to="/blog/image-to-stl-converter-free/">Image to STL for Tool Outlines</Link> - How a traced photo becomes an STL, 3MF, SVG, or DXF file</li>
+        <li><Link to="/blog/3d-printed-tool-organizer-guide/">3D Printed Tool Organizer Ideas and Fit Guide</Link> - Organizer ideas and print settings beyond Packout</li>
       </ul>
     </BlogPost>
   )

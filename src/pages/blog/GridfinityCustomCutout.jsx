@@ -5,10 +5,11 @@ import BlogPost from './BlogPost'
 export default function GridfinityCustomCutout() {
   return (
     <BlogPost
-      title="Gridfinity Cutout Generator: No CAD, Just a Photo"
+      title="Gridfinity Custom Cutout From a Photo (No CAD)"
       description="Generate a Gridfinity cutout from a photo of your tool. No Fusion 360, no OpenSCAD, no parametric setup. Upload, trace, export STL in about 2 minutes."
       canonical="https://tracetoforge.com/blog/gridfinity-custom-cutout-no-cad/"
       date="2026-03-10"
+      updated="2026-10-15"
       readTime="5 min"
       tags={['Gridfinity', 'Custom Cutout', '3D Printing', 'No CAD']}
       faq={[
@@ -124,6 +125,15 @@ export default function GridfinityCustomCutout() {
         No CAD software to learn. No measurements to take. Just a phone, a piece of paper,
         and the <Link to="/editor/">TracetoForge editor</Link>. Your first export is free.
       </p>
+
+      <h2>Related Guides</h2>
+      <ul>
+        <li><Link to="/blog/photo-to-gridfinity-guide/">Photo to Gridfinity: Measure, Trace, and Check the Fit</Link> - The complete photo-to-bin workflow</li>
+        <li><Link to="/blog/gridfinity-generator-photo-vs-parametric/">Gridfinity Generators Compared: Parametric vs Photo-Based</Link> - When a parametric generator is the better choice</li>
+        <li><Link to="/blog/photo-tips-for-gridfinity-trace/">Photo Tips for a Clean Tool Trace</Link> - Lighting, paper, and angle</li>
+        <li><Link to="/blog/image-to-stl-converter-free/">Image to STL for Tool Outlines</Link> - The same trace as STL, 3MF, SVG, or DXF</li>
+        <li><Link to="/blog/drawing-to-3d-object/">Turn a Drawing into a 3D Printable Object</Link> - Extrude a sketch instead of cutting a cavity</li>
+      </ul>
     </BlogPost>
   )
 }

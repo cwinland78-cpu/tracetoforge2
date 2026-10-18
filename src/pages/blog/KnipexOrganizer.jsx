@@ -7,7 +7,7 @@ export default function KnipexOrganizer() {
   return (
     <BlogPost
       title="Knipex Pliers Organizer: Cobra, Pliers Wrench, TwinGrip"
-      description="Printable organizer inserts fitted to Knipex Cobra 125-300mm, Pliers Wrench, TwinGrip, and diagonal cutters. Gridfinity and Packout compatible, or trace your own."
+      description="Printable organizer inserts fitted to Knipex Cobra 125-300mm, Pliers Wrench, TwinGrip and diagonal cutters. Gridfinity or Packout, or trace your own."
       canonical="https://tracetoforge.com/blog/knipex-pliers-organizer-3d-printed/"
       date="2026-03-10"
       updated="2026-09-18"
@@ -104,9 +104,9 @@ export default function KnipexOrganizer() {
 
 
       <GearBox items={[
-        { img: '/gear/knipex-cobra.webp', href: 'https://www.amazon.com/s?k=knipex+cobra+pliers+set&tag=tracetoforge-20', title: 'Knipex Cobra water pump pliers sets', blurb: 'the lineup these trays are built around' },
-        { img: '/gear/knipex-8603.webp', href: 'https://www.amazon.com/s?k=knipex+86+03+pliers+wrench&tag=tracetoforge-20', title: 'Knipex 86 03 Pliers Wrench', blurb: 'every size from 125mm to 250mm fits a traced tray' },
-        { img: '/gear/packout-organizer.webp', href: 'https://www.amazon.com/s?k=milwaukee+packout+organizer&tag=tracetoforge-20', title: 'Milwaukee Packout organizers', blurb: 'the case these inserts drop into' },
+        { href: 'https://www.amazon.com/s?k=knipex+cobra+pliers+set&tag=tracetoforge-20', title: 'Knipex Cobra water pump pliers sets', blurb: 'the lineup these trays are built around' },
+        { href: 'https://www.amazon.com/s?k=knipex+86+03+pliers+wrench&tag=tracetoforge-20', title: 'Knipex 86 03 Pliers Wrench', blurb: 'every size from 125mm to 250mm fits a traced tray' },
+        { href: 'https://www.amazon.com/s?k=milwaukee+packout+organizer&tag=tracetoforge-20', title: 'Milwaukee Packout organizers', blurb: 'the case these inserts drop into' },
       ]} />
       <h2>Buy Ready-Made Knipex Inserts</h2>
 

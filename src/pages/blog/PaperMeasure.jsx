@@ -8,7 +8,7 @@ export default function PaperMeasure() {
       title="Measure a Tool from a Photo With a Sheet of Paper"
       description="Use a reference sheet to scale a tool photo, then verify the dimensions and a small test print before making a full insert."
       canonical="https://tracetoforge.com/blog/measure-tool-from-photo-paper/"
-      date="July 18, 2026"
+      date="2026-07-18"
       updated="2026-09-18"
       readTime="8 min"
       tags={['Measuring', 'Photo Tracing', 'Workshop Tips']}
@@ -54,8 +54,8 @@ export default function PaperMeasure() {
       </ul>
 
       <GearBox items={[
-        { img: '/gear/calipers.webp', href: 'https://www.amazon.com/s?k=digital+calipers&tag=tracetoforge-20', title: 'Digital calipers', blurb: 'for the critical dimensions you want to verify by hand' },
-        { img: '/gear/cutting-mat.webp', href: 'https://www.amazon.com/s?k=cutting+mat+dark&tag=tracetoforge-20', title: 'Dark cutting mat', blurb: 'the ideal contrast surface under the paper' },
+        { href: 'https://www.amazon.com/s?k=digital+calipers&tag=tracetoforge-20', title: 'Digital calipers', blurb: 'for the critical dimensions you want to verify by hand' },
+        { href: 'https://www.amazon.com/s?k=cutting+mat+dark&tag=tracetoforge-20', title: 'Dark cutting mat', blurb: 'the ideal contrast surface under the paper' },
       ]} />
 
       <h2>A Measurement Record You Can Reuse</h2>

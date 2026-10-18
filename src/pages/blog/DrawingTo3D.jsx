@@ -6,9 +6,9 @@ export default function DrawingTo3D() {
   return (
     <BlogPost
       title="Turn a Drawing into a 3D Printable Object"
-      description="Sketch a shape on paper, photograph it, and export a printable STL. No CAD, no modeling, no measuring. The same tracer that cuts tool cavities also extrudes solid objects."
+      description="Sketch a shape on paper, photograph it, and export a printable STL. No CAD or modeling: the same tracer that cuts tool cavities also extrudes solid objects."
       canonical="https://tracetoforge.com/blog/drawing-to-3d-object/"
-      date="September 1, 2026"
+      date="2026-09-01"
       readTime="7 min"
       tags={['Drawing to STL', '3D Printing', 'No CAD', 'Sketch']}
     >
@@ -54,9 +54,9 @@ export default function DrawingTo3D() {
       <p>Text smaller than about 8mm tall tends to lose detail in the trace. Very thin drawn lines, under roughly 2mm at real scale, can come out fragile or break up entirely. And if your part needs to mate precisely with something you cannot lay flat on paper, you are back to calipers regardless.</p>
 
       <GearBox items={[
-        { img: '/gear/sharpie.webp', href: 'https://www.amazon.com/s?k=sharpie+chisel+tip+marker&tag=tracetoforge-20', title: 'Chisel tip markers', blurb: 'thick dark lines trace far cleaner than ballpoint' },
-        { img: '/gear/petg-filament.webp', href: 'https://www.amazon.com/s?k=petg+filament+1.75mm&tag=tracetoforge-20', title: 'PETG filament', blurb: 'tougher than PLA for brackets and jigs' },
-        { img: '/gear/digital-caliper.webp', href: 'https://www.amazon.com/s?k=digital+caliper&tag=tracetoforge-20', title: 'Digital caliper', blurb: 'for checking the first print against the drawing' },
+        { href: 'https://www.amazon.com/s?k=sharpie+chisel+tip+marker&tag=tracetoforge-20', title: 'Chisel tip markers', blurb: 'thick dark lines trace far cleaner than ballpoint' },
+        { href: 'https://www.amazon.com/s?k=petg+filament+1.75mm&tag=tracetoforge-20', title: 'PETG filament', blurb: 'tougher than PLA for brackets and jigs' },
+        { href: 'https://www.amazon.com/s?k=digital+caliper&tag=tracetoforge-20', title: 'Digital caliper', blurb: 'for checking the first print against the drawing' },
       ]} />
 
       <h2>Print Settings for Extruded Parts</h2>
