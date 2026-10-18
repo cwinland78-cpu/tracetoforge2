@@ -3,6 +3,11 @@ import { useNavigate, Link } from 'react-router-dom'
 import { Camera, Box, Download, ArrowRight, LayoutGrid, Package, Wrench, ShieldCheck, Layers, MousePointerClick, Printer, ChevronDown, Star, Cpu, Eye, FolderOpen, LogOut, Bookmark, Sparkles, Globe } from 'lucide-react'
 import { useAuth } from '../components/AuthContext'
 
+// Ads are injected at the edge by the Ad Manager worker, so in-app ad slots render nothing.
+function AdSlot() {
+  return null
+}
+
 const STEPS = [
   {
     icon: Camera,
@@ -243,6 +248,13 @@ export default function Landing() {
         </div>
       </nav>
 
+      <div className="w-full py-1">
+        <AdSlot placementKey="43464e995e1cf51b266451e20c6f072b" width={728} height={90} className="tf-adsterra-desktop-only my-2" />
+        <AdSlot placementKey="eef6814f496c3c4c34cb92cb5d962902" width={320} height={50} className="tf-adsterra-mobile-only my-2" />
+      </div>
+      <AdSlot placementKey="b218d46b3206efd7a53d64c580467d82" width={160} height={600} className="tf-adsterra-rail tf-adsterra-rail-left" />
+      <AdSlot placementKey="6f38de9d4bb051988cd3f72771c4965c" width={160} height={300} className="tf-adsterra-rail tf-adsterra-rail-right" />
+
       {/* Hero */}
       <section
         ref={heroRef}
@@ -321,6 +333,8 @@ export default function Landing() {
                 muted
                 loop
                 playsInline
+                controls
+                aria-label="TraceToForge product demo"
                 preload="metadata"
                 className="w-full"
               >
@@ -334,10 +348,6 @@ export default function Landing() {
 
         </div>
       </section>
-
-      {/* Ad unit - below hero */}
-      <div className="max-w-4xl mx-auto px-6 py-4">
-      </div>
 
       {/* How It Works */}
       <section className="px-6 py-10 md:py-16">
@@ -864,7 +874,7 @@ export default function Landing() {
           <div className="grid md:grid-cols-3 gap-4 mb-8">
             {[
               { slug: 'gridfinity-generator-photo-vs-parametric', title: 'Gridfinity Generator: Photo vs Parametric', desc: 'Compare the best Gridfinity generators. When to use parametric vs photo-based.' },
-              { slug: 'gridfinity-insert-from-photo', title: 'Create Gridfinity Inserts from a Photo', desc: 'The fastest way to generate custom Gridfinity bins in 2026.' },
+              { slug: 'photo-to-gridfinity-guide', title: 'Photo to Gridfinity: Measure, Trace, Fit', desc: 'Turn a phone photo of a tool into a printable Gridfinity bin.' },
               { slug: 'image-to-stl-converter-free', title: 'Image to STL Converter: Free & No CAD', desc: 'Convert any photo into a 3D printable STL file in under 2 minutes.' },
               { slug: '3d-printed-tool-organizer-guide', title: '3D Printed Tool Organizer: Complete Guide', desc: 'Design methods, filament choices, and print settings for workshop storage.' },
               { slug: 'knipex-pliers-organizer-3d-printed', title: 'Knipex Pliers Organizer Inserts', desc: 'Precision-fit inserts for Cobra, Pliers Wrench, TwinGrip, and more.' },

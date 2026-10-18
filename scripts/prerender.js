@@ -329,7 +329,7 @@ console.log('[prerender] /404.html')
 // Guide
 writePage('/guide', makePage({
   title: 'Getting Started Guide | TracetoForge',
-  description: 'Step-by-step guide to creating custom 3D-printable tool inserts from photos with TracetoForge. Photo, trace, dimensions, export, and print. No CAD experience needed.',
+  description: 'Step-by-step guide to turning tool photos into 3D-printable inserts with TracetoForge: photo, trace, dimensions, export and print. No CAD experience needed.',
   canonical: 'https://tracetoforge.com/guide/',
   ogTitle: 'TracetoForge Getting Started Guide',
   h1: 'TracetoForge: Getting Started Guide',
@@ -363,7 +363,7 @@ writePage('/guide', makePage({
       <p>Add Finger Notches if you want cutouts for grabbing your tools. Pick a circle, square, or rectangle, then drag each notch in the 3D preview to where you want to grip. A tray can have up to 12 notches.</p>
 
       <h2>Step 6: Add Multiple Tools (Optional)</h2>
-      <p>Up to five tools fit in a single insert. Click "Add Tool" and trace a new photo. Each tool can be repositioned by dragging in the 3D preview. Each has independent settings for cavity depth, tolerance, rotation, and finger notch. This is the fastest way to build a complete drawer of pliers, screwdrivers, or wrenches in a single print.</p>
+      <p>Up to 12 tools fit in a single insert. Click "Add Tool" and trace a new photo. Each tool can be repositioned by dragging in the 3D preview. Each has independent settings for cavity depth, tolerance, rotation, and finger notch. This is the fastest way to build a complete drawer of pliers, screwdrivers, or wrenches in a single print.</p>
 
       <h2>Step 7: Preview in 3D</h2>
       <p>The 3D preview shows your insert exactly as it will print. Rotate, zoom, and inspect the geometry from all angles. If anything looks off (wrong cavity depth, weird overhangs, missing notches), go back and adjust. The preview updates in real time as you change settings.</p>
@@ -414,8 +414,8 @@ writePage('/guide', makePage({
 
 // Editor
 writePage('/community', makePage({
-  title: 'Community Tool Library - Shared 3D Printable Tool Traces | TracetoForge',
-  description: 'Browse a growing library of community-shared tool traces. Use any trace in your own custom drawer trays, Gridfinity bins, or Packout inserts. Free to browse and use.',
+  title: 'Community Tool Library: Shared Tool Traces | TracetoForge',
+  description: 'Browse community-shared tool traces and use any of them in your own drawer trays, Gridfinity bins or Packout inserts. Free to browse and use.',
   canonical: 'https://tracetoforge.com/community/',
   ogTitle: 'Community Tool Library - TracetoForge',
   h1: 'Community Tool Library',
@@ -442,7 +442,7 @@ writePage('/community', makePage({
 
 writePage('/editor', makePage({
   title: 'Tool Insert Editor - Upload Photo & Export STL | TracetoForge',
-  description: 'Free browser-based tool insert editor. Upload a photo, auto-trace the outline, and export print-ready STL, 3MF, SVG, or DXF files. Works with Milwaukee Packout, Gridfinity, DeWalt ToughSystem, and custom trays.',
+  description: 'Free browser-based tool insert editor: upload a photo, auto-trace the outline, and export STL, 3MF, SVG or DXF for Packout, Gridfinity or custom trays.',
   canonical: 'https://tracetoforge.com/editor/',
   ogTitle: 'TracetoForge Editor - Photo to 3D Insert',
   h1: 'TracetoForge Editor: Photo to Print-Ready Tool Insert',
@@ -466,7 +466,7 @@ writePage('/editor', makePage({
       <p>The 3D preview shows your insert in real time. Drag tools around in the preview to reposition. When you are satisfied, pick your export format and download. Slice with Cura, PrusaSlicer, OrcaSlicer, Bambu Studio, or any other slicer.</p>
 
       <h2>Multi-Tool Support</h2>
-      <p>The editor supports up to five tools per insert. Trace each tool from its own photo, then position them on a single tray. Each tool has independent settings: cavity depth, wall tolerance, finger notch, rotation, and bevel. This lets you build a single insert that holds an entire set of pliers, screwdrivers, or wrenches in one print.</p>
+      <p>The editor supports up to 12 tools per insert. Trace each tool from its own photo, then position them on a single tray. Each tool has independent settings: cavity depth, wall tolerance, finger notch, rotation, and bevel. This lets you build a single insert that holds an entire set of pliers, screwdrivers, or wrenches in one print.</p>
 
       <h2>Supported Export Formats</h2>
       <p><strong>STL:</strong> The universal 3D printing format. Works with every slicer and 3D printer. Best choice for single-material PETG or PLA prints.</p>
@@ -560,7 +560,7 @@ writePage('/privacy', makePage({
       <p><strong>Analytics cookies.</strong> Used by Google Analytics to understand site usage in aggregate. These can be opted out at the browser level.</p>
       <p><strong>Advertising cookies.</strong> Optional Adsterra banner cookies are allowed only after a separate advertising choice, described below.</p>
 
-                <section id="website-advertising"><h2 class="text-xl md:text-2xl font-display font-bold text-white mb-3">Optional Website Advertising</h2><p>The homepage and blog pages offer an optional 300 by 250 Adsterra banner after you choose Allow ads. Adsterra and its advertising partners may use cookies and receive your IP address, browser and device details, referring page, and ad interactions. Your uploaded tool photos, payment details, and account information are not sent through the banner code.</p><p>Choose Decline ads to keep advertising off. Use Advertising choices in the page footer to withdraw consent and remove the ad. This choice is separate from analytics and is remembered in this browser for up to 180 days. Withdrawing consent does not delete data previously received by advertising partners. See <a href="https://adsterra.com/privacy-policy-managed/" class="underline">Adsterra privacy policy</a>.</p></section>
+                <section id="website-advertising"><h2 class="text-xl md:text-2xl font-display font-bold text-white mb-3">Optional Website Advertising</h2><p>The homepage has a responsive 728 by 90 desktop or 320 by 50 phone banner, plus 160 by 600 and 160 by 300 side banners on screens 1,680 pixels wide or more. Blog pages offer an optional 300 by 250 Adsterra banner after you choose Allow ads. Adsterra and its advertising partners may use cookies and receive your IP address, browser and device details, referring page, and ad interactions. Your uploaded tool photos, payment details, and account information are not sent through the banner code.</p><p>Choose Decline ads to keep advertising off. Use Advertising choices in the article footer to withdraw consent and remove the ad. This choice is separate from analytics and is remembered in this browser for up to 180 days. Withdrawing consent does not delete data previously received by advertising partners. See <a href="https://adsterra.com/privacy-policy-managed/" class="underline">Adsterra privacy policy</a>.</p></section>
 <h2>Third-Party Services We Use</h2>
       <ul>
         <li><strong>Supabase</strong> for authentication and database hosting</li>
@@ -672,7 +672,7 @@ writePage('/terms', makePage({
 // About
 writePage('/about', makePage({
   title: 'About TracetoForge | Qwikymart LLC',
-  description: 'TracetoForge is a small maker project run out of Northeast Ohio, operated by Qwikymart LLC. Browser-based tool insert editor plus physical 3D printed inserts shipped from the shop.',
+  description: 'TracetoForge is a small Northeast Ohio maker project run by Qwikymart LLC: a browser-based tool insert editor plus 3D printed inserts shipped from the shop.',
   canonical: 'https://tracetoforge.com/about/',
   ogTitle: 'About TracetoForge',
   h1: 'About TracetoForge',
@@ -720,7 +720,7 @@ writePage('/about', makePage({
 // Contact
 writePage('/contact', makePage({
   title: 'Contact TracetoForge | Support & Feedback',
-  description: 'Contact TracetoForge. Email support@tracetoforge.com for bug reports, feature requests, refund inquiries, and partnership questions. Typical response time 1-2 business days.',
+  description: 'Email support@tracetoforge.com for bug reports, feature requests, refunds and partnership questions. Typical response time is 1-2 business days.',
   canonical: 'https://tracetoforge.com/contact/',
   ogTitle: 'Contact TracetoForge',
   h1: 'Contact TracetoForge',
@@ -898,6 +898,8 @@ function extractArticleContent(jsxContent) {
   content = content.replace(/<[A-Z][a-zA-Z]*[^>]*\/>/g, '')
   content = content.replace(/<[A-Z][a-zA-Z]*[^>]*>[\s\S]*?<\/[A-Z][a-zA-Z]*>/g, '')
   content = content.replace(/\{\/\*[\s\S]*?\*\/\}/g, '')
+  // JSX explicit spaces ({' '}) render as a plain space
+  content = content.replace(/\{' '\}/g, ' ')
 
   // Remove className attributes
   content = content.replace(/\s+className="[^"]*"/g, '')
@@ -1007,7 +1009,15 @@ ${authorBioHtml}
 }
 
 // Update sitemap
-const today = new Date().toISOString().split('T')[0]
+// lastmod is a fixed date, not the build date: only pages that actually changed
+// should look fresh to crawlers. Bump SITEMAP_LASTMOD (or add an override) when
+// content changes.
+const SITEMAP_LASTMOD = '2026-10-15'
+const lastmodOverrides = {
+  'https://tracetoforge.com/blog/measure-tool-from-photo-paper/': '2026-09-18',
+  'https://tracetoforge.com/privacy/': '2026-09-14',
+  'https://tracetoforge.com/terms/': '2026-09-14'
+}
 const sitemapUrls = [
   { loc: 'https://tracetoforge.com/', freq: 'weekly', priority: '1.0' },
   { loc: 'https://tracetoforge.com/about/', freq: 'monthly', priority: '0.8' },
@@ -1029,7 +1039,7 @@ const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${sitemapUrls.map(u => `  <url>
     <loc>${u.loc}</loc>
-    <lastmod>${today}</lastmod>
+    <lastmod>${lastmodOverrides[u.loc] || SITEMAP_LASTMOD}</lastmod>
     <changefreq>${u.freq}</changefreq>
     <priority>${u.priority}</priority>
   </url>`).join('\n')}

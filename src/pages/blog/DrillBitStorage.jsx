@@ -6,7 +6,7 @@ export default function DrillBitStorage() {
   return (
     <BlogPost
       title="Drill Bit Storage in Gridfinity: Custom Bin Layouts"
-      description="Build a Gridfinity bin for twist drill bits, brad-point bits, Forstner bits, or step drills. Tip-up vs tip-down storage, multi-set indexing, and the photo-to-print workflow when off-the-shelf bin layouts don't fit your set."
+      description="Gridfinity bins for twist, brad-point, Forstner and step drill bits: tip-up vs tip-down storage, multi-set indexing, and tracing sets stock layouts don't fit."
       canonical="https://tracetoforge.com/blog/drill-bit-gridfinity-storage/"
       date="2026-05-07"
       updated="2026-05-07"
