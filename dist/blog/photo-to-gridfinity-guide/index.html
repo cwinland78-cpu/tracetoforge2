@@ -14,21 +14,21 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
     <link rel="apple-touch-icon" href="/icon-512.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Photo to Gridfinity: Measure, Trace, and Check the Fit | TracetoForge</title>
-    <meta name="description" content="Turn a phone photo of any tool into a printable Gridfinity bin. Paper-based scaling, tolerance settings, STL and 3MF export. No CAD, runs entirely in your browser." />
+    <title>Photo to Gridfinity: Measure, Trace, and Check the Fit</title>
+    <meta name="description" content="Turn a phone photo of a tool into a printable Gridfinity bin: paper-based scaling, tolerance and fit checks, STL and 3MF export. No CAD; runs in your browser." />
     <meta name="author" content="TracetoForge" />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://tracetoforge.com/blog/photo-to-gridfinity-guide/" />
     <meta property="og:type" content="article" />
     <meta property="og:url" content="https://tracetoforge.com/blog/photo-to-gridfinity-guide/" />
     <meta property="og:title" content="Photo to Gridfinity: Measure, Trace, and Check the Fit" />
-    <meta property="og:description" content="Turn a phone photo of any tool into a printable Gridfinity bin. Paper-based scaling, tolerance settings, STL and 3MF export. No CAD, runs entirely in your browser." />
+    <meta property="og:description" content="Turn a phone photo of a tool into a printable Gridfinity bin: paper-based scaling, tolerance and fit checks, STL and 3MF export. No CAD; runs in your browser." />
     <meta property="og:image" content="https://tracetoforge.com/og-twitter.jpg" />
     <meta property="og:site_name" content="TracetoForge" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:url" content="https://tracetoforge.com/blog/photo-to-gridfinity-guide/" />
     <meta name="twitter:title" content="Photo to Gridfinity: Measure, Trace, and Check the Fit" />
-    <meta name="twitter:description" content="Turn a phone photo of any tool into a printable Gridfinity bin. Paper-based scaling, tolerance settings, STL and 3MF export. No CAD, runs entirely in your browser." />
+    <meta name="twitter:description" content="Turn a phone photo of a tool into a printable Gridfinity bin: paper-based scaling, tolerance and fit checks, STL and 3MF export. No CAD; runs in your browser." />
     <meta name="twitter:image" content="https://tracetoforge.com/og-twitter.jpg" />
     <script type="application/ld+json">
     {
@@ -98,11 +98,11 @@
       "@context": "https://schema.org",
       "@type": "BlogPosting",
       "headline": "Photo to Gridfinity: Measure, Trace, and Check the Fit",
-      "description": "Turn a phone photo of any tool into a printable Gridfinity bin. Paper-based scaling, tolerance settings, STL and 3MF export. No CAD, runs entirely in your browser.",
+      "description": "Turn a phone photo of a tool into a printable Gridfinity bin: paper-based scaling, tolerance and fit checks, STL and 3MF export. No CAD; runs in your browser.",
       "url": "https://tracetoforge.com/blog/photo-to-gridfinity-guide/",
       "image": "https://tracetoforge.com/og-twitter.jpg",
       "datePublished": "2026-05-07",
-      "dateModified": "2026-09-18",
+      "dateModified": "2026-10-15",
       "author": {
         "@type": "Person",
         "name": "Chris Winland",
@@ -200,14 +200,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-    <script type="module" crossorigin src="/assets/index-C87NuviB.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-CISoGB6m.css">
+    <script type="module" crossorigin src="/assets/index-Ty-vYssl.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-BO4VTSSP.css">
   </head>
   <body>
     <div id="root">
       <h1>Photo to Gridfinity: Measure, Trace, and Check the Fit</h1>
       
-      <p>Published 2026-05-07 · Updated 2026-09-18 by <a href="/about/">Chris Winland</a></p>
+      <p>Published 2026-05-07 · Updated 2026-10-15 by <a href="/about/">Chris Winland</a></p>
       <article>
 <div>
         <p>Quick Answer</p>
@@ -219,8 +219,8 @@
       <p>
         This guide is the canonical reference for the photo-to-Gridfinity workflow. It covers the toolchain, the print
         settings, when photo beats parametric, when it does not, and the use cases (from Knipex Cobras to Forstner bit
-        sets) that make the workflow worth learning. If you are coming from a parametric tool like the original{' '}
-        <a href="https://gridfinitygenerator.com/en" target="_blank" rel="noopener noreferrer">Gridfinity Generator</a>{' '}
+        sets) that make the workflow worth learning. If you are coming from a parametric tool like the original 
+        <a href="https://gridfinitygenerator.com/en" target="_blank" rel="noopener noreferrer">Gridfinity Generator</a> 
         and wondering what photo adds, the short answer is: tool-shaped cavities. Everything below is the long answer.
       </p>
 
@@ -290,7 +290,9 @@
         Onshape parametric features are excellent at one thing: producing perfectly proportioned generic bins with
         rectangular, cylindrical, or hexagonal cavities. If you want a bin with eight equal compartments for resistors,
         or a single cavity sized for a roll of 6&nbsp;mm hex keys, parametric is the right tool. You type four numbers
-        and you have a print-ready file in thirty seconds.
+        and you have a print-ready file in thirty seconds. Perplexing Labs' Gridfinity Generator, for example, makes
+        parametric bins and baseplates but no photo-based cutouts, and Fusion 360 with a Gridfinity plugin is powerful
+        but means learning CAD and modeling each tool by hand.
       </p>
 
       <p>A parametric sketch can be useful when the shape is described by measured circles, rectangles, or repeated features. A photograph is useful when the outside silhouette matters more than those construction dimensions. Choose based on the geometry you need, then verify the result physically.</p>
@@ -308,13 +310,13 @@
         <li>
           <strong>Hand tool inserts</strong> — pliers, wrenches, screwdrivers, hex keys, multimeters, wire strippers.
           The strongest case for the workflow. Parametric generators cannot meaningfully shape these. Brand- and
-          model-specific posts: <a href="/blog/knipex-pliers-organizer-3d-printed/">Knipex pliers organizer</a>,{' '}
-          <a href="/blog/wera-screwdriver-gridfinity-bin/">Wera screwdriver bin</a>, and{' '}
+          model-specific posts: <a href="/blog/knipex-pliers-organizer-3d-printed/">Knipex pliers organizer</a>, 
+          <a href="/blog/wera-screwdriver-gridfinity-bin/">Wera screwdriver bin</a>, and 
           <a href="/blog/wrench-set-gridfinity-bin/">wrench set Gridfinity bin</a>.
         </li>
         <li>
           <strong>Drill bit and bit-driver storage</strong> — for non-standard sets (mixed brands, missing sizes,
-          Forstner bits, step drills) where off-the-shelf bin generators do not have a preset. See{' '}
+          Forstner bits, step drills) where off-the-shelf bin generators do not have a preset. See 
           <a href="/blog/drill-bit-gridfinity-storage/">drill bit storage in Gridfinity</a>.
         </li>
         <li>
@@ -350,7 +352,8 @@
         Place the Cobras flat on a sheet of US Letter or A4 paper, jaws closed. Closed jaws give a cleaner outline
         than open jaws and the resulting bin holds the tool more securely. Stand directly over the paper — do not
         lean across a desk — and shoot from about 30&nbsp;cm above. Even, diffused lighting matters more than camera
-        quality. Avoid harsh shadows and direct overhead flash.
+        quality. Avoid harsh shadows and direct overhead flash. Some users prefer a flatbed scanner for small, flat
+        tools because it removes camera angle from the equation, but a phone camera works well for most tools.
       </p>
 
       <h3>Step 2: Upload and Auto-Trace</h3>
@@ -398,7 +401,7 @@
       <p>
         The same traces also live in your account as a reusable library. Once you have traced a set of Knipex
         Cobras, you do not retrace them when you redesign your tray. Drop them into a new bin, a Packout insert,
-        or a custom tray — same outline, new container. This is the workflow described in detail in{' '}
+        or a custom tray — same outline, new container. This is the workflow described in detail in 
         <a href="/blog/reusable-tool-library-drawer-trays/">trace once, use everywhere</a>.
       </p>
 
@@ -426,7 +429,7 @@
         <li>
           <strong>Drawer baseplate.</strong> Print a Gridfinity baseplate sized to your drawer interior, drop it
           in, and fill with bins. Works for tool chests, rolling cabinets, and Milwaukee Packout drawers (the
-          48-22-8443 3-Drawer fits a 9×6 baseplate cleanly). Full setup walkthrough:{' '}
+          48-22-8443 3-Drawer fits a 9×6 baseplate cleanly). Full setup walkthrough: 
           <a href="/blog/gridfinity-in-packout-drawer/">Gridfinity in Milwaukee Packout drawers</a>.
         </li>
         <li>
@@ -437,7 +440,7 @@
           <strong>Toolbox tray.</strong> For Milwaukee Packout, DeWalt ToughSystem, or Festool Systainer cases,
           you can run Gridfinity bins inside a baseplate that sits in the case — or skip Gridfinity entirely and
           use Custom Tray mode for a one-piece insert sized to the case interior. The trade-off comes down to
-          modularity vs space efficiency, covered in{' '}
+          modularity vs space efficiency, covered in 
           <a href="/blog/gridfinity-vs-packout-vs-custom-tray/">Gridfinity vs Packout vs custom trays</a>.
         </li>
       </ul>
@@ -464,6 +467,8 @@
           for things like ratchet-head clearance.</li>
         <li><strong>Bed adhesion:</strong> Standard PEI or a small skirt is sufficient. The Gridfinity base is
           a wide footprint that grips well.</li>
+        <li><strong>First layer:</strong> Make sure it is dialed in. The Gridfinity base profile has tight
+          tolerances, and a rough first layer affects how the bin sits on the baseplate.</li>
       </ul>
 
       <p>
@@ -478,7 +483,7 @@
       <p>
         Tracing and 3D-previewing on TracetoForge are free with no account required. Exporting a file (STL, 3MF,
         SVG, DXF) costs one credit. New accounts get three free credits on signup. Additional credits are $9.99
-        for 20 or $34.99 for 100. Tooltrace and GridPilot have their own pricing — see the{' '}
+        for 20 or $34.99 for 100. Tooltrace and GridPilot have their own pricing — see the 
         <a href="/blog/tracetoforge-vs-tooltrace-vs-gridpilot/">comparison post</a>.
       </p>
 
@@ -500,23 +505,23 @@
       <p>
         Polished steel and chrome tools cause reflections that confuse edge detection. Two fixes: drape a piece
         of tissue paper over the tool to soften reflections (the silhouette still traces cleanly), or raise the
-        sensitivity slider to 8-9. Detailed photo guidance lives in{' '}
+        sensitivity slider to 8-9. Detailed photo guidance lives in 
         <a href="/blog/photo-tips-for-gridfinity-trace/">photo tips for a clean Gridfinity trace</a>.
       </p>
 
       <h3>Can I sell prints I make with TracetoForge?</h3>
       <p>
         Yes. You own the files you generate. There is no royalty or commercial-use restriction on exports. If
-        you do not have a 3D printer, TracetoForge sells precision-fit PETG inserts on{' '}
-        <a href="https://www.amazon.com/s?k=TracetoForge+gridfinity+insert&rh=n%3A553240" target="_blank" rel="noopener noreferrer">Amazon</a>{' '}
-        and{' '}
+        you do not have a 3D printer, TracetoForge sells precision-fit PETG inserts on 
+        <a href="https://www.amazon.com/s?k=TracetoForge+gridfinity+insert&rh=n%3A553240" target="_blank" rel="noopener noreferrer">Amazon</a> 
+        and 
         <a href="https://www.etsy.com/shop/TracetoForge" target="_blank" rel="noopener noreferrer">Etsy</a>.
       </p>
 
       <h3>Where does the Gridfinity standard come from?</h3>
       <p>
         Gridfinity is a modular storage system with community-created models and designs. The system, baseplate,
-        and bin profiles are open and community-extended. The community reference at{' '}
+        and bin profiles are open and community-extended. The community reference at 
         <a href="https://gridfinity.xyz/" target="_blank" rel="noopener noreferrer">gridfinity.xyz</a> is the
         canonical reference for the 42&nbsp;mm grid spec, base profile, and stacking lip dimensions.
       </p>
@@ -530,15 +535,15 @@
         How-to and tutorials:
       </p>
       <ul>
-        <li><a href="/blog/gridfinity-insert-from-photo/">Create Gridfinity Inserts from a Photo</a> — the focused walkthrough</li>
-        <li><a href="/blog/gridfinity-custom-cutout-no-cad/">Gridfinity Custom Cutouts Without CAD</a> — the photo-based method explained</li>
+        <li><a href="/blog/gridfinity-custom-cutout-no-cad/">Gridfinity Custom Cutout From a Photo (No CAD)</a> — the photo-based method explained</li>
+        <li><a href="/blog/measure-tool-from-photo-paper/">Measure a Tool from a Photo With a Sheet of Paper</a> — how the paper reference sets scale</li>
         <li><a href="/blog/reusable-tool-library-drawer-trays/">Trace Once, Use Everywhere</a> — the reusable tool library workflow</li>
         <li><a href="/blog/photo-tips-for-gridfinity-trace/">Photo Tips for a Clean Gridfinity Trace</a> — lighting, paper, and sensitivity</li>
       </ul>
 
       <p>Comparisons and tool choice:</p>
       <ul>
-        <li><a href="/blog/gridfinity-generator-photo-vs-parametric/">Photo-Based vs Parametric Gridfinity Generators</a></li>
+        <li><a href="/blog/gridfinity-generator-photo-vs-parametric/">Gridfinity Generators Compared: Parametric vs Photo-Based</a></li>
         <li><a href="/blog/gridfinity-vs-packout-vs-custom-tray/">Gridfinity vs Packout vs Custom Trays</a></li>
         <li><a href="/blog/tracetoforge-vs-tooltrace-vs-gridpilot/">TracetoForge vs Tooltrace vs GridPilot</a></li>
       </ul>
@@ -551,14 +556,21 @@
         <li><a href="/blog/drill-bit-gridfinity-storage/">Drill Bit Storage in Gridfinity</a></li>
       </ul>
 
+      <p>Beyond Gridfinity, the same trace can become other files:</p>
+      <ul>
+        <li><a href="/blog/image-to-stl-converter-free/">Image to STL for Tool Outlines</a> — STL, 3MF, SVG, and DXF from one traced photo</li>
+        <li><a href="/blog/drawing-to-3d-object/">Turn a Drawing into a 3D Printable Object</a> — extrude a sketch instead of cutting a cavity</li>
+      </ul>
+
       <p>Workshop integration:</p>
       <ul>
+        <li><a href="/blog/custom-milwaukee-packout-inserts-3d-print/">Custom Milwaukee Packout Inserts</a></li>
         <li><a href="/blog/how-to-organize-milwaukee-packout/">How to Organize a Milwaukee Packout</a></li>
         <li><a href="/blog/gridfinity-in-packout-drawer/">Gridfinity in Milwaukee Packout Drawers: Setup Guide</a></li>
       </ul>
 
       <p>
-        If you have a tool you want to trace and a 3D printer collecting dust, the rest is setup time.{' '}
+        If you have a tool you want to trace and a 3D printer collecting dust, the rest is setup time. 
         <a href="/editor/">Open the editor</a>, take a photo, and have your first custom Gridfinity bin
         sliced before lunch.
       </p>
@@ -578,7 +590,7 @@
 
       <aside>
         <h3>About the author</h3>
-        <p>TracetoForge publishes guides to using its photo tracing and insert-design tools. Measurements and example settings should be checked against your own tool and printer. Send corrections with the page URL and supporting information to <!--email_off-->support@tracetoforge.com<!--/email_off-->.</p>
+        <p>Chris Winland builds and runs TracetoForge, operated by Qwikymart LLC in Northeast Ohio. Measurements and example settings should be checked against your own tool and printer. Send corrections with the page URL and supporting information to <!--email_off-->support@tracetoforge.com<!--/email_off-->.</p>
         <p><a href="/about/">More about TracetoForge</a> | <a href="/contact/">Contact</a></p>
       </aside>
       <p><a href="/blog/">Back to Blog</a> | <a href="/editor/?sample=1">Watch It Trace a Tool (Live Demo)</a> | <a href="/editor/">Upload Your Own Photo</a></p>

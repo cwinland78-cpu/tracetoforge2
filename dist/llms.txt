@@ -18,18 +18,16 @@
 
 ## Blog
 - [How to make custom Milwaukee Packout inserts with a 3D printer](https://tracetoforge.com/blog/custom-milwaukee-packout-inserts-3d-print/)
-- [Create Gridfinity inserts from a photo](https://tracetoforge.com/blog/gridfinity-insert-from-photo/)
+- [Photo to Gridfinity: measure, trace, and check the fit](https://tracetoforge.com/blog/photo-to-gridfinity-guide/)
 - [Gridfinity vs Milwaukee Packout vs custom trays](https://tracetoforge.com/blog/gridfinity-vs-packout-vs-custom-tray/)
 - [3D printed inserts vs Kaizen foam](https://tracetoforge.com/blog/3d-printed-inserts-vs-kaizen-foam/)
 - [Trace once, use everywhere: build a reusable tool library](https://tracetoforge.com/blog/reusable-tool-library-drawer-trays/)
 - [How to organize a Milwaukee Packout](https://tracetoforge.com/blog/how-to-organize-milwaukee-packout/)
-- [Image to STL converter: free, no CAD needed](https://tracetoforge.com/blog/image-to-stl-converter-free/)
-- [Gridfinity custom cutouts without CAD](https://tracetoforge.com/blog/gridfinity-custom-cutout-no-cad/)
-- [3D printed tool organizer: complete guide](https://tracetoforge.com/blog/3d-printed-tool-organizer-guide/)
+- [Image to STL for tool outlines: free trace and preview](https://tracetoforge.com/blog/image-to-stl-converter-free/)
+- [Gridfinity custom cutout from a photo (no CAD)](https://tracetoforge.com/blog/gridfinity-custom-cutout-no-cad/)
+- [3D printed tool organizer ideas and fit guide](https://tracetoforge.com/blog/3d-printed-tool-organizer-guide/)
 - [Knipex pliers organizer: 3D printed inserts](https://tracetoforge.com/blog/knipex-pliers-organizer-3d-printed/)
-- [Gridfinity generator: photo-based vs parametric](https://tracetoforge.com/blog/gridfinity-generator-photo-vs-parametric/)
-- [Best 3D printed tool organizer ideas](https://tracetoforge.com/blog/best-3d-printed-tool-organizer-ideas/)
-- [Photo to STL tool organizer guide](https://tracetoforge.com/blog/tool-organizer-photo-to-stl/)
+- [Gridfinity generators compared: parametric vs photo-based](https://tracetoforge.com/blog/gridfinity-generator-photo-vs-parametric/)
 - [Full blog index](https://tracetoforge.com/blog/)
 
 ## Key facts
