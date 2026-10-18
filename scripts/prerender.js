@@ -192,10 +192,9 @@ const faqSchema = {
 }
 
 const landingHtml = makePage({
-  title: 'Custom Tool Drawer Organizer From a Photo | TracetoForge',
-  description: 'Design custom wrench, plier, screwdriver, and hammer drawer trays from a photo of your tools. Also makes replacement gaskets from a photo. Auto-trace, export STL, 3MF, SVG, or DXF. Gridfinity supported. Free, no CAD needed.',
+  title: 'Photo to Gridfinity Bin & Custom Tool Inserts | TracetoForge',
+  description: 'Photograph a tool on paper and get a fitted Gridfinity bin, Packout drawer insert or tray. Free trace and 3D preview; export STL, 3MF, SVG or DXF.',
   canonical: 'https://tracetoforge.com/',
-  ogTitle: 'TracetoForge - Custom Tool Drawer Trays From a Photo',
   h1: 'Custom Gridfinity Inserts From a Photo — No CAD Needed',
   bodyHtml: `
       <p><strong>New: <a href="/community/">Community Tool Library</a></strong> — browse traces published by other users and drop them straight into your own drawer trays, Gridfinity bins, or Packout inserts. Free to browse and use.</p>
@@ -235,14 +234,12 @@ const landingHtml = makePage({
         <li><a href="/blog/gridfinity-custom-cutout-no-cad/">Gridfinity Custom Cutouts Without CAD</a></li>
         <li><a href="/blog/3d-printed-tool-organizer-guide/">3D Printed Tool Organizer: Complete Guide</a></li>
         <li><a href="/blog/knipex-pliers-organizer-3d-printed/">Knipex Pliers Organizer: 3D Printed Inserts</a></li>
-        <li><a href="/blog/gridfinity-insert-from-photo/">Create Gridfinity Inserts from a Photo</a></li>
+        <li><a href="/blog/photo-to-gridfinity-guide/">Photo to Gridfinity: Measure, Trace, and Check the Fit</a></li>
         <li><a href="/blog/gridfinity-generator-photo-vs-parametric/">Gridfinity Generator: Photo-Based vs Parametric</a></li>
         <li><a href="/blog/custom-milwaukee-packout-inserts-3d-print/">Custom Milwaukee Packout Inserts</a></li>
         <li><a href="/blog/gridfinity-vs-packout-vs-custom-tray/">Gridfinity vs Packout vs Custom Trays</a></li>
-        <li><a href="/blog/best-3d-printed-tool-organizer-ideas/">Best 3D Printed Tool Organizer Ideas</a></li>
         <li><a href="/blog/3d-printed-inserts-vs-kaizen-foam/">3D Printed Inserts vs Kaizen Foam</a></li>
         <li><a href="/blog/how-to-organize-milwaukee-packout/">How to Organize a Milwaukee Packout</a></li>
-        <li><a href="/blog/tool-organizer-photo-to-stl/">Photo to STL Tool Organizer Guide</a></li>
       </ul>
       <h2>Buy Ready-Made Inserts</h2>
       <p>No 3D printer? Buy precision-fit PETG tool inserts on <a href="https://www.amazon.com/s?k=TracetoForge+gridfinity+insert&rh=n%3A553240">Amazon</a> and <a href="https://www.etsy.com/shop/TracetoForge">Etsy</a>. Gridfinity and Milwaukee Packout compatible. Inserts for Knipex Cobra, Knipex Pliers Wrench, Klein wire strippers, Wera screwdrivers, Milwaukee hand tools, and more.</p>
