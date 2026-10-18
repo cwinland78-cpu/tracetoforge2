@@ -115,6 +115,13 @@ const BOX_AFFILIATE = {
   'dewalt-ts2-small': { name: 'DeWalt ToughSystem 2.0 Tool Box DWST08165', url: `https://www.amazon.com/dp/B08D3KRHJQ?tag=${AMAZON_TAG}` },
 }
 
+// Starting zoom for a freshly loaded photo. Phones: shrink so the whole photo fits the screen width
+// (0.4 of a typical 3000 px photo is far wider than a phone). Desktop keeps 0.4.
+function initialZoom(imageWidth) {
+  if (typeof window === 'undefined' || window.innerWidth >= 768 || !imageWidth) return 0.4
+  return Math.max(0.1, Math.min(0.4, Math.floor(((window.innerWidth - 16) / imageWidth) * 20) / 20))
+}
+
 export default function Editor() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -409,7 +416,7 @@ export default function Editor() {
         const img = new Image()
         img.onload = () => {
           imageRef.current = img
-          setZoom(0.4)
+          setZoom(initialZoom(img.width))
         }
         img.src = cfg.image
       }
@@ -671,7 +678,7 @@ export default function Editor() {
         setImageSize({ w: img.width, h: img.height })
         imageRef.current = img
         setStep(1)
-        setZoom(0.4)
+        setZoom(initialZoom(img.width))
         setContours([]); setContourHoles([])
         setShowPreview(false)
       }
@@ -735,17 +742,18 @@ export default function Editor() {
         const iw = (cfg.imageSize?.w || img.width)
         const ih = (cfg.imageSize?.h || img.height)
         const el = containerRef.current
-        let fitZoom = 0.45
+        let fitZoom = window.innerWidth < 768 ? initialZoom(iw * 1.05) : 0.45
         if (el && el.clientWidth > 0) {
           // Label room is baked into the sample image padding now
           fitZoom = Math.min(el.clientWidth / (iw * 1.05), el.clientHeight / (ih * 1.1))
-          fitZoom = Math.max(0.25, Math.min(0.9, Math.floor(fitZoom * 20) / 20))
+          fitZoom = Math.max(0.1, Math.min(0.9, Math.floor(fitZoom * 20) / 20))
         }
         setZoom(fitZoom)
         setTimeout(() => {
           const sc = scrollRef.current
           if (sc) {
-            sc.scrollTop = Math.max(0, (sc.scrollHeight - sc.clientHeight) / 2 + 60)
+            // Phones: the photo is small after fitting, so start at the top where it sits; desktop centres the labels.
+            sc.scrollTop = window.innerWidth < 768 ? 0 : Math.max(0, (sc.scrollHeight - sc.clientHeight) / 2 + 60)
             sc.scrollLeft = Math.max(0, (sc.scrollWidth - sc.clientWidth) / 2)
           }
         }, 80)
@@ -766,7 +774,7 @@ export default function Editor() {
     setImageSize({ w: img.width, h: img.height })
     imageRef.current = img
     setStep(1)
-    setZoom(0.4)
+    setZoom(initialZoom(img.width))
     setContours([]); setContourHoles([])
     setShowPreview(false)
   }, [])
@@ -2687,9 +2695,10 @@ export default function Editor() {
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
+      {/* Phones: the photo/3D area on top, settings scroll underneath. Side by side from 768px. */}
+      <div className="flex flex-1 min-h-0 flex-col md:flex-row overflow-hidden">
         {/* ── Sidebar ── */}
-        <aside className="w-72 border-r border-[#2A2A35]/50 bg-surface/30 overflow-y-auto flex-shrink-0">
+        <aside className="order-2 md:order-none w-full md:w-72 flex-1 md:flex-none min-h-0 border-t md:border-t-0 md:border-r border-[#2A2A35]/50 bg-surface/30 overflow-y-auto md:flex-shrink-0">
           <div className="p-4 pb-32 space-y-5">
 
             {/* Tool selector tabs - at top of sidebar */}
@@ -4004,13 +4013,13 @@ export default function Editor() {
         </aside>
 
         {/* ── Main Canvas / Preview ── */}
-        <main className="flex-1 relative overflow-hidden bg-[#0D0D12]">
+        <main className="order-1 md:order-none h-[55%] md:h-auto flex-none md:flex-1 relative overflow-hidden bg-[#0D0D12]">
 
           {/* Upload */}
           {step === 0 && (
-            <div className="flex flex-col items-center justify-center h-full gap-6 p-8"
+            <div className="flex flex-col items-center justify-start md:justify-center h-full overflow-y-auto gap-5 md:gap-6 p-5 md:p-8"
               onDragOver={e => e.preventDefault()} onDrop={handleDrop}>
-              <div className="w-72 h-72 sm:w-80 sm:h-80 rounded-3xl bg-[#131318] border-2 border-dashed border-[#2A2A35] flex flex-col items-center justify-center gap-4 hover:border-brand hover:bg-[#16161E] transition-all cursor-pointer group"
+              <div className="w-56 h-56 sm:w-72 sm:h-72 md:w-80 md:h-80 shrink-0 rounded-3xl bg-[#131318] border-2 border-dashed border-[#2A2A35] flex flex-col items-center justify-center gap-4 hover:border-brand hover:bg-[#16161E] transition-all cursor-pointer group"
                 onClick={() => setShowPhotoTips(true)}>
                 <Upload className="text-[#8888A0] group-hover:text-brand transition-colors" size={72} />
                 <div className="text-center px-6">
@@ -4163,7 +4172,7 @@ export default function Editor() {
               </div>
 
               {/* Canvas */}
-              <div className="h-full overflow-auto p-8 pt-96" ref={scrollRef}>
+              <div className="h-full overflow-auto p-3 pt-14 md:p-8 md:pt-96" ref={scrollRef}>
                 <div style={{ minWidth: `${Math.max(100, canvasSize.w * zoom + 800 * zoom)}px`, minHeight: '100%', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', paddingBottom: `${Math.max(400, 800 * zoom)}px` }}>
                   <canvas
                     ref={canvasRef}
