@@ -29,9 +29,5 @@ function walk(dir) {
   }
 }
 walk(site)
-// Only changed editorial pages receive a new lastmod, not every build.
-const changed=['photo-to-gridfinity-guide','measure-tool-from-photo-paper','knipex-pliers-organizer-3d-printed','gridfinity-in-packout-drawer','image-to-stl-converter-free']
-let sitemap=fs.readFileSync(path.join(site,'sitemap.xml'),'utf8')
-for(const slug of changed)sitemap=sitemap.replace(new RegExp('(<loc>https://tracetoforge.com/blog/'+slug+'/</loc>\\s*<lastmod>)[^<]+'), '$12026-09-18')
-fs.writeFileSync(path.join(site,'sitemap.xml'),sitemap)
+// sitemap.xml in site/ is maintained by hand (lastmod per real content change); do not rewrite it here.
 console.log('Updated deployable site with',js,css)
