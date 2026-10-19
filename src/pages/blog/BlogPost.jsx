@@ -1,14 +1,16 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, Calendar, Clock } from 'lucide-react'
 import SEOHead from '../../components/SEOHead'
-// Ads are injected at the edge by the Ad Manager worker, so in-app ad slots render nothing.
-function AdUnit() {
-  return null
-}
+import { getAdvertisingConsent, onAdvertisingConsentChange, initAdvertisingChoices } from '../../lib/adsterraConsent'
 
+// Ads are served by the Ad Manager Cloudflare Worker (AD MANAGER project), not by the app.
+// Kept as a no-op so existing <AdUnit /> placements render nothing.
+function AdUnit() { return null }
+
+// Same rule as scripts/prerender.js: keep the brand suffix only while the full title stays within ~65 characters.
 const TITLE_SUFFIX = ' | TracetoForge'
-const seoTitle = (title) => ((title + TITLE_SUFFIX).length <= 65 ? title + TITLE_SUFFIX : title)
+const documentTitle = (title) => ((title + TITLE_SUFFIX).length <= 65 ? title + TITLE_SUFFIX : title)
 
 export default function BlogPost({ title, description, canonical, date, updated, readTime, tags, faq, children }) {
   // dateModified for the article schema falls back to date if not provided
@@ -16,7 +18,7 @@ export default function BlogPost({ title, description, canonical, date, updated,
   return (
     <>
       <SEOHead
-        title={seoTitle(title)}
+        title={documentTitle(title)}
         description={description}
         canonical={canonical}
         type="article"

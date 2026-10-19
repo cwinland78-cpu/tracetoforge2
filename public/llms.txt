@@ -13,7 +13,7 @@
 ## Reference
 - [About](https://tracetoforge.com/about/): Company background, founder, what TracetoForge does and doesn't do.
 - [Contact](https://tracetoforge.com/contact/): support@tracetoforge.com — bug reports, feature requests, refund inquiries.
-- [Privacy](https://tracetoforge.com/privacy/): All photo processing runs in-browser; no images upload to any server.
+- [Privacy](https://tracetoforge.com/privacy/): All photo processing runs in your browser (OpenCV.js). If you save a project to your account, a small thumbnail is stored.
 - [Terms](https://tracetoforge.com/terms/): Terms of service.
 
 ## Blog
@@ -34,7 +34,7 @@
 - Output formats: STL, 3MF (multi-material), SVG (laser cut), DXF (CNC).
 - Recommended filament: PETG for tool inserts (heat-resistant to 80°C).
 - Compatible storage systems: Milwaukee Packout, Gridfinity (42mm grid), DeWalt ToughSystem, DeWalt TSTAK, Klein ModBox, Festool Systainer, Bosch L-Boxx, and custom-dimension trays.
-- All photo processing runs in-browser; no images upload to any server.
+- All photo processing runs in your browser (OpenCV.js). If you save a project to your account, a small thumbnail is stored.
 - Pricing: 3 free credits on signup. 20 credits for $9.99. 100 credits for $34.99 (best value). One credit per export.
 - Founder: Chris Winland. Operated by Qwikymart LLC.
 - Etsy storefront: https://www.etsy.com/shop/TracetoForge

@@ -28,6 +28,25 @@ function walk(dir) {
     fs.writeFileSync(p,html)
   }
 }
+// Posts merged into a pillar and 301-redirected in _redirects: drop their pages (before walk(),
+// which rebuilds every site/blog page from dist/) and, below, their sitemap entries.
+const merged=['packout-drawer-inserts','gridfinity-insert-from-photo','tool-organizer-photo-to-stl','best-3d-printed-tool-organizer-ideas']
+for(const slug of merged)fs.rmSync(path.join(site,'blog',slug),{recursive:true,force:true})
 walk(site)
-// sitemap.xml in site/ is maintained by hand (lastmod per real content change); do not rewrite it here.
+// site/sitemap.xml is maintained here, not regenerated: only pages whose content changed get a new
+// lastmod (re-running is idempotent). Add each release's changed paths under its date.
+const lastmod={
+  '2026-09-18':['/blog/measure-tool-from-photo-paper/'],
+  '2026-10-15':['/','/blog/','/guide/','/editor/','/about/','/community/','/contact/','/blog/photo-to-gridfinity-guide/','/blog/knipex-pliers-organizer-3d-printed/','/blog/gridfinity-in-packout-drawer/','/blog/image-to-stl-converter-free/',
+    '/blog/custom-milwaukee-packout-inserts-3d-print/','/blog/3d-printed-tool-organizer-guide/','/blog/tracetoforge-vs-tooltrace-vs-gridpilot/','/blog/gridfinity-custom-cutout-no-cad/',
+    '/blog/gridfinity-generator-photo-vs-parametric/','/blog/reusable-tool-library-drawer-trays/','/blog/photo-tips-for-gridfinity-trace/','/blog/3d-printed-inserts-vs-kaizen-foam/',
+    '/blog/gridfinity-vs-packout-vs-custom-tray/','/blog/how-to-organize-milwaukee-packout/','/blog/wera-screwdriver-gridfinity-bin/','/blog/wrench-set-gridfinity-bin/',
+    '/blog/drawing-to-3d-object/','/blog/drill-bit-gridfinity-storage/','/blog/gasket-maker-from-photo/'],
+}
+let sitemap=fs.readFileSync(path.join(site,'sitemap.xml'),'utf8')
+for(const [date,paths] of Object.entries(lastmod))for(const p of paths)sitemap=sitemap.replace(new RegExp('(<loc>https://tracetoforge.com'+p+'</loc>\\s*<lastmod>)[^<]+'), '$1'+date)
+for(const slug of merged){
+  sitemap=sitemap.replace(new RegExp('\\s*<url>\\s*<loc>https://tracetoforge.com/blog/'+slug+'/</loc>[\\s\\S]*?</url>'),'')
+}
+fs.writeFileSync(path.join(site,'sitemap.xml'),sitemap)
 console.log('Updated deployable site with',js,css)

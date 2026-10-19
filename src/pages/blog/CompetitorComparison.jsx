@@ -26,57 +26,50 @@ export default function CompetitorComparison() {
       <div className="not-prose mb-8 p-5 rounded-lg border border-brand/30 bg-brand/5">
         <p className="text-xs font-semibold text-brand uppercase tracking-wider mb-2">Quick Answer</p>
         <p className="text-[#C8C8D0] leading-relaxed text-[15px]">
-          All four turn a photo of a tool on paper into a Gridfinity bin. Pick <strong>TracetoForge</strong> for
-          pay-per-export pricing with no subscription, up to 12 tools per insert, and Packout or ToughSystem tray
-          templates. Pick <strong>Tooltrace</strong> if you also cut foam shadow boxes or need STEP files.
-          Pick <strong>GridPilot</strong> for pricing by area. Pick <strong>Tracefinity</strong> if you want magnet
-          holes and labels, or want to self-host open source.
+          All four turn a photo of a tool on paper into a Gridfinity bin. Pick <strong>TracetoForge</strong> for pay-per-export pricing with no subscription,
+          up to 12 tools per insert, and Packout or ToughSystem tray templates. Pick <strong>Tooltrace</strong> if you also cut foam shadow boxes or need STEP files.
+          Pick <strong>GridPilot</strong> for pricing by area. Pick <strong>Tracefinity</strong> if you want magnet holes and labels, or want to self-host open source.
         </p>
       </div>
 
       <p>
-        <strong>Disclosure:</strong> I built TracetoForge, so read this with that in mind. Every fact about the other
-        tools below comes from their own websites, linked in the sources section, and was checked on 15 October 2026.
-        Where a site does not say something, the table says "not listed" rather than guessing. Pricing in this category
-        changes often, so confirm before you pay.
+        <strong>Disclosure:</strong> I built TracetoForge, so read this with that in mind. Every fact about the other tools below
+        comes from their own websites, linked in the sources section, and was checked on 15 October 2026. Where a site does not
+        say something, the table says "not listed" rather than guessing. Pricing in this category changes often, so confirm
+        before you pay.
       </p>
 
       <h2>The Four Tools at a Glance</h2>
 
       <ul>
         <li>
-          <strong><Link to="/editor/">TracetoForge</Link></strong>: browser-based editor. Tracing runs in your browser
-          with OpenCV.js. Modes for Gridfinity bins (with optional stacking lip), free-form trays, gaskets, and inserts
-          sized for Milwaukee PACKOUT and DeWalt ToughSystem 2.0 organizers. Up to 12 tools per insert. Exports STL,
-          3MF, SVG and DXF. Tracing and preview are free; exports cost credits ($9.99 for 20, $34.99 for 100) that
-          never expire.
+          <strong><Link to="/editor/">TracetoForge</Link></strong>: browser-based editor. Tracing runs in your browser with
+          OpenCV.js. Modes for Gridfinity bins (with optional stacking lip), free-form trays, gaskets, and inserts sized for
+          Milwaukee PACKOUT and DeWalt ToughSystem 2.0 organizers. Up to 12 tools per insert. Exports STL, 3MF, SVG and DXF.
+          Tracing and preview are free; exports cost credits ($9.99 for 20, $34.99 for 100) that never expire.
         </li>
         <li>
-          <strong><a href="https://www.tooltrace.ai/" {...ext}>Tooltrace</a></strong>: made by finalREV, a machine shop
-          in Berkeley. Turns a photo into Gridfinity inserts or foam shadow boxes. Multiple tools per layout with
-          per-tool pocket depth. Exports STL, 3MF, STEP, DXF and SVG, plus a 1:1 PDF for checking size. Free for 3
-          active traces; Pro is $8/month.
+          <strong><a href="https://www.tooltrace.ai/" {...ext}>Tooltrace</a></strong>: made by finalREV, a machine shop in
+          Berkeley. Turns a photo into Gridfinity inserts or foam shadow boxes. Multiple tools per layout with per-tool pocket
+          depth. Exports STL, 3MF, STEP, DXF and SVG, plus a 1:1 PDF for checking size. Free for 3 active traces; Pro is $8/month.
         </li>
         <li>
-          <strong><a href="https://gridpilot.us/" {...ext}>GridPilot</a></strong>: AI tool detection from a photo, plus
-          manual tools, zones and auto-arrange. Gridfinity or custom dimensions. Exports DXF and 3MF. Priced by area:
-          100 square inches a month free, $3.99 for 4,500 square inches, or $16.99/month unlimited.
+          <strong><a href="https://gridpilot.us/" {...ext}>GridPilot</a></strong>: AI tool detection from a photo, plus manual
+          tools, zones and auto-arrange. Gridfinity or custom dimensions. Exports DXF and 3MF. Priced by area: 100 square
+          inches a month free, $3.99 for 4,500 square inches, or $16.99/month unlimited.
         </li>
         <li>
           <strong><a href="https://tracefinity.net/" {...ext}>Tracefinity</a></strong>: MIT-licensed{' '}
-          <a href="https://github.com/tracefinity/tracefinity" {...ext}>open source</a>, available hosted or
-          self-hosted in Docker. Bin builder with a tool library, magnet holes, stacking lip, finger holes and labels.
-          Exports STL, 3MF (for bins with labels) and SVG outlines. Hosted plans: free (2 bins), €4.99/month or
-          €9.99/month.{' '}
+          <a href="https://github.com/tracefinity/tracefinity" {...ext}>open source</a>, available hosted or self-hosted in
+          Docker. Bin builder with a tool library, magnet holes, stacking lip, finger holes and labels. Exports STL, 3MF (for
+          bins with labels) and SVG outlines. Hosted plans: free (2 bins), €4.99/month or €9.99/month.{' '}
           <a href="https://hackaday.com/2026/09/04/take-tool-photo-generate-custom-gridfinity-bin/" {...ext}>Covered by Hackaday</a>.
         </li>
       </ul>
 
       <h2>Feature Comparison</h2>
 
-      <p>
-        Facts checked 15 October 2026 against each tool's own site. "Not listed" means the site does not say.
-      </p>
+      <p>Facts checked 15 October 2026 against each tool's own site. "Not listed" means the site does not say.</p>
 
       <div className="not-prose my-6 overflow-x-auto">
         <table className="w-full text-sm border-collapse">
@@ -113,51 +106,47 @@ export default function CompetitorComparison() {
       <h2>When to Pick TracetoForge</h2>
 
       <ul>
-        <li><strong>You don't want a subscription.</strong> Tracing and 3D preview are free without an account. Exports
-          use credits that never expire, so occasional users pay only for what they export.</li>
-        <li><strong>You're filling a Packout or ToughSystem organizer.</strong> Built-in templates size the insert for
-          the PACKOUT Compact (48-22-8435), Low-Profile (48-22-8436), SHOCKWAVE Customizable Case (48-32-9921) and
-          ToughSystem 2.0 (DWST08165).</li>
-        <li><strong>You're laying out a whole drawer.</strong> Up to 12 tools per insert, each with its own depth,
-          tolerance and finger notch.</li>
-        <li><strong>You'd rather your photos weren't uploaded.</strong> All image processing happens in your browser
-          using OpenCV.js. If you save a project to your account, a thumbnail is stored.</li>
+        <li><strong>You don't want a subscription.</strong> Tracing and 3D preview are free without an account. Exports use
+          credits that never expire, so occasional users pay only for what they export.</li>
+        <li><strong>You're filling a Packout or ToughSystem organizer.</strong> Built-in templates size the insert for the
+          PACKOUT Compact (48-22-8435), Low-Profile (48-22-8436), SHOCKWAVE Customizable Case (48-32-9921) and ToughSystem 2.0
+          (DWST08165).</li>
+        <li><strong>You're laying out a whole drawer.</strong> Up to 12 tools per insert, each with its own depth, tolerance
+          and finger notch.</li>
+        <li><strong>You'd rather your photos weren't uploaded.</strong> All image processing happens in your browser using
+          OpenCV.js. If you save a project to your account, a thumbnail is stored.</li>
       </ul>
 
-      <p>
-        Where it falls short: no magnet holes and no labels yet. If you need those in the file, Tracefinity or
-        Tooltrace Pro covers them.
-      </p>
+      <p>Where it falls short: no magnet holes and no labels yet. If you need those in the file, Tracefinity or Tooltrace Pro covers them.</p>
 
       <h2>When to Pick Tooltrace</h2>
 
       <p>
-        Tooltrace is the broadest on file formats, including STEP for CAD work, and it does both Gridfinity inserts
-        and foam shadow boxes from the same trace. If your shop uses foam drawers as well as printed bins, it handles
-        both. Note that some Pro features can be used while designing but need an upgrade before you export.
+        Tooltrace is the broadest on file formats, including STEP for CAD work, and it does both Gridfinity inserts and foam
+        shadow boxes from the same trace. If your shop uses foam drawers as well as printed bins, it handles both. Note that
+        some Pro features can be used while designing but need an upgrade before you export.
       </p>
 
       <h2>When to Pick GridPilot</h2>
 
       <p>
-        GridPilot prices by area rather than by export or by month, and adds zones and auto-arrange for laying out
-        several tools. If you mostly make small inserts, the 100 square inch free allowance may cover you.
+        GridPilot prices by area rather than by export or by month, and adds zones and auto-arrange for laying out several
+        tools. If you mostly make small inserts, the 100 square inch free allowance may cover you.
       </p>
 
       <h2>When to Pick Tracefinity</h2>
 
       <p>
-        Tracefinity has the most Gridfinity-specific options of the four (magnet holes, labels, stacking lip,
-        splitting bins that are too big for your printer bed), and it's open source. If you're comfortable running
-        Docker, self-hosting is free with no limits, and your photos stay on your own machine. The hosted free tier is
-        small, at 2 bins.
+        Tracefinity has the most Gridfinity-specific options of the four (magnet holes, labels, stacking lip, splitting bins
+        that are too big for your printer bed), and it's open source. If you're comfortable running Docker, self-hosting is
+        free with no limits, and your photos stay on your own machine. The hosted free tier is small, at 2 bins.
       </p>
 
       <h2>What They All Have in Common</h2>
 
       <p>
-        Each one uses a sheet of paper in the photo for scale, so photo quality matters more than the tool. Shoot
-        straight down, light evenly, and use a plain background. See{' '}
+        Each one uses a sheet of paper in the photo for scale, so photo quality matters more than the tool. Shoot straight down,
+        light evenly, and use a plain background. See{' '}
         <Link to="/blog/photo-tips-for-gridfinity-trace/">photo tips for a clean Gridfinity trace</Link>, the{' '}
         <Link to="/blog/gridfinity-generator-photo-vs-parametric/">photo-based vs parametric comparison</Link>, and the{' '}
         <Link to="/blog/photo-to-gridfinity-guide/">complete guide to custom Gridfinity bins from a photo</Link>.
@@ -166,27 +155,19 @@ export default function CompetitorComparison() {
       <h2>Sources</h2>
 
       <ul className="text-sm">
-        <li>
-          Tooltrace: <a href="https://www.tooltrace.ai/" {...ext}>tooltrace.ai</a> (pricing), <a href="https://www.tooltrace.ai/how-to" {...ext}>tooltrace.ai/how-to</a> (formats,
-          multi-tool, Pro features), <a href="https://www.tooltrace.ai/about" {...ext}>tooltrace.ai/about</a>
-        </li>
-        <li>
-          GridPilot: <a href="https://gridpilot.us/" {...ext}>gridpilot.us</a>
-        </li>
-        <li>
-          Tracefinity: <a href="https://tracefinity.net/pricing" {...ext}>pricing</a>, <a href="https://tracefinity.net/docs/exporting" {...ext}>export docs</a>, <a href="https://tracefinity.net/privacy" {...ext}>privacy policy</a>, <a href="https://github.com/tracefinity/tracefinity" {...ext}>GitHub</a>
-        </li>
-        <li>
-          TracetoForge: <Link to="/editor/">editor</Link>, <Link to="/guide/">guide</Link>
-        </li>
+        <li>Tooltrace: <a href="https://www.tooltrace.ai/" {...ext}>tooltrace.ai</a> (pricing), <a href="https://www.tooltrace.ai/how-to" {...ext}>tooltrace.ai/how-to</a> (formats, multi-tool, Pro features), <a href="https://www.tooltrace.ai/about" {...ext}>tooltrace.ai/about</a></li>
+        <li>GridPilot: <a href="https://gridpilot.us/" {...ext}>gridpilot.us</a></li>
+        <li>Tracefinity: <a href="https://tracefinity.net/pricing" {...ext}>pricing</a>, <a href="https://tracefinity.net/docs/exporting" {...ext}>export docs</a>, <a href="https://tracefinity.net/privacy" {...ext}>privacy policy</a>, <a href="https://github.com/tracefinity/tracefinity" {...ext}>GitHub</a></li>
+        <li>TracetoForge: <Link to="/editor/">editor</Link>, <Link to="/guide/">guide</Link></li>
       </ul>
 
       <p>
-        Facts checked: 15 October 2026. If anything here is out of date or wrong, including about another company's
-        product, email <a href="mailto:support@tracetoforge.com">support@tracetoforge.com</a> and it will be corrected.
+        Facts checked: 15 October 2026. If anything here is out of date or wrong, including about another company's product,
+        email <a href="mailto:support@tracetoforge.com">support@tracetoforge.com</a> and it will be corrected.
       </p>
 
       <h2>Related Reading</h2>
+
       <ul>
         <li><Link to="/blog/photo-to-gridfinity-guide/">The Complete Guide to Custom Gridfinity Bins from a Photo</Link></li>
         <li><Link to="/blog/gridfinity-generator-photo-vs-parametric/">Photo-Based vs Parametric Gridfinity Generators</Link></li>

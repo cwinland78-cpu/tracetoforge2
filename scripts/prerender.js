@@ -195,6 +195,7 @@ const landingHtml = makePage({
   title: 'Photo to Gridfinity Bin & Custom Tool Inserts | TracetoForge',
   description: 'Photograph a tool on paper and get a fitted Gridfinity bin, Packout drawer insert or tray. Free trace and 3D preview; export STL, 3MF, SVG or DXF.',
   canonical: 'https://tracetoforge.com/',
+  ogTitle: 'Photo to Gridfinity Bin & Custom Tool Inserts | TracetoForge',
   h1: 'Custom Gridfinity Inserts From a Photo — No CAD Needed',
   bodyHtml: `
       <p><strong>New: <a href="/community/">Community Tool Library</a></strong> — browse traces published by other users and drop them straight into your own drawer trays, Gridfinity bins, or Packout inserts. Free to browse and use.</p>
@@ -230,12 +231,12 @@ const landingHtml = makePage({
       <h2>Guides and Tutorials</h2>
       <ul>
         <li><a href="/blog/reusable-tool-library-drawer-trays/">Trace Once, Use Everywhere: Build a Reusable Tool Library</a></li>
-        <li><a href="/blog/image-to-stl-converter-free/">Image to STL Converter: Free, No CAD Needed</a></li>
-        <li><a href="/blog/gridfinity-custom-cutout-no-cad/">Gridfinity Custom Cutouts Without CAD</a></li>
-        <li><a href="/blog/3d-printed-tool-organizer-guide/">3D Printed Tool Organizer: Complete Guide</a></li>
+        <li><a href="/blog/image-to-stl-converter-free/">Image to STL for Tool Outlines</a></li>
+        <li><a href="/blog/gridfinity-custom-cutout-no-cad/">Gridfinity Custom Cutout From a Photo (No CAD)</a></li>
+        <li><a href="/blog/3d-printed-tool-organizer-guide/">3D Printed Tool Organizer Ideas and Fit Guide</a></li>
         <li><a href="/blog/knipex-pliers-organizer-3d-printed/">Knipex Pliers Organizer: 3D Printed Inserts</a></li>
         <li><a href="/blog/photo-to-gridfinity-guide/">Photo to Gridfinity: Measure, Trace, and Check the Fit</a></li>
-        <li><a href="/blog/gridfinity-generator-photo-vs-parametric/">Gridfinity Generator: Photo-Based vs Parametric</a></li>
+        <li><a href="/blog/gridfinity-generator-photo-vs-parametric/">Gridfinity Generators Compared: Parametric vs Photo-Based</a></li>
         <li><a href="/blog/custom-milwaukee-packout-inserts-3d-print/">Custom Milwaukee Packout Inserts</a></li>
         <li><a href="/blog/gridfinity-vs-packout-vs-custom-tray/">Gridfinity vs Packout vs Custom Trays</a></li>
         <li><a href="/blog/3d-printed-inserts-vs-kaizen-foam/">3D Printed Inserts vs Kaizen Foam</a></li>
@@ -557,7 +558,7 @@ writePage('/privacy', makePage({
       <p><strong>Analytics cookies.</strong> Used by Google Analytics to understand site usage in aggregate. These can be opted out at the browser level.</p>
       <p><strong>Advertising cookies.</strong> Optional Adsterra banner cookies are allowed only after a separate advertising choice, described below.</p>
 
-                <section id="website-advertising"><h2 class="text-xl md:text-2xl font-display font-bold text-white mb-3">Optional Website Advertising</h2><p>The homepage has a responsive 728 by 90 desktop or 320 by 50 phone banner, plus 160 by 600 and 160 by 300 side banners on screens 1,680 pixels wide or more. Blog pages offer an optional 300 by 250 Adsterra banner after you choose Allow ads. Adsterra and its advertising partners may use cookies and receive your IP address, browser and device details, referring page, and ad interactions. Your uploaded tool photos, payment details, and account information are not sent through the banner code.</p><p>Choose Decline ads to keep advertising off. Use Advertising choices in the article footer to withdraw consent and remove the ad. This choice is separate from analytics and is remembered in this browser for up to 180 days. Withdrawing consent does not delete data previously received by advertising partners. See <a href="https://adsterra.com/privacy-policy-managed/" class="underline">Adsterra privacy policy</a>.</p></section>
+                <section id="website-advertising"><h2 class="text-xl md:text-2xl font-display font-bold text-white mb-3">Optional Website Advertising</h2><p>The homepage and blog pages offer an optional 300 by 250 Adsterra banner after you choose Allow ads. Adsterra and its advertising partners may use cookies and receive your IP address, browser and device details, referring page, and ad interactions. Your uploaded tool photos, payment details, and account information are not sent through the banner code.</p><p>Choose Decline ads to keep advertising off. Use Advertising choices in the page footer to withdraw consent and remove the ad. This choice is separate from analytics and is remembered in this browser for up to 180 days. Withdrawing consent does not delete data previously received by advertising partners. See <a href="https://adsterra.com/privacy-policy-managed/" class="underline">Adsterra privacy policy</a>.</p></section>
 <h2>Third-Party Services We Use</h2>
       <ul>
         <li><strong>Supabase</strong> for authentication and database hosting</li>
@@ -861,12 +862,30 @@ const postConfigs = [
   { slug: 'reusable-tool-library-drawer-trays', file: 'SavedToolLibrary.jsx' },
 ]
 
-function extractMeta(jsxContent) {
+// Google requires ISO 8601 dates in BlogPosting JSON-LD. Posts should already use
+// YYYY-MM-DD; this also accepts "September 1, 2026" and fails the build on anything else.
+const MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december']
+function isoDate(value, file) {
+  if (!value) return ''
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value
+  const m = value.match(/^([A-Za-z]+)\s+(\d{1,2}),\s*(\d{4})$/)
+  const month = m ? MONTHS.indexOf(m[1].toLowerCase()) + 1 : 0
+  if (!month) throw new Error(`[prerender] ${file}: date "${value}" is not ISO 8601 (YYYY-MM-DD)`)
+  return `${m[3]}-${String(month).padStart(2, '0')}-${m[2].padStart(2, '0')}`
+}
+
+// Shared with BlogPost.jsx: add the brand suffix only while the whole title stays within ~65 characters.
+const TITLE_SUFFIX = ' | TracetoForge'
+function documentTitle(title) {
+  return (title + TITLE_SUFFIX).length <= 65 ? title + TITLE_SUFFIX : title
+}
+
+function extractMeta(jsxContent, file) {
   const title = jsxContent.match(/title="([^"]*)"/)?.[1] || ''
   const desc = jsxContent.match(/description="([^"]*)"/)?.[1] || ''
   const canonical = jsxContent.match(/canonical="([^"]*)"/)?.[1] || ''
-  const date = jsxContent.match(/date="([^"]*)"/)?.[1] || ''
-  const updated = jsxContent.match(/updated="([^"]*)"/)?.[1] || ''
+  const date = isoDate(jsxContent.match(/date="([^"]*)"/)?.[1] || '', file)
+  const updated = isoDate(jsxContent.match(/updated="([^"]*)"/)?.[1] || '', file)
   const tagsMatch = jsxContent.match(/tags=\{\[([^\]]*)\]\}/)
   const tags = tagsMatch ? tagsMatch[1].match(/'([^']+)'/g)?.map(t => t.replace(/'/g, '')) || [] : []
   const faq = []
@@ -895,23 +914,31 @@ function extractArticleContent(jsxContent) {
   content = content.replace(/<[A-Z][a-zA-Z]*[^>]*\/>/g, '')
   content = content.replace(/<[A-Z][a-zA-Z]*[^>]*>[\s\S]*?<\/[A-Z][a-zA-Z]*>/g, '')
   content = content.replace(/\{\/\*[\s\S]*?\*\/\}/g, '')
-  // JSX explicit spaces ({' '}) render as a plain space
-  content = content.replace(/\{' '\}/g, ' ')
 
   // Remove className attributes
   content = content.replace(/\s+className="[^"]*"/g, '')
   content = content.replace(/\s+className='[^']*'/g, '')
   content = content.replace(/\s+className=\{[^}]*\}/g, '')
 
+  // JSX string-literal expressions. Prettier-style line wraps emit {' '} to keep a space
+  // between inline elements; React renders it as a space, so the static HTML must too.
+  // Any other literal ({'text'} / {"text"}) renders as its text.
+  content = content.replace(/\{\s*'((?:[^'\\\n]|\\.)*)'\s*\}/g, (_, s) => s.replace(/\\(.)/g, '$1'))
+  content = content.replace(/\{\s*"((?:[^"\\\n]|\\.)*)"\s*\}/g, (_, s) => s.replace(/\\(.)/g, '$1'))
+
   return content.trim()
 }
 
-const blogSrcDir = join(__dirname, '..', 'src', 'pages', 'blog')
+// Fail the build instead of shipping raw JSX to crawlers.
+function assertNoJsx(html, file) {
+  const leak = html.match(/\{\s*['"`]|\bclassName=|style=\{\{|\{\/\*|<\/?[A-Z][A-Za-z]*[\s/>]/)
+  if (leak) {
+    const at = html.indexOf(leak[0])
+    throw new Error(`[prerender] ${file}: raw JSX left in static HTML near: ${html.slice(Math.max(0, at - 60), at + 60)}`)
+  }
+}
 
-// Matches BlogPost.jsx: append the brand suffix only while the full title stays
-// within 65 characters, so long post titles are not truncated in search results.
-const TITLE_SUFFIX = ' | TracetoForge'
-const blogTitle = t => (t + TITLE_SUFFIX).length <= 65 ? t + TITLE_SUFFIX : t
+const blogSrcDir = join(__dirname, '..', 'src', 'pages', 'blog')
 
 for (const post of postConfigs) {
   const srcPath = join(blogSrcDir, post.file)
@@ -921,8 +948,9 @@ for (const post of postConfigs) {
   }
 
   const jsx = readFileSync(srcPath, 'utf-8')
-  const meta = extractMeta(jsx)
+  const meta = extractMeta(jsx, post.file)
   const articleContent = extractArticleContent(jsx)
+  assertNoJsx(articleContent, post.file)
 
   const articleSchema = {
     "@context": "https://schema.org",
@@ -985,7 +1013,7 @@ ${meta.faq.map(f => `        <h3>${f.q}</h3>\n        <p>${f.a}</p>`).join('\n')
       </section>` : ''
 
   writePage(`/blog/${post.slug}`, makePage({
-    title: blogTitle(meta.title),
+    title: documentTitle(meta.title),
     description: meta.desc,
     canonical: meta.canonical,
     ogTitle: meta.title,
@@ -1006,15 +1034,7 @@ ${authorBioHtml}
 }
 
 // Update sitemap
-// lastmod is a fixed date, not the build date: only pages that actually changed
-// should look fresh to crawlers. Bump SITEMAP_LASTMOD (or add an override) when
-// content changes.
-const SITEMAP_LASTMOD = '2026-10-15'
-const lastmodOverrides = {
-  'https://tracetoforge.com/blog/measure-tool-from-photo-paper/': '2026-09-18',
-  'https://tracetoforge.com/privacy/': '2026-09-14',
-  'https://tracetoforge.com/terms/': '2026-09-14'
-}
+const today = new Date().toISOString().split('T')[0]
 const sitemapUrls = [
   { loc: 'https://tracetoforge.com/', freq: 'weekly', priority: '1.0' },
   { loc: 'https://tracetoforge.com/about/', freq: 'monthly', priority: '0.8' },
@@ -1036,7 +1056,7 @@ const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${sitemapUrls.map(u => `  <url>
     <loc>${u.loc}</loc>
-    <lastmod>${lastmodOverrides[u.loc] || SITEMAP_LASTMOD}</lastmod>
+    <lastmod>${today}</lastmod>
     <changefreq>${u.freq}</changefreq>
     <priority>${u.priority}</priority>
   </url>`).join('\n')}

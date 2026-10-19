@@ -2,11 +2,29 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { Camera, Box, Download, ArrowRight, LayoutGrid, Package, Wrench, ShieldCheck, Layers, MousePointerClick, Printer, ChevronDown, Star, Cpu, Eye, FolderOpen, LogOut, Bookmark, Sparkles, Globe } from 'lucide-react'
 import { useAuth } from '../components/AuthContext'
+import { getAdvertisingConsent, onAdvertisingConsentChange, initAdvertisingChoices } from '../lib/adsterraConsent'
 
-// Ads are injected at the edge by the Ad Manager worker, so in-app ad slots render nothing.
-function AdSlot() {
-  return null
+function enqueueHomepageAd(ad, key, width, height) {
+  const queue = (window.__tfAdsterraQueue ||= { items: [], busy: false })
+  queue.items.push({ ad, key, width, height })
+  const pump = () => {
+    if (queue.busy || !queue.items.length) return
+    const item = queue.items.shift()
+    if (!item.ad.isConnected) return pump()
+    queue.busy = true
+    window.atOptions = { key: item.key, format: 'iframe', height: item.height, width: item.width, params: {} }
+    const script = document.createElement('script')
+    script.src = `https://www.highrevenueformat.com/${item.key}/invoke.js`
+    script.async = false
+    script.onload = script.onerror = () => { queue.busy = false; pump() }
+    item.ad.appendChild(script)
+  }
+  pump()
 }
+
+// Ads are served by the Ad Manager Cloudflare Worker (AD MANAGER project), not by the app.
+// Kept as a no-op so existing <HomepageAdUnit /> placements render nothing.
+function HomepageAdUnit() { return null }
 
 const STEPS = [
   {
@@ -248,12 +266,13 @@ export default function Landing() {
         </div>
       </nav>
 
+      {/* One responsive banner: desktop and mobile use separate approved units. */}
       <div className="w-full py-1">
-        <AdSlot placementKey="43464e995e1cf51b266451e20c6f072b" width={728} height={90} className="tf-adsterra-desktop-only my-2" />
-        <AdSlot placementKey="eef6814f496c3c4c34cb92cb5d962902" width={320} height={50} className="tf-adsterra-mobile-only my-2" />
+        <HomepageAdUnit placementKey="43464e995e1cf51b266451e20c6f072b" width={728} height={90} className="tf-adsterra-desktop-only my-2" />
+        <HomepageAdUnit placementKey="eef6814f496c3c4c34cb92cb5d962902" width={320} height={50} className="tf-adsterra-mobile-only my-2" />
       </div>
-      <AdSlot placementKey="b218d46b3206efd7a53d64c580467d82" width={160} height={600} className="tf-adsterra-rail tf-adsterra-rail-left" />
-      <AdSlot placementKey="6f38de9d4bb051988cd3f72771c4965c" width={160} height={300} className="tf-adsterra-rail tf-adsterra-rail-right" />
+      <HomepageAdUnit placementKey="b218d46b3206efd7a53d64c580467d82" width={160} height={600} className="tf-adsterra-rail tf-adsterra-rail-left" />
+      <HomepageAdUnit placementKey="6f38de9d4bb051988cd3f72771c4965c" width={160} height={300} className="tf-adsterra-rail tf-adsterra-rail-right" />
 
       {/* Hero */}
       <section

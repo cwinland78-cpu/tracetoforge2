@@ -1,9 +1,14 @@
-/blog/best-3d-printed-tool-organizer-ideas  /blog/3d-printed-tool-organizer-guide/  301
-/blog/best-3d-printed-tool-organizer-ideas/  /blog/3d-printed-tool-organizer-guide/  301
-/blog/gridfinity-insert-from-photo  /blog/photo-to-gridfinity-guide/  301
-/blog/gridfinity-insert-from-photo/  /blog/photo-to-gridfinity-guide/  301
-/blog/packout-drawer-inserts  /blog/custom-milwaukee-packout-inserts-3d-print/  301
+# Merged blog posts (2026-10-15): 301 to the cluster pillar. Static rules first.
 /blog/packout-drawer-inserts/  /blog/custom-milwaukee-packout-inserts-3d-print/  301
-/blog/tool-organizer-photo-to-stl  /blog/image-to-stl-converter-free/  301
+/blog/packout-drawer-inserts  /blog/custom-milwaukee-packout-inserts-3d-print/  301
+/blog/gridfinity-insert-from-photo/  /blog/photo-to-gridfinity-guide/  301
+/blog/gridfinity-insert-from-photo  /blog/photo-to-gridfinity-guide/  301
 /blog/tool-organizer-photo-to-stl/  /blog/image-to-stl-converter-free/  301
-/editor/*  /editor/index.html  200
+/blog/tool-organizer-photo-to-stl  /blog/image-to-stl-converter-free/  301
+/blog/best-3d-printed-tool-organizer-ideas/  /blog/3d-printed-tool-organizer-guide/  301
+/blog/best-3d-printed-tool-organizer-ideas  /blog/3d-printed-tool-organizer-guide/  301
+
+# Deep editor links serve the editor shell. Rewrite to the pretty URL /editor/:
+# the old target /editor/index.html is itself 308-redirected to /editor/ by Pages,
+# so the rewrite failed and /editor/<anything> returned 404.
+/editor/*  /editor/  200

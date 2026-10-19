@@ -62,8 +62,8 @@ export default function PrintedToolOrganizer() {
       <h2>10 Organizer Ideas Worth the Print Time</h2>
 
       <p>
-        Once you start printing custom holders and inserts, the list of things worth
-        organizing grows quickly. These ten are practical starting points.
+        Once you start printing custom holders and inserts, the list of things worth organizing grows quickly.
+        These ten are practical starting points.
       </p>
 
       <ol>
@@ -80,9 +80,8 @@ export default function PrintedToolOrganizer() {
       </ol>
 
       <p>
-        For generic bins and holders, browse community designs on Printables, MakerWorld,
-        or Thingiverse. For tool-specific inserts, a photo-based generator produces the
-        exact shapes you need. Start with one drawer.
+        For generic bins and holders, browse community designs on Printables, MakerWorld, or Thingiverse. For
+        tool-specific inserts, a photo-based generator produces the exact shapes you need. Start with one drawer.
       </p>
 
       <h2>Design Methods: From Simple to Advanced</h2>
