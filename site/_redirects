@@ -12,3 +12,7 @@
 # the old target /editor/index.html is itself 308-redirected to /editor/ by Pages,
 # so the rewrite failed and /editor/<anything> returned 404.
 /editor/*  /editor/  200
+
+# Pricing lives on the homepage (2026-10-24).
+/pricing  /#fa-pricing  301
+/pricing/  /#fa-pricing  301
