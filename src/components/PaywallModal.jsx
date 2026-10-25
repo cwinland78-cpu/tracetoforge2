@@ -163,7 +163,8 @@ export default function PaywallModal({ isOpen, onClose, onCreditsChanged, userId
                     const is20 = id.includes('20');
                     const credits = is20 ? 100 : 20;
                     const price = product?.currentPrice?.formattedPrice || (is20 ? '$34.99' : '$9.99');
-                    const perExport = '$0.50';
+                    // $9.99 / 20 = $0.50; $34.99 / 100 = $0.35 (30% less per export)
+                    const perExport = is20 ? '$0.35 per export, save 30%' : '$0.50 per export';
                     return (
                       <button
                         key={id}
@@ -179,7 +180,7 @@ export default function PaywallModal({ isOpen, onClose, onCreditsChanged, userId
                               {credits} Export Credits
                               {is20 && <span className="ml-2 text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full">BEST VALUE</span>}
                             </div>
-                            <div className="text-zinc-400 text-sm">{perExport} per export</div>
+                            <div className="text-zinc-400 text-sm">{perExport}</div>
                           </div>
                           <div className="text-right">
                             <div className="text-orange-400 font-bold text-xl">{price}</div>
@@ -206,7 +207,7 @@ export default function PaywallModal({ isOpen, onClose, onCreditsChanged, userId
                             100 Export Credits
                             <span className="ml-2 text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full">BEST VALUE</span>
                           </div>
-                          <div className="text-zinc-400 text-sm">$0.50 per export</div>
+                          <div className="text-zinc-400 text-sm">$0.35 per export, save 30%</div>
                         </div>
                         <div className="text-orange-400 font-bold text-xl">$34.99</div>
                       </div>

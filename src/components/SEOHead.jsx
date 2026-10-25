@@ -46,7 +46,10 @@ export default function SEOHead({ title, description, canonical, type = 'website
     if (image) setMeta('name', 'twitter:image', image)
 
     // BlogPosting structured data for articles
-    if (type === 'article' && article) {
+    // Prerendered posts already carry a BlogPosting in the static HTML; adding a second one gives Google two entities.
+    const hasStaticArticle = [...document.querySelectorAll('script[type="application/ld+json"]:not(#article-schema)')]
+      .some(el => el.textContent.includes('"BlogPosting"'))
+    if (type === 'article' && article && !hasStaticArticle) {
       // Remove any previous article schema
       const prev = document.getElementById('article-schema')
       if (prev) prev.remove()

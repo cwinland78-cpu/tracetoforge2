@@ -22,7 +22,7 @@ export default function BlogPost({ title, description, canonical, date, updated,
         description={description}
         canonical={canonical}
         type="article"
-        image="https://tracetoforge.com/og-image.png"
+        image="https://tracetoforge.com/og-twitter.jpg"
         article={{
           headline: title,
           datePublished: date,

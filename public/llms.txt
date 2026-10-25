@@ -28,6 +28,15 @@
 - [3D printed tool organizer ideas and fit guide](https://tracetoforge.com/blog/3d-printed-tool-organizer-guide/)
 - [Knipex pliers organizer: 3D printed inserts](https://tracetoforge.com/blog/knipex-pliers-organizer-3d-printed/)
 - [Gridfinity generators compared: parametric vs photo-based](https://tracetoforge.com/blog/gridfinity-generator-photo-vs-parametric/)
+- [Photo tips for a clean tool trace](https://tracetoforge.com/blog/photo-tips-for-gridfinity-trace/)
+- [Measure a tool from a photo with a sheet of paper](https://tracetoforge.com/blog/measure-tool-from-photo-paper/)
+- [Gridfinity in Milwaukee Packout drawers: setup guide](https://tracetoforge.com/blog/gridfinity-in-packout-drawer/)
+- [Wera screwdriver Gridfinity bin: photo-to-print walkthrough](https://tracetoforge.com/blog/wera-screwdriver-gridfinity-bin/)
+- [Wrench set Gridfinity bin from a photo](https://tracetoforge.com/blog/wrench-set-gridfinity-bin/)
+- [Drill bit storage in Gridfinity: custom bin layouts](https://tracetoforge.com/blog/drill-bit-gridfinity-storage/)
+- [Make a replacement gasket from a photo, bolt holes and all](https://tracetoforge.com/blog/gasket-maker-from-photo/)
+- [Turn a drawing into a 3D printable object](https://tracetoforge.com/blog/drawing-to-3d-object/)
+- [TracetoForge vs Tooltrace vs GridPilot vs Tracefinity (2026)](https://tracetoforge.com/blog/tracetoforge-vs-tooltrace-vs-gridpilot/)
 - [Full blog index](https://tracetoforge.com/blog/)
 
 ## Key facts

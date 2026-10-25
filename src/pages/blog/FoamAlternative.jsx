@@ -169,7 +169,7 @@ export default function FoamAlternative() {
         Pre-made STL files on Etsy, Printables, or MakerWorld cost $3 to $15 per insert. They work great
         if someone has already made the exact insert for your exact tool. For anything custom or uncommon,
         photo-to-insert tools like TracetoForge generate the file in minutes for the cost of a credit
-        ($2 to $7 depending on your plan).
+        (about $0.35 to $0.50 per export depending on the pack, and your first 3 exports are free).
       </p>
 
       <h2>The Bottom Line</h2>

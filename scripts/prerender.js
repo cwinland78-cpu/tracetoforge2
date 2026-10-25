@@ -41,7 +41,7 @@ function makePage({ title, description, canonical, ogTitle, ogType = 'website', 
       description: "Browser-based tool that converts photos of tools into 3D-printable STL tray inserts and Gridfinity bins. No CAD experience required.",
       applicationCategory: "DesignApplication",
       operatingSystem: "Any",
-      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+      offers: [{"@type": "Offer", "name": "Free start", "price": "0", "priceCurrency": "USD", "description": "3 free exports with a new account. Tracing and 3D preview are always free."}, {"@type": "Offer", "name": "20 export credits", "price": "9.99", "priceCurrency": "USD", "description": "20 exports, about $0.50 each. Credits never expire."}, {"@type": "Offer", "name": "100 export credits", "price": "34.99", "priceCurrency": "USD", "description": "100 exports, about $0.35 each. Credits never expire."}],
       featureList: [
         "Photo-based automatic tool outline detection",
         "Custom tray insert generation",
@@ -518,7 +518,7 @@ writePage('/editor', makePage({
       applicationCategory: "DesignApplication",
       applicationSubCategory: "3D Modeling Software",
       operatingSystem: "Web Browser",
-      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+      offers: [{"@type": "Offer", "name": "Free start", "price": "0", "priceCurrency": "USD", "description": "3 free exports with a new account. Tracing and 3D preview are always free."}, {"@type": "Offer", "name": "20 export credits", "price": "9.99", "priceCurrency": "USD", "description": "20 exports, about $0.50 each. Credits never expire."}, {"@type": "Offer", "name": "100 export credits", "price": "34.99", "priceCurrency": "USD", "description": "100 exports, about $0.35 each. Credits never expire."}],
       featureList: [
         "Photo-based automatic tool outline detection",
         "Custom tray insert generation",

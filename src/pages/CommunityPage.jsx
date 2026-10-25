@@ -19,8 +19,8 @@ export default function CommunityPage() {
   return (
     <>
       <SEOHead
-        title="Community Tool Library — Shared 3D Printable Tool Traces | TracetoForge"
-        description="Browse a growing library of community-shared tool traces. Use any trace in your own custom drawer trays, Gridfinity bins, or Packout inserts. Free to use."
+        title="Community Tool Library: Shared Tool Traces | TracetoForge"
+        description="Browse community-shared tool traces and use any of them in your own drawer trays, Gridfinity bins or Packout inserts. Free to browse and use."
         canonical="https://tracetoforge.com/community/"
       />
       <div className="min-h-screen bg-[#0D0D12] text-white">
