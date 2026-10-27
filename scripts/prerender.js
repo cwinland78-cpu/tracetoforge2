@@ -103,6 +103,7 @@ function makePage({ title, description, canonical, ogTitle, ogType = 'website', 
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
       gtag('config', 'AW-17969979491');
+      gtag('config', 'G-DR28L813KR');
     </script>
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
