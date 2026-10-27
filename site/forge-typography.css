@@ -1,9 +1,19 @@
+/* Inter: the small Latin WOFF2 faces (declared last, so tried first) cover every character on the homepage;
+   the full TTF faces above are only downloaded if a page uses a character outside that range. */
 @font-face {
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
   font-display: swap;
   src: url(/fonts/inter-0.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(/fonts/inter-0-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2190-21FF,U+2212,U+2215,U+FEFF,U+FFFD;
 }
 @font-face {
   font-family: 'Inter';
@@ -15,9 +25,25 @@
 @font-face {
   font-family: 'Inter';
   font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(/fonts/inter-1-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2190-21FF,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
   font-weight: 600;
   font-display: swap;
   src: url(/fonts/inter-2.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(/fonts/inter-2-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2190-21FF,U+2212,U+2215,U+FEFF,U+FFFD;
 }
 @font-face {
   font-family: 'Inter';
@@ -29,9 +55,25 @@
 @font-face {
   font-family: 'Inter';
   font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(/fonts/inter-3-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2190-21FF,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
   font-weight: 800;
   font-display: swap;
   src: url(/fonts/inter-4.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url(/fonts/inter-4-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2190-21FF,U+2212,U+2215,U+FEFF,U+FFFD;
 }
 :root{--support:"Inter"}
 #fa-root{font-family:var(--support),Arial,sans-serif}#fa-page h1,#fa-page .fa-brand{font-family:Arial,sans-serif}#fa-page nav,#fa-page .fa-open,#fa-page .fa-account{font-size:14px}#fa-page .fa-kicker,#fa-page .fa-caption-line,#fa-page .fa-guide-grid>a>span,#fa-page .fa-fit-label,#fa-page .fa-step-image>span{font-family:var(--support),Arial,sans-serif;font-size:12px;font-weight:600;letter-spacing:1.3px;line-height:1.6}#fa-page .fa-caption-line{font-size:11px;letter-spacing:1px}#fa-page .fa-heading>p,#fa-page .fa-body{font-size:16px;line-height:1.7}#fa-page .fa-steps article>p,#fa-page .fa-guide-grid p{font-size:14px;line-height:1.7}#fa-page small,#fa-page footer{font-size:12px;line-height:1.6}#fa-page .fa-actions>a,#fa-page .fa-actions>a.fa-primary{font-size:14px}#fa-page .fa-fit-label{font-size:10px}@container(max-width:680px){#fa-page .fa-open,#fa-page .fa-account{font-size:12px}#fa-page .fa-actions>a,#fa-page .fa-actions>a.fa-primary{font-size:13px}}
