@@ -109,7 +109,7 @@ export default function BlogPost({ title, description, canonical, date, updated,
           <div className="mt-16 p-8 rounded-2xl bg-brand/5 border border-brand/20 text-center">
             <h2 className="text-xl font-bold mb-2">Ready to create your own custom inserts?</h2>
             <p className="text-[#8888A0] mb-5 max-w-md mx-auto">
-              Snap a photo, trace, preview, and export. 3 free credits on signup, no credit card required.
+              Snap a photo, trace, preview, and export. 1 free export with a new account, no credit card required.
               Everything you export is yours to sell.
             </p>
             <div className="flex items-center justify-center gap-3 flex-wrap">

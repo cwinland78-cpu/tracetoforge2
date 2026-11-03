@@ -16,8 +16,7 @@ import dewaltTs2Small from '../data/dewalt_ts2_small_profile.json'
 import { useAuth } from '../components/AuthContext'
 import { exportSTL, checkGridfinityFit, snapGridUnits, stackingRimSpec } from '../lib/stlExporter'
 import { exportSVG, exportDXF, export3MF, bundleAsZip } from '../lib/exportFormats'
-import { hasCredits, useCredit, getCredits, initPurchases } from '../lib/purchases'
-import { queryTable } from '../lib/supabase'
+import { hasCredits, useCredit, getExportStatus, initPurchases } from '../lib/purchases'
 import { stashDraft, peekDraft, clearDraft } from '../lib/draftStash'
 import { analyzeSTL, fitMessage, dollars, PRINT_PRICING, FILAMENT_COLORS } from '../lib/printPricing'
 
@@ -157,6 +156,7 @@ export default function Editor() {
   const originalUploadRef = useRef(null) // {img, dataUrl} of last real upload, for retroactive paper mode
   const [showPaywall, setShowPaywall] = useState(false)
   const [credits, setCredits] = useState(0)
+  const [unlimited, setUnlimited] = useState(false) // $2.99 unlimited exports
   const [projectId, setProjectId] = useState(null)
   const pendingCommunityToolRef = useRef(null)
   const [projectName, setProjectName] = useState('Untitled Project')
@@ -312,18 +312,20 @@ export default function Editor() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, step])
 
-  // Fetch credits (server-side, login required)
-  useEffect(() => {
-    async function fetchCredits() {
-      if (user?.id) {
-        try {
-          const { data, error } = await queryTable('profiles', 'credits', { id: user.id })
-          if (!error && data && data[0]) { setCredits(data[0].credits); return }
-        } catch (err) { console.error('[TTF] credits fetch failed:', err) }
-      }
-      setCredits(0)
+  // Fetch credits and unlimited status (server-side, login required)
+  const refreshExportStatus = async () => {
+    if (user?.id) {
+      try {
+        const s = await getExportStatus(user.id)
+        setCredits(s.credits); setUnlimited(s.unlimited)
+        return
+      } catch (err) { console.error('[TTF] credits fetch failed:', err) }
     }
-    fetchCredits()
+    setCredits(0); setUnlimited(false)
+  }
+  useEffect(() => {
+    refreshExportStatus()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, profile])
 
   // Load project from URL param
@@ -651,9 +653,7 @@ export default function Editor() {
       }
 
       // Update local credit display for logged-in users
-      if (user?.id) {
-        getCredits(user.id).then(c => setCredits(c))
-      }
+      if (user?.id) refreshExportStatus()
     } catch (err) {
       console.error('Export error:', err)
     }
@@ -2631,7 +2631,7 @@ export default function Editor() {
     if (!pts || pts.length < 3) return
     // Login required for all exports
     if (!isAuthenticated) { goToLogin(); return }
-    if (credits <= 0) {
+    if (!unlimited && credits <= 0) {
       setShowPaywall(true)
       return
     }
@@ -2844,11 +2844,17 @@ export default function Editor() {
                 className="flex items-center gap-1 px-2 py-1.5 text-xs text-[#8888A0] hover:text-white transition-colors">
                 <FolderOpen size={13} /> Projects
               </button>
-              <span className="text-xs text-[#8888A0]">{credits} credits</span>
-              <button onClick={() => setShowPaywall(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-brand/20 hover:bg-brand/30 text-brand rounded-lg transition-colors">
-                Buy Credits
-              </button>
+              {unlimited ? (
+                <span className="text-xs text-brand font-medium">Unlimited exports</span>
+              ) : (
+                <>
+                  <span className="text-xs text-[#8888A0]">{credits} free {credits === 1 ? 'export' : 'exports'}</span>
+                  <button onClick={() => setShowPaywall(true)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-brand/20 hover:bg-brand/30 text-brand rounded-lg transition-colors">
+                    Go Unlimited $2.99
+                  </button>
+                </>
+              )}
             </>
           ) : (
             <>
@@ -2856,7 +2862,6 @@ export default function Editor() {
                 className="px-3 py-1.5 text-xs text-[#C8C8D0] hover:text-white border border-[#444] rounded-lg transition-colors">
                 Sign In
               </button>
-              <span className="text-xs text-[#8888A0]">{credits} credits</span>
             </>
           )}
         </div>
@@ -3853,7 +3858,7 @@ export default function Editor() {
                 </button>
                 <button onClick={handleExport}
                   className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-brand hover:bg-brand-light text-white text-sm font-medium transition-colors">
-                  <Download size={15} /> Export {credits > 0 ? `(${credits} credits)` : ''}
+                  <Download size={15} /> Export {unlimited ? '' : credits > 0 ? `(${credits} left)` : ''}
                 </button>
                 {printOrdersOn && <button onClick={openPrintOrder}
                   title="No printer? We print it and ship it to you."
@@ -3936,7 +3941,7 @@ export default function Editor() {
               <PaywallModal
                 isOpen={showPaywall}
                 onClose={() => setShowPaywall(false)}
-                onCreditsChanged={(c) => { setCredits(c); refreshProfile && refreshProfile() }}
+                onCreditsChanged={() => { refreshExportStatus(); refreshProfile && refreshProfile() }}
                 userId={user?.id}
               />,
               document.body

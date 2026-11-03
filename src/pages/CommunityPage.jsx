@@ -80,7 +80,7 @@ export default function CommunityPage() {
             <div className="bg-surface/40 border border-[#2A2A35]/60 rounded-xl p-4">
               <Star size={18} className="text-amber-400 mb-2" />
               <h3 className="font-display font-bold text-sm mb-1">Quality Up Top</h3>
-              <p className="text-xs text-[#9999AD] leading-relaxed">Star ratings and upvotes from credit holders surface the best fitting traces. Sort by Top, Highest Rated, or Newest.</p>
+              <p className="text-xs text-[#9999AD] leading-relaxed">Star ratings and upvotes from Unlimited members surface the best fitting traces. Sort by Top, Highest Rated, or Newest.</p>
             </div>
             <div className="bg-surface/40 border border-[#2A2A35]/60 rounded-xl p-4">
               <Share2 size={18} className="text-purple-400 mb-2" />
@@ -99,8 +99,8 @@ export default function CommunityPage() {
               <p className="text-sm">When a user publishes a tool, only the geometric data goes public: contour points, dimensions, tolerance, and a small thumbnail rendered from the contour itself. The original photograph is stripped out entirely. You never see the photo someone uploaded, and they never see yours.</p>
             </div>
             <div>
-              <h2 className="text-xl font-display font-bold text-white mb-3">Browse free, contribute with credits</h2>
-              <p className="text-sm">Anyone can browse and use any published tool in their own projects at no charge. Publishing, rating, and upvoting are features for users who have purchased a credit pack. That gate exists for moderation: keeping contributions behind any payment at all eliminates the spam that kills open libraries. And like everything you make with TracetoForge, inserts you print from community traces are yours to use or sell, with no commercial license needed.</p>
+              <h2 className="text-xl font-display font-bold text-white mb-3">Browse free, contribute with Unlimited</h2>
+              <p className="text-sm">Anyone can browse and use any published tool in their own projects at no charge. Publishing, rating, and upvoting are features for users who have bought Unlimited. That gate exists for moderation: keeping contributions behind any payment at all eliminates the spam that kills open libraries. And like everything you make with TracetoForge, inserts you print from community traces are yours to use or sell, with no commercial license needed.</p>
             </div>
           </div>
 

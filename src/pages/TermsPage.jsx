@@ -16,7 +16,7 @@ export default function TermsPage() {
         <h1 className="text-3xl md:text-5xl font-display font-extrabold tracking-tight mb-4">
           Terms of Service
         </h1>
-        <p className="text-sm text-[#666680] font-mono mb-12">Last updated: April 22, 2026</p>
+        <p className="text-sm text-[#666680] font-mono mb-12">Last updated: November 2, 2026</p>
 
         <div className="prose prose-invert max-w-none space-y-8 text-[#AAABB8] leading-relaxed">
           <section>
@@ -32,7 +32,8 @@ export default function TermsPage() {
             <p>
               TracetoForge is a browser-based application that converts photos of physical objects
               into 3D-printable files in STL, 3MF, SVG, and DXF formats. The core tracing and preview
-              functions are free. Exporting downloadable files requires export credits.
+              functions are free. New accounts get one free export. More exports require an
+              Unlimited purchase.
             </p>
           </section>
 
@@ -49,7 +50,7 @@ export default function TermsPage() {
             <h2 className="text-xl md:text-2xl font-display font-bold text-white mb-3">Accounts</h2>
             <p>
               You can use the editor without an account, but creating an account is required to save
-              projects, retain export credits, and access purchase history. You are responsible for
+              projects, use your free export or Unlimited, and access purchase history. You are responsible for
               keeping your password secure and for all activity that occurs under your account. Notify
               us immediately at{' '}
               <a href="mailto:support@tracetoforge.com" className="text-brand underline hover:no-underline">
@@ -60,12 +61,12 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-xl md:text-2xl font-display font-bold text-white mb-3">Credits and Payments</h2>
+            <h2 className="text-xl md:text-2xl font-display font-bold text-white mb-3">Exports and Payments</h2>
             <p className="mb-3">
-              <strong className="text-white">How credits work.</strong> One export credit allows one
-              file download. New accounts receive three free export credits on signup. Additional
-              credits are sold in packs: 20 credits for $9.99 or 100 credits for $34.99. Credits do
-              not expire.
+              <strong className="text-white">How exports work.</strong> New accounts receive one free
+              export. Unlimited exports is a one-time purchase of $2.99 for one account. It is not a
+              subscription and does not expire. Credit packs are no longer sold. Accounts that bought
+              credit packs before were upgraded to Unlimited.
             </p>
             <p className="mb-3">
               <strong className="text-white">Payment processing.</strong> Payments are processed by
@@ -74,14 +75,15 @@ export default function TermsPage() {
               your billing location.
             </p>
             <p className="mb-3">
-              <strong className="text-white">Refunds.</strong> Credits that have not yet been spent on
-              an export are refundable within 14 days of purchase. Email support@tracetoforge.com with
-              your order ID to request a refund. Credits that have already been used to generate a
-              downloadable file are non-refundable.
+              <strong className="text-white">Refunds.</strong> An Unlimited purchase is refundable
+              within 14 days of purchase if you have not exported a file with it. Email
+              support@tracetoforge.com with your order ID to request a refund. Once you have exported a
+              file with Unlimited, the purchase is non-refundable.
             </p>
             <p>
-              <strong className="text-white">Pricing changes.</strong> We may change credit pack prices
-              at any time. Existing unused credits are not affected by price changes.
+              <strong className="text-white">Pricing changes.</strong> The $2.99 price is a
+              limited-time offer and may change for new buyers at any time. A price change does not
+              affect accounts that already bought Unlimited.
             </p>
           </section>
 
@@ -166,7 +168,7 @@ export default function TermsPage() {
               You can delete your account at any time by emailing support@tracetoforge.com. We may
               suspend or terminate your account if you violate these Terms or use the Service in a way
               that creates risk or legal exposure for us or for other users. On termination, your saved
-              projects and unused credits may be lost.
+              projects and Unlimited access may be lost.
             </p>
           </section>
 

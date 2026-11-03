@@ -22,7 +22,7 @@ export default function PhotoToGridfinityGuide() {
     >
       <div className="not-prose mb-8 p-5 rounded-lg border border-brand/30 bg-brand/5">
         <p className="text-xs font-semibold text-brand uppercase tracking-wider mb-2">Quick Answer</p>
-        <p>Place the tool on a known-size reference sheet, take a top-down photo, and trace its outline in the <a href="/editor/">editor</a>. Verify the dimensions before choosing a Gridfinity footprint. Preview the cavity, then print a small fit test before committing to the full organizer. Tracing and preview are free; file exports use credits. Check the editor for current export options.</p>
+        <p>Place the tool on a known-size reference sheet, take a top-down photo, and trace its outline in the <a href="/editor/">editor</a>. Verify the dimensions before choosing a Gridfinity footprint. Preview the cavity, then print a small fit test before committing to the full organizer. Tracing and preview are free. A new account gets 1 free export, and unlimited exports are $2.99 one time.</p>
       </div>
 
       <p>A photo provides a starting outline for an irregular tool. It does not replace measurement. The useful workflow is to capture the shape, verify the scale, and test the cavity with your own printer. This guide explains the checks between those steps.</p>
@@ -297,8 +297,8 @@ export default function PhotoToGridfinityGuide() {
       <h3>Is photo-to-Gridfinity really free?</h3>
       <p>
         Tracing and 3D-previewing on TracetoForge are free with no account required. Exporting a file (STL, 3MF,
-        SVG, DXF) costs one credit. New accounts get three free credits on signup. Additional credits are $9.99
-        for 20 or $34.99 for 100. Tooltrace and GridPilot have their own pricing — see the{' '}
+        SVG, DXF) needs an account. New accounts get 1 free export. Unlimited exports are $2.99 one time, with
+        no subscription. Tooltrace and GridPilot have their own pricing — see the{' '}
         <Link to="/blog/tracetoforge-vs-tooltrace-vs-gridpilot/">comparison post</Link>.
       </p>
 

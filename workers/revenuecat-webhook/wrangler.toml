@@ -1,0 +1,7 @@
+name = "tracetoforge-webhook"
+main = "ttf-webhook.js"
+compatibility_date = "2024-01-01"
+
+# Secrets (set in Cloudflare, never here): RC_WEBHOOK_SECRET, SUPABASE_SERVICE_KEY
+[vars]
+SUPABASE_URL = "https://pzmykycxmbzbrzkyotkc.supabase.co"

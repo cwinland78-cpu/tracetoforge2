@@ -241,7 +241,7 @@ export default function Landing() {
           </button>
           {isAuthenticated ? (
             <>
-              <span className="hidden sm:inline text-xs text-[#8888A0]">{profile?.credits || 0} credits</span>
+              <span className="hidden sm:inline text-xs text-[#8888A0]">{profile?.unlimited ? 'Unlimited exports' : `${profile?.credits || 0} ${profile?.credits === 1 ? 'export' : 'exports'} left`}</span>
               <button onClick={() => navigate('/dashboard/')}
                 className="px-3 py-2 text-sm text-[#C8C8D0] hover:text-white transition-colors flex items-center gap-1.5">
                 <FolderOpen size={14} /> My Projects
@@ -417,11 +417,11 @@ export default function Landing() {
               Simple. No Subscription.
             </h2>
             <p className="text-lg text-[#8888A0] max-w-lg mx-auto">
-              Start free. Pay only when you're ready to export. Credits never expire.
+              Start free. Pay once when you want unlimited exports.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-5">
+          <div className="grid md:grid-cols-2 gap-5 max-w-3xl mx-auto">
             {/* Free tier */}
             <div className="p-7 rounded-2xl bg-surface border border-surface-lighter/40 card-hover flex flex-col">
               <div className="mb-5">
@@ -435,11 +435,11 @@ export default function Landing() {
               </div>
               <ul className="space-y-2.5 mb-8 flex-1">
                 {[
-                  '3 free export credits on signup',
+                  '1 free export with a new account',
                   'Full editor access',
                   'All 3 output modes',
                   'STL, 3MF, SVG & DXF',
-                  'Unlimited tracing & previewing',
+                  'Unlimited tracing & previewing, no account needed',
                 ].map((item, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-[#BBBBCC]">
                     <span className="text-green-400 mt-0.5 flex-shrink-0">&#10003;</span>
@@ -455,59 +455,27 @@ export default function Landing() {
               </button>
             </div>
 
-            {/* Starter pack */}
-            <div className="p-7 rounded-2xl bg-surface border border-surface-lighter/40 card-hover flex flex-col">
-              <div className="mb-5">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-brand/10 text-brand text-[10px] font-mono font-semibold uppercase tracking-wider mb-4">
-                  Starter Pack
-                </span>
-                <div className="flex items-end gap-2 mb-1">
-                  <span className="text-4xl font-display font-black">$9.99</span>
-                </div>
-                <p className="text-xs text-[#666680] font-mono">20 export credits &bull; $0.50 per export</p>
-              </div>
-              <ul className="space-y-2.5 mb-8 flex-1">
-                {[
-                  '20 export credits',
-                  'Credits never expire',
-                  'All output modes & formats',
-                  'Priority support',
-                ].map((item, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-[#BBBBCC]">
-                    <span className="text-brand mt-0.5 flex-shrink-0">&#10003;</span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <button
-                onClick={() => navigate('/editor/')}
-                className="w-full py-3 rounded-lg border border-brand/40 text-sm font-semibold text-brand hover:bg-brand/10 transition-all"
-              >
-                Get Started
-              </button>
-            </div>
-
-            {/* Pro pack - highlighted */}
+            {/* Unlimited - highlighted */}
             <div className="relative p-7 rounded-2xl bg-brand/5 border border-brand/30 card-hover flex flex-col">
               <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] font-bold uppercase tracking-widest bg-brand text-white px-3 py-1 rounded-full">
-                Best Value
+                Flash Sale
               </span>
               <div className="mb-5">
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-brand/10 text-brand text-[10px] font-mono font-semibold uppercase tracking-wider mb-4">
-                  Pro Pack
+                  Unlimited
                 </span>
                 <div className="flex items-end gap-2 mb-1">
-                  <span className="text-4xl font-display font-black">$34.99</span>
+                  <span className="text-4xl font-display font-black">$2.99</span>
+                  <span className="text-sm text-[#8888A0] font-mono mb-1">one time</span>
                 </div>
-                <p className="text-xs text-[#666680] font-mono">100 export credits &bull; $0.35 per export</p>
+                <p className="text-xs text-[#666680] font-mono">Flash sale price &bull; one payment, not a subscription</p>
               </div>
               <ul className="space-y-2.5 mb-8 flex-1">
                 {[
-                  '100 export credits',
-                  'Credits never expire',
-                  'All output modes & formats',
-                  'Priority support',
-                  'Best price per export',
+                  'Unlimited STL, 3MF, SVG & DXF exports',
+                  'All templates and output modes',
+                  'No subscription',
+                  'Yours forever on your account',
                 ].map((item, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-[#BBBBCC]">
                     <span className="text-brand mt-0.5 flex-shrink-0">&#10003;</span>
@@ -519,13 +487,13 @@ export default function Landing() {
                 onClick={() => navigate('/editor/')}
                 className="w-full py-3 rounded-xl bg-brand hover:bg-brand-light text-white text-sm font-bold transition-all shadow-lg shadow-brand/20"
               >
-                Get 100 Credits
+                Get Unlimited for $2.99
               </button>
             </div>
           </div>
 
           <p className="text-center text-xs text-[#555568] font-mono mt-6">
-            Tracing and previewing are always free. You only use a credit when you export a file.
+            Tracing and previewing are always free. You only need an account when you export a file.
           </p>
         </div>
       </section>

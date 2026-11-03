@@ -11,6 +11,10 @@ for (const asset of [js, css]) fs.copyFileSync(path.join(dist, asset.slice(1)), 
 const extras = '<link rel="stylesheet" href="/forge-branding.css"><script src="/forge-branding.js" defer></script><script src="/forge-home-link.js"></script><link rel="icon" href="/forge-cube-r01.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/icon-180.png">'
 const meta = '<meta name="google-adsense-account" content="ca-pub-5879329589086028">'
 const loader = /\s*<script\b[^>]*src="https:\/\/pagead2\.googlesyndication\.com\/pagead\/js\/adsbygoogle\.js[^>]*><\/script>/g
+// Prerendered app pages rebuilt from dist/ like blog posts (so copy such as pricing stays in step).
+// site/index.html is the hand-maintained homepage and is never overwritten.
+const rebuilt=['about','community','contact','editor','guide','privacy','terms'].map(p=>path.join(p,'index.html'))
+fs.copyFileSync(path.join(root,'public','llms.txt'),path.join(site,'llms.txt'))
 function walk(dir) {
   for (const e of fs.readdirSync(dir, {withFileTypes: true})) {
     const p=path.join(dir,e.name)
@@ -18,13 +22,13 @@ function walk(dir) {
     if(!p.endsWith('.html'))continue
     const rel=path.relative(site,p)
     let html=fs.readFileSync(p,'utf8')
-    if(rel.startsWith('blog'+path.sep)) {
+    if(rel.startsWith('blog'+path.sep) || rebuilt.includes(rel)) {
       html=fs.readFileSync(path.join(dist,rel),'utf8').replace('</head>',extras+'</head>')
     }
     html=html.replace(/\/assets\/index-[\w-]+\.js/g,js).replace(/\/assets\/index-[\w-]+\.css/g,css).replace(loader,'')
     if(!html.includes('google-adsense-account'))html=html.replace('</head>',meta+'</head>')
     // Preserve the existing analytics property on rebuilt editorial pages.
-    if(rel.startsWith('blog'+path.sep) && !html.includes('G-DR28L813KR'))html=html.replace("gtag('config', 'AW-17969979491');", "gtag('config', 'AW-17969979491');\n      gtag('config', 'G-DR28L813KR');")
+    if((rel.startsWith('blog'+path.sep) || rebuilt.includes(rel)) && !html.includes('G-DR28L813KR'))html=html.replace("gtag('config', 'AW-17969979491');", "gtag('config', 'AW-17969979491');\n      gtag('config', 'G-DR28L813KR');")
     fs.writeFileSync(p,html)
   }
 }

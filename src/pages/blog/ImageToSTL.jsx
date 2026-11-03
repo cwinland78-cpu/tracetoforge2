@@ -18,7 +18,7 @@ export default function ImageToSTL() {
         <p className="text-[#C8C8D0] leading-relaxed text-[15px]">
           To trace a photo for an STL export, upload the image to TracetoForge in your browser.
           OpenCV.js auto-detects the silhouette, you set real-world dimensions (width and depth in mm), and export as STL, 3MF, SVG, or DXF.
-          All processing runs locally in the browser — no images upload to a server. Free to trace and preview; exports cost one credit (3 free on signup).
+          All processing runs locally in the browser — no images upload to a server. Free to trace and preview; 1 free export with a new account, then unlimited exports for $2.99 one time.
           Best results come from a top-down photo on a plain white background with even lighting.
         </p>
       </div>
@@ -161,9 +161,9 @@ export default function ImageToSTL() {
       <h2>Free vs Paid Image to STL Options</h2>
 
       <p>
-        Most photo-to-STL tools offer a free tier. TracetoForge gives you free exports to try
-        the tool, then uses a credit system for additional exports. One credit equals one export.
-        Credit packs start at $9.99 for 20 exports. Compare that to a $70/month Fusion 360
+        Most photo-to-STL tools offer a free tier. TracetoForge gives you 1 free export to try
+        the tool. After that, unlimited exports are $2.99 one time, with no subscription.
+        Compare that to a $70/month Fusion 360
         subscription or $15-40 per custom insert on Etsy.
       </p>
 

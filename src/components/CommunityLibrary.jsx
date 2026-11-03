@@ -228,7 +228,7 @@ export default function CommunityLibrary({ userId, canContribute, onUseTool, com
                   <button
                     onClick={() => handleVote(t.id)}
                     disabled={!canContribute}
-                    title={canContribute ? (t._myVote ? 'Remove upvote' : 'Upvote') : 'Sign in and purchase credits to vote'}
+                    title={canContribute ? (t._myVote ? 'Remove upvote' : 'Upvote') : 'Sign in and upgrade to Unlimited to vote'}
                     className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded transition-colors ${
                       t._myVote
                         ? 'bg-blue-600/20 text-blue-300'
@@ -247,7 +247,7 @@ export default function CommunityLibrary({ userId, canContribute, onUseTool, com
 
       {!canContribute && tools.length > 0 && (
         <p className="mt-4 text-[11px] text-zinc-500 text-center">
-          Browse free, anyone can use. Purchase credits to publish, rate, and upvote.
+          Browse free, anyone can use. Upgrade to unlimited to publish, rate, and upvote.
         </p>
       )}
     </div>

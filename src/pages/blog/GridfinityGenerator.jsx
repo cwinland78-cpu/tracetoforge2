@@ -153,7 +153,7 @@ export default function GridfinityGenerator() {
 
       <p>
         Parametric generators are free and widely available. TracetoForge offers free
-        tracing and previewing with export credits starting at $9.99 for 20 exports.
+        tracing and previewing, 1 free export with a new account, and unlimited exports for $2.99 one time.
         Try the <Link to="/editor/">photo-based Gridfinity generator</Link> for your
         next tool insert and see the difference a precision cutout makes.
       </p>

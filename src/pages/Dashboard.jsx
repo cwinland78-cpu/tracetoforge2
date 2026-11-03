@@ -145,8 +145,9 @@ export default function Dashboard() {
           </Link>
           <div className="flex items-center gap-4">
             <span className="text-sm text-gray-400">
-              {profile?.credits || 0} credit
-              {profile?.credits !== 1 ? 's' : ''}
+              {profile?.unlimited
+                ? 'Unlimited exports'
+                : `${profile?.credits || 0} ${profile?.credits === 1 ? 'export' : 'exports'} left`}
             </span>
             <span className="text-sm text-gray-500">{user?.email}</span>
             <button

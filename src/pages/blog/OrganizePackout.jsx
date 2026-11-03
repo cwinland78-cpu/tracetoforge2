@@ -235,7 +235,7 @@ export default function OrganizePackout() {
       </p>
 
       <p>
-        <Link to="/editor/">Start creating your first custom Packout insert here</Link>. 3 free credits, no credit card.
+        <Link to="/editor/">Start creating your first custom Packout insert here</Link>. 1 free export with a new account, no credit card.
       </p>
 
       <h2>Related Guides</h2>

@@ -51,17 +51,25 @@ export async function purchasePackage(pkg, userId) {
     const purchases = await initPurchases(userId);
     if (!purchases) throw new Error('RevenueCat not initialized');
     const result = await purchases.purchase({ rcPackage: pkg });
-    // Credits are added server-side via RevenueCat webhook - no client-side addition needed
-    const productId = pkg.rcBillingProduct?.identifier || pkg.identifier || '';
-    let creditsToAdd = 0;
-    if (productId.includes('20')) creditsToAdd = 100;
-    else if (productId.includes('5')) creditsToAdd = 20;
-    return { success: true, credits: creditsToAdd, result };
+    // Unlimited is turned on server-side via RevenueCat webhook - no client-side grant
+    return { success: true, result };
   } catch (err) {
     if (err.errorCode === 1) return { success: false, cancelled: true };
     console.error('Purchase error:', err);
     return { success: false, error: err.message };
   }
+}
+
+// Unlimited exports ($2.99 one time) - RevenueCat product id, also mapped in the
+// webhook Worker and fulfill_purchase. Change all three together.
+export const UNLIMITED_PRODUCT_ID = 'ttf_unlimited';
+
+export async function getExportStatus(userId) {
+  if (!userId) return { credits: 0, unlimited: false };
+  const { data, error } = await queryTable('profiles', 'credits,unlimited', { id: userId });
+  if (!error && data && data[0]) return { credits: data[0].credits || 0, unlimited: !!data[0].unlimited };
+  console.error('Error fetching export status:', error);
+  return { credits: 0, unlimited: false };
 }
 
 export async function getCredits(userId) {

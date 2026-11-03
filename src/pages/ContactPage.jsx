@@ -42,7 +42,7 @@ export default function ContactPage() {
               a bug or a tracing problem, a screenshot and the photo you uploaded help a lot.
             </p>
             <p>
-              For purchase issues (refund requests, missing credits, receipt problems), include the
+              For purchase issues (refund requests, Unlimited not showing up, receipt problems), include the
               email address on your TracetoForge account and the approximate date of purchase so we
               can look up the transaction in RevenueCat.
             </p>
@@ -56,7 +56,7 @@ export default function ContactPage() {
               <li><strong className="text-white">Feature requests:</strong> reviewed, prioritized against the roadmap, replied to honestly even if the answer is "not soon"</li>
               <li><strong className="text-white">Refund requests:</strong> processed per the{' '}
                 <Link to="/terms/" className="text-brand underline hover:no-underline">Terms of Service</Link>
-                {' '}refund policy (unspent credits refundable within 14 days)
+                {' '}refund policy (Unlimited is refundable within 14 days if unused)
               </li>
               <li><strong className="text-white">Partnership or press inquiries:</strong> also at the same email, with "press" or "partnership" in the subject</li>
             </ul>
@@ -150,8 +150,8 @@ export default function ContactPage() {
               has photo tips.
             </p>
             <p className="mb-3">
-              <strong className="text-white">"I bought credits and they did not show up."</strong> Give
-              it up to 60 seconds for the webhook to fire, then refresh the page. If credits are still
+              <strong className="text-white">"I bought Unlimited and it did not show up."</strong> Give
+              it up to 60 seconds for the webhook to fire, then refresh the page. If it is still
               missing after five minutes, email us with your order ID.
             </p>
             <p className="mb-3">
@@ -161,8 +161,8 @@ export default function ContactPage() {
               insert.
             </p>
             <p>
-              <strong className="text-white">"Can I get a refund?"</strong> Yes, unspent credits are
-              refundable within 14 days of purchase. Email with the order ID and we will process it.
+              <strong className="text-white">"Can I get a refund?"</strong> Yes, Unlimited is
+              refundable within 14 days of purchase if you have not exported a file with it. Email with the order ID and we will process it.
               See the full policy in the{' '}
               <Link to="/terms/" className="text-brand underline hover:no-underline">Terms of Service</Link>.
             </p>

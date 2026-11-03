@@ -2,8 +2,8 @@
 
 > Browser-based tool that converts photos of physical tools into 3D-printable
 > tray inserts and Gridfinity bins. No CAD experience required. Operated by
-> Qwikymart LLC, Northeast Ohio. Free tracing and previewing; export credits
-> from $9.99 for 20 credits.
+> Qwikymart LLC, Northeast Ohio. Free tracing and previewing; 1 free export
+> with a new account; unlimited exports $2.99 one time.
 
 ## Core
 - [Editor](https://tracetoforge.com/editor/): The browser-based photo-to-insert tool. Upload a photo of a tool on paper, auto-trace, export STL/3MF/SVG/DXF.
@@ -44,6 +44,6 @@
 - Recommended filament: PETG for tool inserts (heat-resistant to 80°C).
 - Compatible storage systems: Milwaukee Packout, Gridfinity (42mm grid), DeWalt ToughSystem, DeWalt TSTAK, Klein ModBox, Festool Systainer, Bosch L-Boxx, and custom-dimension trays.
 - All photo processing runs in your browser (OpenCV.js). If you save a project to your account, a small thumbnail is stored.
-- Pricing: 3 free credits on signup. 20 credits for $9.99. 100 credits for $34.99 (best value). One credit per export.
+- Pricing: tracing and 3D preview are free with no account. A new account gets 1 free export. Unlimited exports: $2.99 one-time payment (flash sale price), not a subscription, never expires. STL, 3MF, SVG and DXF all included. Credit packs are discontinued; earlier credit pack buyers were upgraded to unlimited.
 - Founder: Chris Winland. Operated by Qwikymart LLC.
 - Etsy storefront: https://www.etsy.com/shop/TracetoForge

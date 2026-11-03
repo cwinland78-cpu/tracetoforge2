@@ -16,7 +16,7 @@ export default function CompetitorComparison() {
       tags={['Gridfinity', 'Comparison', 'Tool Organization']}
       faq={[
         { q: 'What is the difference between Tracefinity and TracetoForge?', a: 'Tracefinity is MIT-licensed open source. You can self-host it in Docker or use the hosted app at tracefinity.net, where photos are processed on its servers. It exports STL, 3MF (when the bin has labels) and SVG outlines, and supports magnet holes and labels. TracetoForge runs its tracing in your browser, exports STL, 3MF, SVG and DXF, and has Packout and ToughSystem tray templates, but has no magnet holes or labels.' },
-        { q: 'Is there a free photo to Gridfinity generator?', a: 'Yes, all four have a free option. TracetoForge: tracing and 3D preview are free, plus 3 export credits at signup. Tooltrace: 3 active traces free. GridPilot: 100 square inches a month free. Tracefinity: a small hosted free tier, or free and unlimited if you self-host.' },
+        { q: 'Is there a free photo to Gridfinity generator?', a: 'Yes, all four have a free option. TracetoForge: tracing and 3D preview are free, plus 1 free export with a new account. Tooltrace: 3 active traces free. GridPilot: 100 square inches a month free. Tracefinity: a small hosted free tier, or free and unlimited if you self-host.' },
         { q: 'Which tools export DXF for laser cutting or CNC?', a: 'TracetoForge, Tooltrace and GridPilot all list DXF export. Tracefinity exports SVG outlines but not DXF.' },
         { q: 'Which is most accurate?', a: 'None of these tools publish measured accuracy figures, so there is no fair winner to declare. In every one of them, scale comes from the paper in the photo, so a flat, evenly lit, top-down photo matters more than which tool you pick.' },
         { q: 'Do I need CAD skills to make a custom Gridfinity bin?', a: 'No. Photo-based generators exist to skip CAD. You photograph the tool on a sheet of paper, the software traces the outline and uses the paper for scale, and you export a printable file.' },
@@ -46,7 +46,7 @@ export default function CompetitorComparison() {
           <strong><Link to="/editor/">TracetoForge</Link></strong>: browser-based editor. Tracing runs in your browser with
           OpenCV.js. Modes for Gridfinity bins (with optional stacking lip), free-form trays, gaskets, and inserts sized for
           Milwaukee PACKOUT and DeWalt ToughSystem 2.0 organizers. Up to 12 tools per insert. Exports STL, 3MF, SVG and DXF.
-          Tracing and preview are free; exports cost credits ($9.99 for 20, $34.99 for 100) that never expire.
+          Tracing and preview are free; unlimited exports are $2.99 one time, with no subscription.
         </li>
         <li>
           <strong><a href="https://www.tooltrace.ai/" {...ext}>Tooltrace</a></strong>: made by finalREV, a machine shop in
@@ -92,8 +92,8 @@ export default function CompetitorComparison() {
             <tr className="border-b border-[#2A2A35]/50"><td className="py-2 px-3">Labels</td><td className="text-center text-[#666680]">—</td><td className="text-center text-[#666680]">not listed</td><td className="text-center text-[#666680]">not listed</td><td className="text-center">✓</td></tr>
             <tr className="border-b border-[#2A2A35]/50"><td className="py-2 px-3">Where photos are processed</td><td className="text-center">in your browser</td><td className="text-center text-[#666680]">not listed</td><td className="text-center text-[#666680]">not listed</td><td className="text-center">their servers (hosted) or your machine (self-hosted)</td></tr>
             <tr className="border-b border-[#2A2A35]/50"><td className="py-2 px-3">Open source / self-host</td><td className="text-center text-[#666680]">—</td><td className="text-center text-[#666680]">—</td><td className="text-center text-[#666680]">—</td><td className="text-center">✓ (MIT)</td></tr>
-            <tr className="border-b border-[#2A2A35]/50"><td className="py-2 px-3">Free tier</td><td className="text-center">trace and preview free; 3 export credits at signup</td><td className="text-center">3 active traces</td><td className="text-center">100 sq in / month</td><td className="text-center">2 bins (hosted); unlimited self-hosted</td></tr>
-            <tr><td className="py-2 px-3">Paid pricing</td><td className="text-center">$9.99 / 20 exports<br/>$34.99 / 100 exports<br/><span className="text-[#666680]">no subscription; never expire</span></td><td className="text-center">Pro $8/month</td><td className="text-center">$3.99 / 4,500 sq in<br/>$16.99/month unlimited</td><td className="text-center">€4.99/month<br/>€9.99/month</td></tr>
+            <tr className="border-b border-[#2A2A35]/50"><td className="py-2 px-3">Free tier</td><td className="text-center">trace and preview free; 1 free export with a new account</td><td className="text-center">3 active traces</td><td className="text-center">100 sq in / month</td><td className="text-center">2 bins (hosted); unlimited self-hosted</td></tr>
+            <tr><td className="py-2 px-3">Paid pricing</td><td className="text-center">$2.99 one time, unlimited exports<br/><span className="text-[#666680]">no subscription; never expires</span></td><td className="text-center">Pro $8/month</td><td className="text-center">$3.99 / 4,500 sq in<br/>$16.99/month unlimited</td><td className="text-center">€4.99/month<br/>€9.99/month</td></tr>
           </tbody>
         </table>
         <p className="text-xs text-[#666680] mt-2">* Tracefinity exports 3MF only for bins with text labels.</p>
@@ -106,8 +106,8 @@ export default function CompetitorComparison() {
       <h2>When to Pick TracetoForge</h2>
 
       <ul>
-        <li><strong>You don't want a subscription.</strong> Tracing and 3D preview are free without an account. Exports use
-          credits that never expire, so occasional users pay only for what they export.</li>
+        <li><strong>You don't want a subscription.</strong> Tracing and 3D preview are free without an account. Unlimited
+          exports are a one-time $2.99 payment that never expires.</li>
         <li><strong>You're filling a Packout or ToughSystem organizer.</strong> Built-in templates size the insert for the
           PACKOUT Compact (48-22-8435), Low-Profile (48-22-8436), SHOCKWAVE Customizable Case (48-32-9921) and ToughSystem 2.0
           (DWST08165).</li>

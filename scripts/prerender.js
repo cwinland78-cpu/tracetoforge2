@@ -41,7 +41,7 @@ function makePage({ title, description, canonical, ogTitle, ogType = 'website', 
       description: "Browser-based tool that converts photos of tools into 3D-printable STL tray inserts and Gridfinity bins. No CAD experience required.",
       applicationCategory: "DesignApplication",
       operatingSystem: "Any",
-      offers: [{"@type": "Offer", "name": "Free start", "price": "0", "priceCurrency": "USD", "description": "3 free exports with a new account. Tracing and 3D preview are always free."}, {"@type": "Offer", "name": "20 export credits", "price": "9.99", "priceCurrency": "USD", "description": "20 exports, about $0.50 each. Credits never expire."}, {"@type": "Offer", "name": "100 export credits", "price": "34.99", "priceCurrency": "USD", "description": "100 exports, about $0.35 each. Credits never expire."}],
+      offers: [{"@type": "Offer", "name": "Free start", "price": "0", "priceCurrency": "USD", "description": "1 free export with a new account. Tracing and 3D preview are always free."}, {"@type": "Offer", "name": "Unlimited exports", "price": "2.99", "priceCurrency": "USD", "description": "One-time payment for unlimited STL, 3MF, SVG and DXF exports. No subscription."}],
       featureList: [
         "Photo-based automatic tool outline detection",
         "Custom tray insert generation",
@@ -172,7 +172,7 @@ const faqSchema = {
     {
       "@type": "Question",
       name: "Is TracetoForge free to use?",
-      acceptedAnswer: { "@type": "Answer", text: "Yes. Tracing and 3D previewing are always free with no account required. You get 3 free export credits when you sign up. Additional credits are available in packs: 20 for $9.99 or 100 for $34.99. Credits never expire." }
+      acceptedAnswer: { "@type": "Answer", text: "Yes. Tracing and 3D previewing are always free with no account required. A new account gets 1 free export. After that, unlimited exports are $2.99 one time (flash sale price). No subscription, and it never expires." }
     },
     {
       "@type": "Question",
@@ -251,7 +251,7 @@ const landingHtml = makePage({
       <h3>What tool storage systems are supported?</h3>
       <p>Milwaukee Packout, Gridfinity, DeWalt ToughSystem, TSTAK, Ridgid Pro Gear, Makita MakTrak, Flex Stack Pack, Klein ModBox, Bosch L-Boxx, Festool Systainer, and any custom-dimension toolbox drawer.</p>
       <h3>Is TracetoForge free?</h3>
-      <p>Tracing and 3D previewing are always free. You get 3 free export credits on signup. Additional credits: 20 for $9.99 or 100 for $34.99. Credits never expire.</p>
+      <p>Tracing and 3D previewing are always free, no account needed. A new account gets 1 free export. Unlimited exports are $2.99 one time (flash sale price). No subscription, never expires.</p>
       <h3>Do I need CAD experience?</h3>
       <p>No. The entire workflow is photo-based. Snap a photo, adjust the trace, set dimensions, export. Under 2 minutes from photo to printable file.</p>
       <h3>What filament should I use for tool inserts?</h3>
@@ -368,7 +368,7 @@ writePage('/guide', makePage({
       <p>The 3D preview shows your insert exactly as it will print. Rotate, zoom, and inspect the geometry from all angles. If anything looks off (wrong cavity depth, weird overhangs, missing notches), go back and adjust. The preview updates in real time as you change settings.</p>
 
       <h2>Step 8: Export</h2>
-      <p>Pick your format and click Export. Exporting requires one credit per file:</p>
+      <p>Pick your format and click Export. Your first export is free with a new account. After that, Unlimited ($2.99 one time) covers every export in every format:</p>
       <p><strong>STL</strong> for standard single-material 3D printing. Works with every slicer.</p>
       <p><strong>3MF</strong> for multi-material or multi-color prints (Bambu AMS, Prusa MMU).</p>
       <p><strong>SVG</strong> for laser cutting foam, plywood, or acrylic versions of the same shape.</p>
@@ -427,8 +427,8 @@ writePage('/community', makePage({
       <h2>What Gets Shared, What Stays Private</h2>
       <p>When a user publishes a tool, only the geometric data and a generated silhouette go public: contour points, real-world dimensions, tolerance, sensitivity, and a small thumbnail rendered from the contour itself. The original photograph is stripped out entirely. This is a deliberate privacy boundary, not a UI choice. You never see the original photo someone uploaded, and they never see yours.</p>
 
-      <h2>Browse Free, Contribute With Credits</h2>
-      <p>Anyone can browse the library and use any published tool in their own projects, free of charge, no account needed beyond what the editor already requires. Publishing tools, rating tools, and upvoting tools is a feature for users who have purchased a credit pack. The reason is moderation: gating contributions behind any payment, no matter how small, eliminates the spam and abuse that kill open libraries. Browsing stays free because that is the value most users want.</p>
+      <h2>Browse Free, Contribute With Unlimited</h2>
+      <p>Anyone can browse the library and use any published tool in their own projects, free of charge, no account needed beyond what the editor already requires. Publishing tools, rating tools, and upvoting tools is a feature for users who have bought Unlimited. The reason is moderation: gating contributions behind any payment, no matter how small, eliminates the spam and abuse that kill open libraries. Browsing stays free because that is the value most users want.</p>
 
       <h2>Sort By Top, Highest Rated, or Newest</h2>
       <p>The default sort surfaces the most engaged-with tools by combining upvotes and rating count. Highest Rated sorts by average star rating among tools that have been rated at least once. Newest shows the most recent additions. Filter by category to narrow to pliers, wrenches, screwdrivers, ratchets, hammers, or any other category authors have used.</p>
@@ -476,8 +476,8 @@ writePage('/editor', makePage({
       <h2>Compatible Tool Storage Systems</h2>
       <p>TracetoForge generates inserts that fit Milwaukee Packout (full size, compact, low-profile), Gridfinity (42mm standard grid), DeWalt ToughSystem 2.0, DeWalt TSTAK, Ridgid Pro Gear 2.0, Makita MakTrak, Flex Stack Pack, Klein ModBox, Bosch L-Boxx, Festool Systainer, Makita MakPac, Kobalt, Husky, Craftsman, Stanley FatMax, Harbor Freight US General, and Snap-on. For toolbox drawers without a standard system, use Custom Tray mode and enter your own dimensions.</p>
 
-      <h2>Pricing and Credits</h2>
-      <p>Tracing, previewing, and adjusting your insert are always free with no signup required. Exporting a file to download requires one credit. New accounts get three free export credits on signup. Additional credits are available in packs: 20 credits for $9.99 or 100 credits for $34.99. Credits never expire.</p>
+      <h2>Pricing</h2>
+      <p>Tracing, previewing, and adjusting your insert are always free with no signup required. A new account gets 1 free export. Unlimited exports are $2.99 one time (flash sale price), not a subscription, and never expire. STL, 3MF, SVG and DXF are all included.</p>
 
       <h2>Editor FAQ</h2>
 
@@ -519,7 +519,7 @@ writePage('/editor', makePage({
       applicationCategory: "DesignApplication",
       applicationSubCategory: "3D Modeling Software",
       operatingSystem: "Web Browser",
-      offers: [{"@type": "Offer", "name": "Free start", "price": "0", "priceCurrency": "USD", "description": "3 free exports with a new account. Tracing and 3D preview are always free."}, {"@type": "Offer", "name": "20 export credits", "price": "9.99", "priceCurrency": "USD", "description": "20 exports, about $0.50 each. Credits never expire."}, {"@type": "Offer", "name": "100 export credits", "price": "34.99", "priceCurrency": "USD", "description": "100 exports, about $0.35 each. Credits never expire."}],
+      offers: [{"@type": "Offer", "name": "Free start", "price": "0", "priceCurrency": "USD", "description": "1 free export with a new account. Tracing and 3D preview are always free."}, {"@type": "Offer", "name": "Unlimited exports", "price": "2.99", "priceCurrency": "USD", "description": "One-time payment for unlimited STL, 3MF, SVG and DXF exports. No subscription."}],
       featureList: [
         "Photo-based automatic tool outline detection",
         "Custom tray insert generation",
@@ -548,10 +548,10 @@ writePage('/privacy', makePage({
       <p><strong>Account information.</strong> If you create an account, we collect your email address and a hashed password. We do not collect your real name, mailing address, or phone number.</p>
       <p><strong>Usage data.</strong> We collect standard web analytics data such as pages viewed, time on site, referring URL, approximate location at the city or country level, browser type, operating system, and device type. This helps us understand which features are useful and which need work.</p>
       <p><strong>Your photos and designs.</strong> When you upload a photo of a tool to the editor, the image is processed entirely in your browser using client-side OpenCV edge detection. Your photos are never uploaded to our servers unless you explicitly save a project to your account. Saved project data is limited to tool dimensions, tracing settings, output configuration, and a small thumbnail.</p>
-      <p><strong>Purchase information.</strong> If you buy export credits, payments are processed by Stripe through RevenueCat. We never see or store your full credit card number, CVV, or banking details. We only receive a confirmation that payment succeeded and a transaction ID we use to grant credits to your account.</p>
+      <p><strong>Purchase information.</strong> If you buy Unlimited exports, payments are processed by Stripe through RevenueCat. We never see or store your full credit card number, CVV, or banking details. We only receive a confirmation that payment succeeded and a transaction ID we use to unlock Unlimited on your account.</p>
 
       <h2>How We Use Your Information</h2>
-      <p>We use the information we collect to operate the site and provide the photo-to-STL service, manage your account and saved projects, process payments and grant export credits, improve the product based on usage patterns, respond to support requests, send transactional emails such as password resets and purchase receipts, display advertising, and detect and prevent fraud or abuse.</p>
+      <p>We use the information we collect to operate the site and provide the photo-to-STL service, manage your account and saved projects, process payments and unlock Unlimited exports, improve the product based on usage patterns, respond to support requests, send transactional emails such as password resets and purchase receipts, display advertising, and detect and prevent fraud or abuse.</p>
 
       <h2>Cookies and Tracking Technologies</h2>
       <p>We use cookies and similar technologies for three categories of purpose:</p>
@@ -600,29 +600,29 @@ writePage('/privacy', makePage({
 // Terms of Service
 writePage('/terms', makePage({
   title: 'Terms of Service | TracetoForge',
-  description: 'TracetoForge terms of service. Account rules, credit packs, refund policy, intellectual property, third-party trademarks, acceptable use, and contact information.',
+  description: 'TracetoForge terms of service. Account rules, Unlimited exports, refund policy, intellectual property, third-party trademarks, acceptable use, and contact information.',
   canonical: 'https://tracetoforge.com/terms/',
   ogTitle: 'TracetoForge Terms of Service',
   h1: 'Terms of Service',
   bodyHtml: `
-      <p><em>Last updated: April 22, 2026</em></p>
+      <p><em>Last updated: November 2, 2026</em></p>
 
       <p>These Terms of Service ("Terms") govern your use of tracetoforge.com (the "Service"), operated by Qwikymart LLC ("we," "us," "our"). By accessing or using the Service, you agree to be bound by these Terms. If you do not agree, do not use the Service.</p>
 
       <h2>The Service</h2>
-      <p>TracetoForge is a browser-based application that converts photos of physical objects into 3D-printable files in STL, 3MF, SVG, and DXF formats. The core tracing and preview functions are free. Exporting downloadable files requires export credits.</p>
+      <p>TracetoForge is a browser-based application that converts photos of physical objects into 3D-printable files in STL, 3MF, SVG, and DXF formats. The core tracing and preview functions are free. New accounts get one free export. More exports require an Unlimited purchase.</p>
 
       <h2>Eligibility</h2>
       <p>You must be at least 13 years old to use the Service. If you are between 13 and 18, you must have permission from a parent or legal guardian. By using the Service, you represent that you meet these requirements.</p>
 
       <h2>Accounts</h2>
-      <p>You can use the editor without an account, but creating an account is required to save projects, retain export credits, and access purchase history. You are responsible for keeping your password secure and for all activity that occurs under your account. Notify us immediately at <!--email_off-->support@tracetoforge.com<!--/email_off--> if you suspect unauthorized access.</p>
+      <p>You can use the editor without an account, but creating an account is required to save projects, use your free export or Unlimited, and access purchase history. You are responsible for keeping your password secure and for all activity that occurs under your account. Notify us immediately at <!--email_off-->support@tracetoforge.com<!--/email_off--> if you suspect unauthorized access.</p>
 
-      <h2>Credits and Payments</h2>
-      <p><strong>How credits work.</strong> One export credit allows one file download. New accounts receive three free export credits on signup. Additional credits are sold in packs: 20 credits for $9.99 or 100 credits for $34.99. Credits do not expire.</p>
+      <h2>Exports and Payments</h2>
+      <p><strong>How exports work.</strong> New accounts receive one free export. Unlimited exports is a one-time purchase of $2.99 for one account. It is not a subscription and does not expire. Credit packs are no longer sold. Accounts that bought credit packs before were upgraded to Unlimited.</p>
       <p><strong>Payment processing.</strong> Payments are processed by Stripe through RevenueCat. We do not store your full payment information. Prices are in U.S. dollars and exclude any applicable taxes, which may be collected by Stripe based on your billing location.</p>
-      <p><strong>Refunds.</strong> Credits that have not yet been spent on an export are refundable within 14 days of purchase. Email <!--email_off-->support@tracetoforge.com<!--/email_off--> with your order ID to request a refund. Credits that have already been used to generate a downloadable file are non-refundable.</p>
-      <p><strong>Pricing changes.</strong> We may change credit pack prices at any time. Existing unused credits are not affected by price changes.</p>
+      <p><strong>Refunds.</strong> An Unlimited purchase is refundable within 14 days of purchase if you have not exported a file with it. Email <!--email_off-->support@tracetoforge.com<!--/email_off--> with your order ID to request a refund. Once you have exported a file with Unlimited, the purchase is non-refundable.</p>
+      <p><strong>Pricing changes.</strong> The $2.99 price is a limited-time offer and may change for new buyers at any time. A price change does not affect accounts that already bought Unlimited.</p>
 
       <h2>Acceptable Use</h2>
       <p>You agree not to use the Service to do any of the following:</p>
@@ -654,7 +654,7 @@ writePage('/terms', makePage({
       <p>You agree to indemnify and hold harmless Qwikymart LLC and its officers and operators from any claims, damages, or expenses arising out of your use of the Service, your violation of these Terms, or your infringement of any third party's rights.</p>
 
       <h2>Account Termination</h2>
-      <p>You can delete your account at any time by emailing <!--email_off-->support@tracetoforge.com<!--/email_off-->. We may suspend or terminate your account if you violate these Terms or use the Service in a way that creates risk or legal exposure for us or for other users. On termination, your saved projects and unused credits may be lost.</p>
+      <p>You can delete your account at any time by emailing <!--email_off-->support@tracetoforge.com<!--/email_off-->. We may suspend or terminate your account if you violate these Terms or use the Service in a way that creates risk or legal exposure for us or for other users. On termination, your saved projects and Unlimited access may be lost.</p>
 
       <h2>Changes to These Terms</h2>
       <p>We may update these Terms from time to time. The "Last updated" date at the top of this page reflects the most recent revision. Significant changes will be announced on the site or by email. Continued use of the Service after changes indicates acceptance of the updated Terms.</p>
@@ -688,7 +688,7 @@ writePage('/about', makePage({
       <p>The owner is a longtime hobbyist maker based in Northeast Ohio. No fancy credentials, no pedigree. Just a garage, a 3D printer, a toolbox that used to be a mess, and enough web development background to turn an idea into something other makers can use. Every feature in the editor got built because somebody (often the owner) hit a wall trying to do something in Fusion 360 that should have taken two minutes.</p>
 
       <h2>What we actually do</h2>
-      <p><strong>The software side.</strong> TracetoForge is a browser-based editor that runs entirely on your device. You upload a photo of a tool, OpenCV traces the outline, and you export a print-ready STL, 3MF, SVG, or DXF. The app supports Gridfinity, Milwaukee Packout, DeWalt ToughSystem, and any custom tray dimensions. Tracing and previewing are free. Exporting a file costs one credit. New accounts get three free credits on signup.</p>
+      <p><strong>The software side.</strong> TracetoForge is a browser-based editor that runs entirely on your device. You upload a photo of a tool, OpenCV traces the outline, and you export a print-ready STL, 3MF, SVG, or DXF. The app supports Gridfinity, Milwaukee Packout, DeWalt ToughSystem, and any custom tray dimensions. Tracing and previewing are free. New accounts get 1 free export. Unlimited exports are $2.99 one time.</p>
       <p><strong>The physical side.</strong> Not everyone owns a 3D printer. For those folks we print and ship inserts from the shop, using PETG filament that holds up to garage heat and vehicle toolboxes. The inserts are listed on the <a href="https://www.etsy.com/shop/TracetoForge">TracetoForge Etsy shop</a> and on <a href="https://www.amazon.com/s?k=TracetoForge+gridfinity+insert&amp;rh=n%3A553240">Amazon</a>, sold under the Qwikymart LLC seller account. Each insert is traced from the actual tool, not from manufacturer spec sheets, so the fit is real.</p>
 
       <h2>What we believe about tool organization</h2>
@@ -728,14 +728,14 @@ writePage('/contact', makePage({
 
       <h2>Email us directly</h2>
       <p>The fastest way to reach us is email: <!--email_off--><a href="mailto:support@tracetoforge.com">support@tracetoforge.com</a><!--/email_off-->. Messages are typically answered within 1 to 2 business days. If you are reporting a bug or a tracing problem, a screenshot and the photo you uploaded help a lot.</p>
-      <p>For purchase issues (refund requests, missing credits, receipt problems), include the email address on your TracetoForge account and the approximate date of purchase so we can look up the transaction in RevenueCat.</p>
+      <p>For purchase issues (refund requests, Unlimited not showing up, receipt problems), include the email address on your TracetoForge account and the approximate date of purchase so we can look up the transaction in RevenueCat.</p>
 
       <h2>What to expect</h2>
       <ul>
         <li><strong>Typical response time:</strong> 1 to 2 business days</li>
         <li><strong>Bug reports:</strong> fixes usually ship within a week, sometimes same day</li>
         <li><strong>Feature requests:</strong> reviewed, prioritized against the roadmap, replied to honestly even if the answer is "not soon"</li>
-        <li><strong>Refund requests:</strong> processed per the <a href="/terms/">Terms of Service</a> refund policy (unspent credits refundable within 14 days)</li>
+        <li><strong>Refund requests:</strong> processed per the <a href="/terms/">Terms of Service</a> refund policy (Unlimited is refundable within 14 days if unused)</li>
         <li><strong>Partnership or press inquiries:</strong> also at the same email, with "press" or "partnership" in the subject</li>
       </ul>
 
@@ -753,9 +753,9 @@ writePage('/contact', makePage({
 
       <h2>Before you email: common questions</h2>
       <p><strong>"Auto-trace is missing part of my tool."</strong> Try increasing the Sensitivity slider. For shiny or chrome tools, tissue paper or a matte spray over the tool helps cut reflections. The <a href="/guide/">Getting Started Guide</a> has photo tips.</p>
-      <p><strong>"I bought credits and they did not show up."</strong> Give it up to 60 seconds for the webhook to fire, then refresh the page. If credits are still missing after five minutes, email us with your order ID.</p>
+      <p><strong>"I bought Unlimited and it did not show up."</strong> Give it up to 60 seconds for the webhook to fire, then refresh the page. If it is still missing after five minutes, email us with your order ID.</p>
       <p><strong>"The printed insert is too tight / too loose."</strong> Adjust the Tolerance slider in the editor. Most printers land well at 0.4 to 0.6 mm tolerance. Dial it in once on your printer and the same value works for every future insert.</p>
-      <p><strong>"Can I get a refund?"</strong> Yes, unspent credits are refundable within 14 days of purchase. Email with the order ID and we will process it. See the full policy in the <a href="/terms/">Terms of Service</a>.</p>
+      <p><strong>"Can I get a refund?"</strong> Yes, Unlimited is refundable within 14 days of purchase if you have not exported a file with it. Email with the order ID and we will process it. See the full policy in the <a href="/terms/">Terms of Service</a>.</p>
 
       <p><a href="/">Back to TracetoForge</a> | <a href="/about/">About TracetoForge</a></p>`
 }))
@@ -769,7 +769,7 @@ function authShellBody(label) {
 
 writePage('/login', makePage({
   title: 'Sign in | TracetoForge',
-  description: 'Sign in to TracetoForge to access your saved tool traces and credit balance.',
+  description: 'Sign in to TracetoForge to access your saved tool traces and account.',
   canonical: 'https://tracetoforge.com/login/',
   ogTitle: 'Sign in to TracetoForge',
   h1: 'Sign in',
@@ -789,7 +789,7 @@ writePage('/reset-password', makePage({
 
 writePage('/dashboard', makePage({
   title: 'Dashboard | TracetoForge',
-  description: 'Your TracetoForge dashboard: saved traces, credit balance, and account settings.',
+  description: 'Your TracetoForge dashboard: saved traces, export access, and account settings.',
   canonical: 'https://tracetoforge.com/dashboard/',
   ogTitle: 'TracetoForge Dashboard',
   h1: 'Dashboard',

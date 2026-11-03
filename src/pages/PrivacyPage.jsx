@@ -48,8 +48,8 @@ export default function PrivacyPage() {
               is stored in our database.
             </p>
             <p>
-              <strong className="text-white">Purchase information.</strong> If you purchase export
-              credits, payments are processed by Stripe via RevenueCat. We never see or store your
+              <strong className="text-white">Purchase information.</strong> If you purchase Unlimited
+              exports, payments are processed by Stripe via RevenueCat. We never see or store your
               credit card information. We only receive a confirmation that payment succeeded and a
               transaction ID.
             </p>
@@ -89,7 +89,7 @@ export default function PrivacyPage() {
             <ul className="list-disc list-inside space-y-2 pl-2">
               <li>To operate the site and provide the photo-to-STL service</li>
               <li>To manage your account and saved projects</li>
-              <li>To process payments and grant export credits</li>
+              <li>To process payments and unlock Unlimited exports</li>
               <li>To improve the product based on usage patterns</li>
               <li>To respond to support requests</li>
               <li>To display advertisements</li>

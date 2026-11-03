@@ -69,8 +69,8 @@ export default function AboutPage() {
               editor that runs entirely on your device. You upload a photo of a tool, OpenCV traces
               the outline, and you export a print-ready STL, 3MF, SVG, or DXF. The app supports
               Gridfinity, Milwaukee Packout, DeWalt ToughSystem, and any custom tray dimensions.
-              Tracing and previewing are free. Exporting a file costs one credit. New accounts get
-              three free credits on signup.
+              Tracing and previewing are free. New accounts get 1 free export. Unlimited exports
+              are $2.99 one time.
             </p>
             <p>
               <strong className="text-white">The physical side.</strong> Not everyone owns a 3D printer.

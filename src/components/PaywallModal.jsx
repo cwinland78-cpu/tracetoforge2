@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getOfferings, purchasePackage, getCredits, redeemPromoCode } from '../lib/purchases';
-import { queryTable } from '../lib/supabase';
+import { getOfferings, purchasePackage, getExportStatus, redeemPromoCode, UNLIMITED_PRODUCT_ID } from '../lib/purchases';
 
 export default function PaywallModal({ isOpen, onClose, onCreditsChanged, userId }) {
   const [offerings, setOfferings] = useState(null);
@@ -12,6 +11,7 @@ export default function PaywallModal({ isOpen, onClose, onCreditsChanged, userId
   const [promoResult, setPromoResult] = useState(null);
   const [promoLoading, setPromoLoading] = useState(false);
   const [currentCredits, setCurrentCredits] = useState(0);
+  const [unlimited, setUnlimited] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -24,13 +24,9 @@ export default function PaywallModal({ isOpen, onClose, onCreditsChanged, userId
   }, [isOpen]);
 
   async function loadCredits() {
-    if (userId) {
-      try {
-        const { data } = await queryTable('profiles', 'credits', { id: userId });
-        if (data && data[0]) { setCurrentCredits(data[0].credits); return; }
-      } catch (err) { console.error('PaywallModal credits error:', err); }
-    }
-    setCurrentCredits(0);
+    const s = await getExportStatus(userId || null);
+    setCurrentCredits(s.credits);
+    setUnlimited(s.unlimited);
   }
 
   async function loadOfferings() {
@@ -58,7 +54,7 @@ export default function PaywallModal({ isOpen, onClose, onCreditsChanged, userId
         const product = pkg.rcBillingProduct;
         const price = product?.currentPrice?.amountMicros
           ? product.currentPrice.amountMicros / 1000000
-          : (product?.identifier?.includes('20') ? 34.99 : 9.99);
+          : 2.99;
         if (typeof gtag === 'function') {
           gtag('event', 'conversion', {
             'send_to': 'AW-17969979491/ntR9CK31mv0bEOPA4PhC',
@@ -67,16 +63,15 @@ export default function PaywallModal({ isOpen, onClose, onCreditsChanged, userId
             'transaction_id': result.transactionId || ''
           });
         }
-        // Poll briefly so the webhook has time to land before we refresh
-        // the balance. Stops early as soon as credits increase.
-        const before = currentCredits;
-        let credits = before;
-        for (let i = 0; i < 6; i++) {
+        // Poll briefly so the webhook has time to land before we refresh.
+        // Stops early as soon as unlimited is on.
+        let status = { credits: currentCredits, unlimited: false };
+        for (let i = 0; i < 8; i++) {
           await new Promise(r => setTimeout(r, 1500));
-          credits = await getCredits(userId || null);
-          if (credits > before) break;
+          status = await getExportStatus(userId || null);
+          if (status.unlimited) break;
         }
-        onCreditsChanged?.(credits);
+        onCreditsChanged?.(status.credits);
         onClose();
       } else if (result.cancelled) {
         // User cancelled
@@ -126,6 +121,7 @@ export default function PaywallModal({ isOpen, onClose, onCreditsChanged, userId
   if (!isOpen) return null;
 
   const packages = offerings?.availablePackages || [];
+  const unlimitedPkg = packages.find(p => (p.rcBillingProduct?.identifier || '') === UNLIMITED_PRODUCT_ID) || null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
@@ -134,9 +130,9 @@ export default function PaywallModal({ isOpen, onClose, onCreditsChanged, userId
         <div className="bg-gradient-to-r from-orange-600 to-orange-500 px-6 py-5">
           <div className="flex justify-between items-start">
             <div>
-              <h2 className="text-xl font-bold text-white">Export Credits</h2>
+              <h2 className="text-xl font-bold text-white">Unlimited Exports</h2>
               <p className="text-orange-100 text-sm mt-1">
-                Purchase credits to download your STL files
+                One payment. Export as many files as you want.
               </p>
             </div>
             <button onClick={onClose} className="text-orange-200 hover:text-white text-2xl leading-none">
@@ -148,74 +144,42 @@ export default function PaywallModal({ isOpen, onClose, onCreditsChanged, userId
         {/* Body */}
         <div className="px-6 py-5 space-y-4">
           <div className="text-center text-zinc-400 text-sm">
-            Current balance: <span className="text-orange-400 font-bold">{currentCredits} credits</span>
+            {unlimited
+              ? <span className="text-orange-400 font-bold">You have unlimited exports</span>
+              : <>Free exports left: <span className="text-orange-400 font-bold">{currentCredits}</span></>}
           </div>
 
           {loading ? (
             <div className="text-center py-8 text-zinc-400">Loading options...</div>
           ) : (
             <>
-              <div className="space-y-3">
-                {packages.length > 0 ? (
-                  packages.map((pkg) => {
-                    const product = pkg.rcBillingProduct;
-                    const id = product?.identifier || '';
-                    const is20 = id.includes('20');
-                    const credits = is20 ? 100 : 20;
-                    const price = product?.currentPrice?.formattedPrice || (is20 ? '$34.99' : '$9.99');
-                    // $9.99 / 20 = $0.50; $34.99 / 100 = $0.35 (30% less per export)
-                    const perExport = is20 ? '$0.35 per export, save 30%' : '$0.50 per export';
-                    return (
-                      <button
-                        key={id}
-                        onClick={() => handlePurchase(pkg)}
-                        disabled={purchasing}
-                        className={`w-full text-left p-4 rounded-xl border transition-all ${
-                          is20 ? 'border-orange-500 bg-orange-500/10 hover:bg-orange-500/20' : 'border-zinc-600 bg-zinc-800 hover:bg-zinc-700'
-                        } ${purchasing ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                      >
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <div className="font-bold text-white text-lg">
-                              {credits} Export Credits
-                              {is20 && <span className="ml-2 text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full">BEST VALUE</span>}
-                            </div>
-                            <div className="text-zinc-400 text-sm">{perExport}</div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-orange-400 font-bold text-xl">{price}</div>
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  })
-                ) : (
-                  <>
-                    <div className="w-full text-left p-4 rounded-xl border border-zinc-600 bg-zinc-800 opacity-50">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <div className="font-bold text-white text-lg">20 Export Credits</div>
-                          <div className="text-zinc-400 text-sm">$0.50 per export</div>
-                        </div>
-                        <div className="text-orange-400 font-bold text-xl">$9.99</div>
-                      </div>
-                    </div>
-                    <div className="w-full text-left p-4 rounded-xl border border-orange-500 bg-orange-500/10 opacity-50">
+              {(() => {
+                const pkg = unlimitedPkg;
+                const price = pkg?.rcBillingProduct?.currentPrice?.formattedPrice || '$2.99';
+                return (
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => pkg && handlePurchase(pkg)}
+                      disabled={purchasing || !pkg || unlimited}
+                      className={`w-full text-left p-4 rounded-xl border border-orange-500 bg-orange-500/10 transition-all ${
+                        purchasing || !pkg || unlimited ? 'opacity-50 cursor-not-allowed' : 'hover:bg-orange-500/20 cursor-pointer'
+                      }`}
+                    >
                       <div className="flex justify-between items-center">
                         <div>
                           <div className="font-bold text-white text-lg">
-                            100 Export Credits
-                            <span className="ml-2 text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full">BEST VALUE</span>
+                            Unlimited Exports
+                            <span className="ml-2 text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full">FLASH SALE</span>
                           </div>
-                          <div className="text-zinc-400 text-sm">$0.35 per export, save 30%</div>
+                          <div className="text-zinc-400 text-sm">STL, 3MF, SVG and DXF. One time, no subscription.</div>
                         </div>
-                        <div className="text-orange-400 font-bold text-xl">$34.99</div>
+                        <div className="text-orange-400 font-bold text-xl">{price}</div>
                       </div>
-                    </div>
-                    <div className="text-center text-zinc-500 text-xs">Payment system loading... Please try again.</div>
-                  </>
-                )}
-              </div>
+                    </button>
+                    {!pkg && <div className="text-center text-zinc-500 text-xs">Payment system loading... Please try again.</div>}
+                  </div>
+                );
+              })()}
 
               <div className="border-t border-zinc-700 pt-4">
                 {!showPromo ? (
@@ -244,7 +208,7 @@ export default function PaywallModal({ isOpen, onClose, onCreditsChanged, userId
                     </div>
                     {promoResult && (
                       <div className={`text-sm text-center py-1 ${promoResult.success ? 'text-green-400' : 'text-red-400'}`}>
-                        {promoResult.success ? `${promoResult.credits} free credits added! (${promoResult.total} total)` : promoResult.error}
+                        {promoResult.success ? `${promoResult.credits} free exports added! (${promoResult.total} total)` : promoResult.error}
                       </div>
                     )}
                   </div>
@@ -257,7 +221,7 @@ export default function PaywallModal({ isOpen, onClose, onCreditsChanged, userId
 
           <div className="text-center text-zinc-500 text-xs space-y-1">
             <p>Editing and 3D preview are always free</p>
-            <p>Credits never expire</p>
+            <p>Yours for good. It never expires.</p>
           </div>
         </div>
       </div>
